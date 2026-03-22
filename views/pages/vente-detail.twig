@@ -1,0 +1,110 @@
+{% extends "layouts/base.twig" %}
+
+{% block style %}
+<link rel="stylesheet" href="/css/ventes.css">
+{% endblock %}
+
+{% block header %}
+    {% include "partials/_navbar.twig" %}
+{% endblock %}
+
+{% block main %}
+<div class="main">
+
+    {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
+    {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
+
+    <a href="/ventes" class="section-label" style="margin-bottom:20px;display:inline-block;">← Retour aux ventes</a>
+
+    <div class="detail-grid">
+        <!-- Détails commande -->
+        <div class="card">
+            <div class="card__header">
+                <span class="card__title">Détails commande</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-row__label">N°Commande</span>
+                <span class="detail-row__value">{{ vente.numeroCommande }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-row__label">Date</span>
+                <span class="detail-row__value">{{ vente.createdAt ? vente.createdAt|date('d/m/Y') : '—' }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-row__label">Statut</span>
+                <span class="detail-row__value">
+                    {% if vente.statut == 'VALIDEE' %}<span class="badge badge-green">Validée</span>
+                    {% elseif vente.statut == 'ANNULEE' %}<span class="badge badge-red">Annulée</span>
+                    {% else %}<span class="badge badge-blue">En cours</span>{% endif %}
+                </span>
+            </div>
+        </div>
+
+        <!-- Produit vendu (première ligne) -->
+        {% if vente.lignes|length > 0 %}
+        {% set ligne = vente.lignes[0] %}
+        <div class="card">
+            <div class="card__header">
+                <span class="card__title">Produit vendu</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-row__label">Nom</span>
+                <span class="detail-row__value">{{ ligne.produit.nom ?? '—' }}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-row__label">Unité</span>
+                <span class="detail-row__value">kg</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-row__label">Coût de prod.</span>
+                <span class="detail-row__value">{{ ligne.produit.coutActuel ?? '—' }} €</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Lignes de facturation -->
+    <div class="card">
+        <div class="card__header">
+            <span class="card__title">Lignes de facturation</span>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Désignation</th><th>Quantité</th>
+                    <th>Prix unitaire</th><th>Prix HT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in vente.lignes %}
+                <tr>
+                    <td>{{ ligne.produit.nom ?? '—' }}</td>
+                    <td>{{ ligne.quantite }} kg</td>
+                    <td>{{ ligne.prixUnitaire }} $</td>
+                    <td>{{ ligne.prixHT }} $</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="empty-state">Aucune ligne</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Totaux -->
+        <div class="facture-totaux">
+            <div class="facture-ligne">
+                <span class="facture-ligne__label">Sous-total</span>
+                <span class="facture-ligne__value">HTX {{ vente.totalHT }} €</span>
+            </div>
+            <div class="facture-ligne">
+                <span class="facture-ligne__label">TVA ({{ vente.tva }}%)</span>
+                <span class="facture-ligne__value">{{ montantTVA }} €</span>
+            </div>
+            <div class="facture-ligne facture-ligne--ttc">
+                <span class="facture-ligne__label">Total TTC</span>
+                <span class="facture-ligne__value">{{ vente.totalTTC }} €</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

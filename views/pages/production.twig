@@ -1,0 +1,250 @@
+{% extends "layouts/base.twig" %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+<link rel="stylesheet" href="/css/production.css">
+{% endblock %}
+
+{% block header %}
+    {% include "partials/_navbar.twig" %}
+{% endblock %}
+
+{% block main %}
+<div class="main">
+
+    {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
+    {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
+
+    {# Données calendrier passées via un script invisible — lues par production.js #}
+    <script id="calendar-events-data" type="application/json">{{ eventsCalendar|raw }}</script>
+
+    <!-- Onglets -->
+    <div class="page-tabs">
+        <a class="page-tab active" data-tab="productions" href="#">Planning</a>
+        <a class="page-tab" data-tab="cours" href="#">Cours Matières Premières</a>
+    </div>
+
+    <!-- ── PANNEAU PLANNING ── -->
+    <div id="tab-productions" class="tab-panel active">
+        <div class="card">
+            <div class="card__header">
+                <span class="card__title">Productions</span>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-outline" data-modal-open="modal-calendar">📅 Calendrier</button>
+                    <button class="btn btn-primary" data-modal-open="modal-prod-add">Ajoutez</button>
+                </div>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nom</th><th>Quantité</th><th>Matières premières</th>
+                        <th>Coût de fab</th><th>Début fab</th><th>Fin fab</th>
+                        <th>Statut</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in productions %}
+                    <tr>
+                        <td>{{ p.produit.nom ?? '—' }}</td>
+                        <td>{{ p.quantite }}</td>
+                        <td>
+                            {% for c in p.consommations %}
+                                <span class="badge badge-muted">{{ c.matiere.nom ?? '—' }}</span>
+                            {% else %}—{% endfor %}
+                        </td>
+                        <td>{{ p.coutFab }}</td>
+                        <td>{{ p.debutFab ? p.debutFab|date('d/m/Y') : '—' }}</td>
+                        <td>{{ p.finFab ? p.finFab|date('d/m/Y') : '—' }}</td>
+                        <td>
+                            {% if p.statut == 'EN_COURS' %}<span class="badge badge-blue">EN COURS</span>
+                            {% elseif p.statut == 'TERMINEE' %}<span class="badge badge-green">TERMINÉE</span>
+                            {% elseif p.statut == 'ANNULEE' %}<span class="badge badge-red">ANNULÉE</span>
+                            {% else %}<span class="badge badge-muted">EN ATTENTE</span>{% endif %}
+                        </td>
+                        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                            {% if p.statut == 'EN_ATTENTE' %}
+                            <form method="POST" action="/production/{{ p.id }}/lancer" style="display:inline;">
+                                <button type="submit" class="btn btn-outline" style="font-size:11px;padding:5px 10px;">▶ Lancer</button>
+                            </form>
+                            {% endif %}
+                            {% if p.statut == 'EN_COURS' %}
+                            <form method="POST" action="/production/{{ p.id }}/terminer" style="display:inline;">
+                                <button type="submit" class="btn btn-outline" style="font-size:11px;padding:5px 10px;">✓ Terminer</button>
+                            </form>
+                            {% endif %}
+                            {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
+                            <button class="btn btn-danger"
+                                data-modal-open="modal-prod-delete"
+                                data-form="form-prod-delete"
+                                data-action="/production/{{ p.id }}/delete"
+                                data-confirm-text="Supprimer cette production ?"
+                                data-confirm-target="delete-prod-text"
+                                style="font-size:11px;padding:5px 10px;">✕</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="empty-state">Aucune production</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── PANNEAU COURS MP ── -->
+    <div id="tab-cours" class="tab-panel">
+
+        <div class="cours-header">
+            <div>
+                <div class="cours-header__title">Cours des Matières Premières</div>
+                <div class="cours-header__meta">● SOURCING — Prix actuels · Production recommandée</div>
+            </div>
+            <div class="cours-kpis">
+                <div class="cours-kpi">
+                    <div class="cours-kpi__label">Sous 1 jour</div>
+                    <div class="cours-kpi__value">{{ alertesAchat|length }}</div>
+                </div>
+                <div class="cours-kpi">
+                    <div class="cours-kpi__label">Jour de vente</div>
+                    <div class="cours-kpi__value">{{ alertesVente|length }}</div>
+                </div>
+            </div>
+        </div>
+
+        {% if alertesAchat or alertesVente %}
+        <div class="alertes-grid">
+            {% for m in alertesAchat %}
+            <div class="alerte-card alerte-card--achat">
+                <div>
+                    <div class="alerte-card__badge">Alerte Achat — {{ m.nom }}</div>
+                    <div class="alerte-card__name">{{ m.stockMP.quantite ?? 0 }} {{ m.unite }} en stock</div>
+                    <div class="alerte-card__sub">Prix actuel {{ m.prixActuel }}$ · Achat conseillé</div>
+                </div>
+                <form method="POST" action="/production/add">
+                    <input type="hidden" name="nom" value="{{ m.nom }}">
+                    <input type="hidden" name="quantite" value="1">
+                    <input type="hidden" name="statut" value="EN_ATTENTE">
+                    <button type="submit" class="btn btn-primary" style="font-size:11px;">Lancer prod.</button>
+                </form>
+            </div>
+            {% endfor %}
+            {% for m in alertesVente %}
+            <div class="alerte-card alerte-card--vente">
+                <div>
+                    <div class="alerte-card__badge">Alerte Vente — {{ m.nom }}</div>
+                    <div class="alerte-card__name">{{ m.stockMP.quantite ?? 0 }} {{ m.unite }} en stock</div>
+                    <div class="alerte-card__sub">Prix actuel {{ m.prixActuel }}$ · Vente recommandée</div>
+                </div>
+                <button class="btn btn-danger" style="font-size:11px;">Arrêter prod.</button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card__header">
+                <span class="card__title">Cours du marché</span>
+                <span class="badge badge-green" style="font-size:10px;">LIVE — CommodityPriceAPI</span>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Matière</th><th>Catégorie</th><th>Unité</th>
+                        <th>Prix</th><th>Variation</th><th>Signal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in coursMatieres %}
+                    <tr>
+                        <td><strong>{{ m.nom }}</strong></td>
+                        <td><span class="badge badge-muted">{{ m.categorie }}</span></td>
+                        <td>{{ m.unite }}</td>
+                        <td>
+                            {% if m.prix %}
+                                {{ m.prix }}$
+                                {% if m.isLive %}
+                                    <span class="badge badge-green" style="font-size:9px;padding:2px 7px;margin-left:4px;">LIVE</span>
+                                {% endif %}
+                            {% else %}
+                                <span style="color:var(--muted);">—</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if m.variation > 0 %}<span class="variation-up">+{{ m.variation }}%</span>
+                            {% elseif m.variation < 0 %}<span class="variation-down">{{ m.variation }}%</span>
+                            {% else %}<span class="variation-flat">0%</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if m.variation < -1 %}<span class="badge badge-blue">Achat conseillé</span>
+                            {% elseif m.variation > 1 %}<span class="badge badge-red">Vente conseillée</span>
+                            {% else %}<span class="badge badge-muted">Stable</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="empty-state">Aucune donnée disponible</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modale Calendrier -->
+<div id="modal-calendar" class="modal-backdrop">
+    <div class="modal modal-calendar">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+            <h3 style="font-size:18px;font-weight:500;">Planning des productions</h3>
+            <button class="btn btn-ghost" data-modal-close="modal-calendar">✕</button>
+        </div>
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<!-- Modal Ajout Production -->
+<div id="modal-prod-add" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Ajouter une production</h3>
+        <form method="POST" action="/production/add">
+            <div class="form-group"><label class="form-label">NOM *</label>
+                <input class="form-input" type="text" name="nom" placeholder="SWAG..." required></div>
+            <div class="form-group"><label class="form-label">QUANTITE *</label>
+                <input class="form-input" type="number" step="0.01" name="quantite" placeholder="155" required></div>
+            <div class="form-group"><label class="form-label">COUT DE FAB</label>
+                <input class="form-input" type="number" step="0.01" name="coutFab" placeholder="15"></div>
+            <div class="form-group"><label class="form-label">DEBUT FAB</label>
+                <input class="form-input" type="date" name="debutFab"></div>
+            <div class="form-group"><label class="form-label">FIN FAB</label>
+                <input class="form-input" type="date" name="finFab"></div>
+            <div class="form-group"><label class="form-label">STATUTS *</label>
+                <select class="form-select" name="statut">
+                    <option value="EN_ATTENTE">En attente</option>
+                    <option value="EN_COURS">En cours</option>
+                    <option value="TERMINEE">Terminée</option>
+                </select></div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-full">Ajoutez</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-prod-add">Annulez</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Suppression Production -->
+<div id="modal-prod-delete" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:16px;font-size:18px;font-weight:500;">Supprimer la production</h3>
+        <p id="delete-prod-text" style="color:var(--muted);margin-bottom:24px;"></p>
+        <form id="form-prod-delete" method="POST" action="">
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-prod-delete">Annulez</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="/script/production.js"></script>
+{% endblock %}

@@ -1,0 +1,125 @@
+{% extends "layouts/base.twig" %}
+
+{% block style %}
+<link rel="stylesheet" href="/css/dashboard.css">
+<link rel="stylesheet" href="/css/ventes.css">
+{% endblock %}
+
+{% block header %}
+    {% include "partials/_navbar.twig" %}
+{% endblock %}
+
+{% block main %}
+<div class="main">
+
+    {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
+    {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
+
+    <!-- KPIs -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-card__value">{{ kpis.chiffreAffaires }}$</div>
+            <div class="stat-card__label">Chiffres d'affaires</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__value">{{ kpis.nbVentes }}</div>
+            <div class="stat-card__label">Nombres de ventes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__value">{{ kpis.panierMoyen }}$</div>
+            <div class="stat-card__label">Panier moyen</div>
+        </div>
+    </div>
+
+    <!-- Historique -->
+    <div class="card">
+        <div class="card__header">
+            <span class="card__title">Historique des ventes</span>
+            <button class="btn btn-primary" data-modal-open="modal-vente-add">Nouvelle vente +</button>
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Numéro de commande</th><th>Quantité</th><th>Total TTC</th>
+                    <th>Date</th><th>Statut</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for vente in ventes %}
+                <tr>
+                    <td>{{ vente.numeroCommande }}</td>
+                    <td>{{ vente.qteTotale }}</td>
+                    <td>{{ vente.totalTTC }}$</td>
+                    <td>{{ vente.createdAt ? vente.createdAt|date('d/m/Y') : '—' }}</td>
+                    <td>
+                        {% if vente.statut == 'VALIDEE' %}<span class="badge badge-green">VALIDÉE</span>
+                        {% elseif vente.statut == 'ANNULEE' %}<span class="badge badge-red">ANNULÉE</span>
+                        {% else %}<span class="badge badge-blue">EN COURS</span>{% endif %}
+                    </td>
+                    <td style="display:flex;gap:6px;">
+                        <a href="/ventes/{{ vente.id }}" class="btn btn-outline" style="font-size:11px;padding:5px 12px;">Détails</a>
+                        <button class="btn btn-danger"
+                            data-modal-open="modal-vente-delete"
+                            data-form="form-vente-delete"
+                            data-action="/ventes/{{ vente.id }}/delete"
+                            data-confirm-text="Supprimer la commande {{ vente.numeroCommande }} ?"
+                            data-confirm-target="delete-vente-text"
+                            style="font-size:11px;padding:5px 12px;">Supprimer</button>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6" class="empty-state">Aucune vente enregistrée</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Nouvelle Vente -->
+<div id="modal-vente-add" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Nouvelle vente</h3>
+        <form method="POST" action="/ventes/add">
+            <div class="form-group">
+                <label class="form-label">PRODUITS *</label>
+                <select class="form-select" name="produitId" id="vente-produitId" required>
+                    <option value="">Sélectionner...</option>
+                    {% for p in produits %}
+                        <option value="{{ p.id }}" data-prix="{{ p.prixVente }}">{{ p.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">QUANTITE *</label>
+                <input class="form-input" type="number" step="0.01" name="quantite" id="vente-quantite" placeholder="155" required>
+            </div>
+            <div class="total-estime">
+                <span>Total Estimé</span>
+                <span class="total-estime__value" id="vente-total-estime">0$</span>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-full">Ajoutez</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-vente-add">Annulez</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Suppression Vente -->
+<div id="modal-vente-delete" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:16px;font-size:18px;font-weight:500;">Supprimer la vente</h3>
+        <p id="delete-vente-text" style="color:var(--muted);margin-bottom:24px;"></p>
+        <form id="form-vente-delete" method="POST" action="">
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-vente-delete">Annulez</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script src="/script/ventes.js"></script>
+{% endblock %}

@@ -1,0 +1,318 @@
+{% extends "layouts/base.twig" %}
+
+{% block header %}
+    {% include "partials/_navbar.twig" %}
+{% endblock %}
+
+{% block main %}
+<div class="main">
+
+    {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
+    {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
+
+    <a href="/fournisseurs" class="section-label">FOURNISSEURS</a>
+
+    <!-- Données de liaison pour le JS -->
+    <script id="liaison-data" type="application/json">
+    { "f2m": {{ fournisseurToMatieres|raw }}, "m2f": {{ matiereToFournisseurs|raw }} }
+    </script>
+
+    <!-- ═══ Matières Premières ═══ -->
+    <div class="card">
+        <div class="card__header">
+            <span class="card__title">Matières Premières</span>
+            {% if userRole != 'OPERATEUR' %}
+            <button class="btn btn-primary" data-modal-open="modal-matiere-add">Ajoutez</button>
+            {% endif %}
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th><th>Unité</th><th>Prix actuel</th><th>Stock</th>
+                    {% if userRole != 'OPERATEUR' %}<th>Actions</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for m in matieres %}
+                <tr>
+                    <td>{{ m.nom }}</td>
+                    <td>{{ m.unite }}</td>
+                    <td>{{ m.prixActuel }}$</td>
+                    <td>{{ m.stockMP.quantite ?? 0 }} {{ m.unite }}</td>
+                    {% if userRole != 'OPERATEUR' %}
+                    <td style="display:flex;gap:8px;">
+                        <button class="btn btn-outline"
+                            data-modal-open="modal-matiere-edit"
+                            data-form="form-matiere-edit"
+                            data-action="/stock/matieres/{{ m.id }}/edit"
+                            data-fields='{"edit-m-nom":"{{ m.nom }}","edit-m-unite":"{{ m.unite }}","edit-m-prix":"{{ m.prixActuel }}"}'>
+                            Modifié
+                        </button>
+                        <button class="btn btn-danger"
+                            data-modal-open="modal-matiere-delete"
+                            data-form="form-matiere-delete"
+                            data-action="/stock/matieres/{{ m.id }}/delete"
+                            data-confirm-text="Supprimer {{ m.nom }} ?"
+                            data-confirm-target="delete-matiere-text">
+                            Supprimer
+                        </button>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="empty-state">Aucune matière première</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ═══ Stocks Productions ═══ -->
+    <div class="card">
+        <div class="card__header">
+            <span class="card__title">Stocks-Productions</span>
+            <a href="/production" class="card__link">Gérer les productions →</a>
+        </div>
+        <table>
+            <thead>
+                <tr><th>Nom</th><th>Stock actuel</th><th>Prix de vente</th>{% if userRole != 'OPERATEUR' %}<th>Actions</th>{% endif %}</tr>
+            </thead>
+            <tbody>
+                {% for produit in produits %}
+                <tr>
+                    <td>{{ produit.nom }}</td>
+                    <td>{{ produit.stock.quantite ?? 0 }}</td>
+                    <td>{{ produit.prixVente }}</td>
+                    {% if userRole != 'OPERATEUR' %}
+                    <td style="display:flex;gap:8px;">
+                        <button class="btn btn-outline"
+                            data-modal-open="modal-stock-edit"
+                            data-form="form-stock-edit"
+                            data-action="/stock/produits/{{ produit.id }}/edit"
+                            data-fields='{"edit-stock-qte":"{{ produit.stock.quantite ?? 0 }}"}'>
+                            Modifié
+                        </button>
+                        <button class="btn btn-danger"
+                            data-modal-open="modal-stock-delete"
+                            data-form="form-stock-delete"
+                            data-action="/stock/produits/{{ produit.id }}/delete"
+                            data-confirm-text="Supprimer {{ produit.nom }} ?"
+                            data-confirm-target="delete-stock-text">
+                            Supprimer
+                        </button>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="empty-state">Aucun produit en stock</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ═══ Commandes Matières Premières ═══ -->
+    <div class="card">
+        <div class="card__header">
+            <span class="card__title">Commandes Matières Premières</span>
+            {% if userRole != 'OPERATEUR' %}
+            <button class="btn btn-primary" data-modal-open="modal-mp-add">Commander</button>
+            {% endif %}
+        </div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Matière</th><th>Quantité</th><th>Prix unitaire</th><th>Total</th>
+                    <th>Fournisseur</th><th>Statut</th><th>Livraison prévue</th>{% if userRole != 'OPERATEUR' %}<th>Actions</th>{% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for achat in achats %}
+                <tr>
+                    <td>{{ achat.matiere.nom ?? '—' }}</td>
+                    <td>{{ achat.quantite }}{{ achat.matiere.unite ?? '' }}</td>
+                    <td>{{ achat.prixUnitaire }}$</td>
+                    <td>{{ achat.total }}$</td>
+                    <td>{{ achat.fournisseur.nom ?? '—' }}</td>
+                    <td>
+                        {% if achat.statut == 'LIVRE' %}<span class="badge badge-green">Livré</span>
+                        {% elseif achat.statut == 'ANNULE' %}<span class="badge badge-red">Annulé</span>
+                        {% else %}<span class="badge badge-muted">En attente</span>{% endif %}
+                    </td>
+                    <td>{{ achat.dateLivraison ? achat.dateLivraison|date('d/m/Y') : '—' }}</td>
+                    {% if userRole != 'OPERATEUR' %}
+                    <td style="display:flex;gap:8px;">
+                        {% if achat.statut == 'EN_ATTENTE' %}
+                        <form method="POST" action="/stock/achats/{{ achat.id }}/livre" style="display:inline;">
+                            <button type="submit" class="btn btn-outline" style="font-size:11px;padding:5px 12px;">Livré ✓</button>
+                        </form>
+                        <form method="POST" action="/stock/achats/{{ achat.id }}/delete" style="display:inline;">
+                            <button type="submit" class="btn btn-danger" style="font-size:11px;padding:5px 12px;">✕</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% else %}
+                <tr><td colspan="8" class="empty-state">Aucune commande</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% if userRole != 'OPERATEUR' %}
+
+<!-- ═══ MODALE — Commander une matière première (filtrage croisé) ═══ -->
+<div id="modal-mp-add" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Commander une matière première</h3>
+        <form method="POST" action="/stock/achats/add">
+            <div class="form-group"><label class="form-label">FOURNISSEUR *</label>
+                <select class="form-select" name="fournisseurId" id="cmd-fournisseur" required>
+                    <option value="">Sélectionner un fournisseur...</option>
+                    {% for f in fournisseurs %}
+                        <option value="{{ f.id }}">{{ f.nom }}</option>
+                    {% endfor %}
+                </select></div>
+            <div class="form-group"><label class="form-label">MATIÈRE PREMIÈRE *</label>
+                <select class="form-select" name="matiereId" id="cmd-matiere" required>
+                    <option value="">Sélectionner une matière...</option>
+                    {% for m in matieres %}
+                        <option value="{{ m.id }}" data-prix="{{ m.prixActuel }}">{{ m.nom }} ({{ m.unite }})</option>
+                    {% endfor %}
+                </select></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group"><label class="form-label">QUANTITÉ *</label>
+                    <input class="form-input" type="number" step="0.01" name="quantite" id="cmd-qte" placeholder="100" required></div>
+                <div class="form-group"><label class="form-label">PRIX UNITAIRE *</label>
+                    <input class="form-input" type="number" step="0.01" name="prixUnitaire" id="cmd-prix" placeholder="2.50" required></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group"><label class="form-label">STATUT *</label>
+                    <select class="form-select" name="statut">
+                        <option value="EN_ATTENTE">En attente</option>
+                        <option value="LIVRE">Livré</option>
+                    </select></div>
+                <div class="form-group"><label class="form-label">DATE LIVRAISON</label>
+                    <input class="form-input" type="date" name="dateLivraison"></div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-full">Commander</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-mp-add">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ MODALE — Ajout Matière Première ═══ -->
+<div id="modal-matiere-add" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Ajouter une matière première</h3>
+        <form method="POST" action="/stock/matieres/add">
+            <div class="form-group"><label class="form-label">NOM *</label>
+                <input class="form-input" type="text" name="nom" placeholder="Acier, Cuivre..." required></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group"><label class="form-label">UNITÉ *</label>
+                    <select class="form-select" name="unite">
+                        <option value="kg">kg</option>
+                        <option value="L">L</option>
+                        <option value="T">T (tonne)</option>
+                        <option value="Lb">Lb (livre)</option>
+                        <option value="T.oz">T.oz (once troy)</option>
+                        <option value="Bbl">Bbl (baril)</option>
+                        <option value="MMBtu">MMBtu</option>
+                        <option value="Bushel">Bushel</option>
+                        <option value="m">m (mètre)</option>
+                        <option value="pièce">pièce</option>
+                    </select></div>
+                <div class="form-group"><label class="form-label">PRIX ACTUEL</label>
+                    <input class="form-input" type="number" step="0.01" name="prixActuel" placeholder="2.50"></div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-full">Ajoutez</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-matiere-add">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ MODALE — Modifier Matière Première ═══ -->
+<div id="modal-matiere-edit" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Modifier la matière première</h3>
+        <form id="form-matiere-edit" method="POST" action="">
+            <div class="form-group"><label class="form-label">NOM *</label>
+                <input class="form-input" type="text" id="edit-m-nom" name="nom" required></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group"><label class="form-label">UNITÉ *</label>
+                    <select class="form-select" id="edit-m-unite" name="unite">
+                        <option value="kg">kg</option>
+                        <option value="L">L</option>
+                        <option value="T">T (tonne)</option>
+                        <option value="Lb">Lb (livre)</option>
+                        <option value="T.oz">T.oz (once troy)</option>
+                        <option value="Bbl">Bbl (baril)</option>
+                        <option value="MMBtu">MMBtu</option>
+                        <option value="Bushel">Bushel</option>
+                        <option value="m">m (mètre)</option>
+                        <option value="pièce">pièce</option>
+                    </select></div>
+                <div class="form-group"><label class="form-label">PRIX ACTUEL</label>
+                    <input class="form-input" type="number" step="0.01" id="edit-m-prix" name="prixActuel"></div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-full">Modifié</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-matiere-edit">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ MODALE — Supprimer Matière Première ═══ -->
+<div id="modal-matiere-delete" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:16px;font-size:18px;font-weight:500;">Supprimer la matière</h3>
+        <p id="delete-matiere-text" style="color:var(--muted);margin-bottom:24px;"></p>
+        <form id="form-matiere-delete" method="POST" action="">
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-matiere-delete">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ MODALE — Modifier Stock Produit ═══ -->
+<div id="modal-stock-edit" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Modifier le stock</h3>
+        <form id="form-stock-edit" method="POST" action="">
+            <div class="form-group"><label class="form-label">STOCK ACTUEL *</label>
+                <input class="form-input" type="number" step="0.01" id="edit-stock-qte" name="stockQuantite" required></div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-full">Modifié</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-stock-edit">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ═══ MODALE — Supprimer Stock Produit ═══ -->
+<div id="modal-stock-delete" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:16px;font-size:18px;font-weight:500;">Supprimer le produit</h3>
+        <p id="delete-stock-text" style="color:var(--muted);margin-bottom:24px;"></p>
+        <form id="form-stock-delete" method="POST" action="">
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-stock-delete">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}
+
+{% block script %}
+<script src="/script/stock.js"></script>
+{% endblock %}

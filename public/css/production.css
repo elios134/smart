@@ -1,0 +1,171 @@
+/* ── ONGLETS PAGE PRODUCTION ── */
+.page-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.page-tab {
+  padding: 6px 18px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color .15s, color .15s, background .15s;
+  display: inline-block;
+  white-space: nowrap;
+}
+.page-tab:hover {
+  border-color: var(--blue-bd);
+  color: var(--text);
+}
+.page-tab.active {
+  background: var(--text-link);
+  border-color: var(--text-link);
+  color: #fff;
+}
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── MODALE CALENDRIER ── */
+.modal-calendar {
+  width: 900px;
+  max-width: 96vw;
+}
+
+/* ── FULLCALENDAR DARK THEME ── */
+#calendar .fc-toolbar-title {
+  color: var(--text);
+  font-size: 15px;
+}
+#calendar .fc-button {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-family: inherit;
+}
+#calendar .fc-button:hover {
+  background: var(--text-link);
+  border-color: var(--text-link);
+  color: #fff;
+}
+#calendar .fc-button-primary:not(:disabled).fc-button-active {
+  background: var(--text-link);
+  border-color: var(--text-link);
+}
+#calendar .fc-col-header-cell {
+  background: var(--surface2);
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 8px 0;
+}
+#calendar .fc-daygrid-day,
+#calendar .fc-timegrid-slot { border-color: var(--border); }
+#calendar .fc-scrollgrid { border-color: var(--border); }
+#calendar .fc-daygrid-day-number { color: var(--muted); font-size: 12px; }
+#calendar { color: var(--text); }
+
+/* ── COURS MP — HEADER ── */
+.cours-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.cours-header__title {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.cours-header__meta {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ── COURS MP — KPIs ── */
+.cours-kpis {
+  display: flex;
+  gap: 12px;
+}
+.cours-kpi {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 20px;
+  text-align: center;
+  min-width: 80px;
+}
+.cours-kpi__label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.cours-kpi__value {
+  font-size: 22px;
+  font-weight: 300;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+/* ── COURS MP — ALERTES ── */
+.alertes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.alerte-card {
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.alerte-card--achat {
+  background: var(--blue-dim);
+  border: 1px solid var(--blue-bd);
+}
+.alerte-card--vente {
+  background: var(--red-dim);
+  border: 1px solid var(--red-bd);
+}
+.alerte-card__badge {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.alerte-card--achat .alerte-card__badge { color: var(--text-link); }
+.alerte-card--vente .alerte-card__badge { color: var(--red); }
+.alerte-card__name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text);
+}
+.alerte-card__sub {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* ── COURS MP — VARIATIONS ── */
+.variation-up   { color: var(--green); font-weight: 600; }
+.variation-down { color: var(--red);   font-weight: 600; }
+.variation-flat { color: var(--muted); }

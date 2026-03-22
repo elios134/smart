@@ -1,0 +1,62 @@
+model MatierePremiere {
+  id           Int      @id @default(autoincrement())
+  nom          String
+  unite        String   @default("kg")
+  prixActuel   Float    @default(0)
+  seuilAchat   Float    @default(0)
+  seuilVente   Float    @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  stockMP          StockMP?
+  historiquePrix   HistoriquePrixMP[]
+  achats           AchatMP[]
+  nomenclatures    Nomenclature[]
+  consommations    ConsommationMP[]
+  seuilsConfig     SeuilConfig[]
+  fournisseurs     FournisseurMatiere[]
+
+  @@map("matieres_premieres")
+}
+
+model StockMP {
+  id          Int      @id @default(autoincrement())
+  quantite    Float    @default(0)
+  updatedAt   DateTime @updatedAt
+
+  matiere     MatierePremiere @relation(fields: [matiereId], references: [id])
+  matiereId   Int             @unique
+
+  @@map("stocks_mp")
+}
+
+model HistoriquePrixMP {
+  id          Int      @id @default(autoincrement())
+  prix        Float
+  lastUpdated DateTime @default(now())
+
+  matiere     MatierePremiere @relation(fields: [matiereId], references: [id])
+  matiereId   Int
+
+  @@map("historique_prix_mp")
+}
+
+model SeuilConfig {
+  id                 Int      @id @default(autoincrement())
+  seuilAchat         Float
+  seuilVente         Float
+  declenchementAuto  Boolean  @default(false)
+  statut             StatutSeuil @default(ACTIF)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  matiere     MatierePremiere @relation(fields: [matiereId], references: [id])
+  matiereId   Int             @unique
+
+  @@map("seuils_config")
+}
+
+enum StatutSeuil {
+  ACTIF
+  INACTIF
+}

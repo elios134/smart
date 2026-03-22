@@ -1,0 +1,17 @@
+model Machine {
+  id          Int      @id @default(autoincrement())
+  nom         String
+  statut      StatutMachine @default(ARRETEE)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  productions Production[]
+
+  @@map("machines")
+}
+
+enum StatutMachine {
+  EN_MARCHE
+  EN_MAINTENANCE
+  ARRETEE
+}

@@ -1,0 +1,94 @@
+{% extends 'layouts/base.twig' %}
+
+{% block style %}
+<style>
+  .profil-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+</style>
+{% endblock %}
+
+{% block header %}
+{% include 'partials/_navbar.twig' with { activePage: '', user: user } %}
+{% endblock %}
+
+{% block main %}
+<div class="main">
+
+  {% if flash.success %}
+  <div class="toast-container">
+    <div class="toast toast-success">✓ {{ flash.success }}</div>
+  </div>
+  {% endif %}
+  {% if flash.error %}
+  <div class="toast-container">
+    <div class="toast toast-error">✕ {{ flash.error }}</div>
+  </div>
+  {% endif %}
+
+  <div class="profil-grid">
+
+    {# Informations personnelles #}
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Mon profil</span>
+      </div>
+      <form method="POST" action="/profil">
+        <div class="form-group">
+          <label class="form-label">Prénom</label>
+          <input class="form-input" type="text" name="firstName"
+            value="{{ user.firstName ?? '' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nom</label>
+          <input class="form-input" type="text" name="lastName"
+            value="{{ user.lastName ?? '' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Adresse mail</label>
+          <input class="form-input" type="email" name="mail"
+            value="{{ user.mail ?? '' }}" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Raison sociale</label>
+          <input class="form-input" type="text" name="socialReason"
+            value="{{ user.socialReason ?? '' }}">
+        </div>
+        <div class="form-group">
+          <label class="form-label">SIRET</label>
+          <input class="form-input" type="text" name="siret"
+            value="{{ user.siret ?? '' }}" readonly
+            style="opacity:.6; cursor:not-allowed;">
+        </div>
+        <button type="submit" class="btn btn-primary" style="margin-top:8px;">Sauvegarder</button>
+      </form>
+    </div>
+
+    {# Changement de mot de passe #}
+    <div class="card">
+      <div class="card__header">
+        <span class="card__title">Mot de passe</span>
+      </div>
+      <form method="POST" action="/reset-password">
+        <div class="form-group">
+          <label class="form-label">Mot de passe actuel</label>
+          <input class="form-input" type="password" name="currentPassword"
+            placeholder="••••••••" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Nouveau mot de passe</label>
+          <input class="form-input" type="password" name="newPassword"
+            placeholder="Min. 8 caractères" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirmer</label>
+          <input class="form-input" type="password" name="confirmPassword"
+            placeholder="••••••••" required>
+        </div>
+        <button type="submit" class="btn btn-outline" style="margin-top:8px;">Changer le mot de passe</button>
+      </form>
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+
+

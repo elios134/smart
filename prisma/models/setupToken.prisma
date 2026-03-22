@@ -1,0 +1,7 @@
+model SetupToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  used      Boolean  @default(false)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

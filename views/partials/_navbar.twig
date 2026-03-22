@@ -1,0 +1,22 @@
+<nav class="navbar">
+	<a href="/profil" class="nav-profil {% if navActive == 'profil' %} active {% endif %}">
+	<span class="navbar__greeting">Bonjour,
+		{{ currentUser.firstName ?? '' }}</span>
+	</a>
+	<div class="navbar__links">
+		<a href="/home" class="nav-btn {% if navActive == 'home' %}active{% endif %}">Dashboard</a>
+		<a href="/produits" class="nav-btn {% if navActive == 'produits' %}active{% endif %}">Produits</a>
+		<a href="/stock" class="nav-btn {% if navActive == 'stock' %}active{% endif %}">Stock</a>
+		<a href="/production" class="nav-btn {% if navActive == 'production' %}active{% endif %}">Production</a>
+		{% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
+			<a href="/ventes" class="nav-btn {% if navActive == 'ventes' %}active{% endif %}">Ventes</a>
+			<a href="/reporting" class="nav-btn {% if navActive == 'reporting' %}active{% endif %}">Reporting</a>
+		{% endif %}
+	</div>
+	<div class="navbar__right">
+		{% if userRole %}
+			<span class="badge badge-muted">{{ userRole }}</span>
+		{% endif %}
+		<a href="/logout" class="navbar__logout">Se déconnecter</a>
+	</div>
+</nav>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>{{ title }}</title>
+		<link rel="stylesheet" href="/css/base.css">
+		<link rel="stylesheet" href="/css/components.css">
+		<link rel="stylesheet" href="/css/navbar.css">
+		{% block style %}{% endblock %}
+	</head>
+	<body>
+		{% block header %}{% endblock %}
+		{% block main %}{% endblock %}
+		<script src="/script/app.js"></script>
+		<script src="/script/modals.js"></script>
+		{% block script %}{% endblock %}
+	</body>
+</html>

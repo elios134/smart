@@ -1,0 +1,24 @@
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  OPERATEUR
+}
+
+model User {
+  id           Int     @id @default(autoincrement())
+  mail         String  @unique
+  password     String
+  firstName    String
+  lastName     String
+  role         Role    @default(OPERATEUR)
+  siret        String? @unique
+  socialReason String?
+  directorName String?
+  employeurId  Int?
+  employeur    User?   @relation("EmployeurEmployes", fields: [employeurId], references: [id])
+  employes     User[]  @relation("EmployeurEmployes")
+
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

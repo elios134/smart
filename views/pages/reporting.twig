@@ -1,0 +1,235 @@
+{% extends "layouts/base.twig" %}
+
+{% block style %}
+<link rel="stylesheet" href="/css/reporting.css">
+{% endblock %}
+
+{% block header %}
+    {% include "partials/_navbar.twig" %}
+{% endblock %}
+
+{% block main %}
+<div class="main">
+
+    {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
+    {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
+
+    {# Données pour reporting.js #}
+    <script id="reporting-data" type="application/json">{{ chartData|raw }}</script>
+    <script id="matieres-data"  type="application/json">{{ matieresMap|raw }}</script>
+
+    <!-- Barre période + onglets -->
+    <div class="period-bar">
+        <div class="period-btns page-tabs">
+            <button class="period-btn page-tab active" data-period="7"  data-tab="reporting">7 jours</button>
+            <button class="period-btn page-tab"        data-period="30" data-tab="reporting">30 jours</button>
+            <button class="period-btn page-tab"        data-period="90" data-tab="reporting">90 jours</button>
+        </div>
+        <a class="page-tab" data-tab="seuils" href="#">Seuils achat/vente</a>
+    </div>
+
+    <!-- ── TAB REPORTING (graphique + besoins) ── -->
+    <div id="tab-reporting" class="tab-panel active">
+
+        <!-- Graphique -->
+        <div class="chart-card">
+            <div class="chart-card__title">Évolution CA vs Coûts</div>
+            <div class="chart-wrap">
+                <canvas id="chart-ca"></canvas>
+            </div>
+            <div class="chart-legend">
+                <div class="chart-legend__item">
+                    <div class="chart-legend__dot" style="background:rgba(47,238,168,0.75);"></div>
+                    <span>CA</span>
+                </div>
+                <div class="chart-legend__item">
+                    <div class="chart-legend__dot" style="background:rgba(79,138,255,0.55);"></div>
+                    <span>Coûts</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Besoins estimés -->
+        <p class="besoins-label">Besoins estimés — 30 prochains jours</p>
+        <div class="besoins-grid">
+            {% for b in besoins %}
+            <div class="besoin-card">
+                <div class="besoin-card__nom">{{ b.nom }}</div>
+                <div class="besoin-card__value-row">
+                    <span class="besoin-card__value">{{ b.besoinActuel }}</span>
+                    <span class="besoin-card__unit">{{ b.unite ?? 'unités' }}</span>
+                </div>
+                <div class="besoin-card__sublabel">Besoin estimé</div>
+                <div class="besoin-card__stock-row">
+                    Stock actuel : <strong>{{ b.stock }} unités</strong>
+                </div>
+                <div class="besoin-card__bar">
+                    <div class="besoin-card__bar-fill
+                        {% if b.pct >= 60 %}besoin-card__bar-fill--green
+                        {% elseif b.pct >= 30 %}besoin-card__bar-fill--yellow
+                        {% else %}besoin-card__bar-fill--red{% endif %}"
+                        style="width:{{ b.pct }}%;">
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <p style="color:var(--muted);font-size:13px;grid-column:1/-1;">Aucune matière enregistrée</p>
+            {% endfor %}
+        </div>
+
+    </div>
+
+    <!-- ── TAB SEUILS ── -->
+    <div id="tab-seuils" class="tab-panel">
+
+        <h2 class="seuils-title">Configuration des Seuils</h2>
+
+        <div class="seuils-card">
+            <div class="seuils-card__header">
+                <span class="seuils-card__label">Seuil par produit</span>
+                <button class="btn btn-primary" data-modal-open="modal-seuil-add">Ajoutez</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Produit</th>
+                        <th>Seuil Achat MP</th>
+                        <th>Seuil Vente</th>
+                        <th>Déclenchement Auto</th>
+                        <th>Statut</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in seuilsConfig %}
+                    <tr>
+                        <td>{{ s.matiere.nom ?? '—' }}</td>
+                        <td>
+                            <span class="taux-pill taux-pill--achat">
+                                {{ s.seuilAchat }}
+                                <span class="taux-pill__unit">$/unité</span>
+                            </span>
+                        </td>
+                        <td>
+                            <span class="taux-pill taux-pill--vente">
+                                {{ s.seuilVente }}
+                                <span class="taux-pill__unit">$/unité</span>
+                            </span>
+                        </td>
+                        <td>
+                            <label class="toggle">
+                                <input type="checkbox" {% if s.declenchementAuto %}checked{% endif %} disabled>
+                                <span class="toggle__track"></span>
+                                <span class="toggle__thumb"></span>
+                            </label>
+                        </td>
+                        <td>
+                            {% if s.statut == 'ACTIF' %}
+                                <span style="color:var(--green);font-weight:700;font-size:12px;letter-spacing:.08em;">ACTIF</span>
+                            {% else %}
+                                <span style="color:var(--red);font-weight:700;font-size:12px;letter-spacing:.08em;">INACTIF</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="empty-state">Aucun seuil configuré</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<!-- ── MODALE AJOUT SEUIL (2 étapes) ── -->
+<div id="modal-seuil-add" class="modal-backdrop">
+    <div class="modal">
+        <h3 style="margin-bottom:4px;font-size:17px;font-weight:500;">Ajouter un produit à surveiller</h3>
+        <p class="stepper__subtitle">Configuration des seuils de déclenchement automatique</p>
+
+        <!-- Stepper -->
+        <div class="stepper">
+            <div class="stepper__step active" id="stepper-dot-1">
+                <div class="stepper__dot">1</div>
+                <span>Sélection du produit</span>
+            </div>
+            <div class="stepper__line"></div>
+            <div class="stepper__step" id="stepper-dot-2">
+                <div class="stepper__dot">2</div>
+                <span>Paramétrage des seuils</span>
+            </div>
+        </div>
+
+        <!-- Étape 1 -->
+        <div id="seuil-step-1">
+            <div class="form-group">
+                <label class="form-label">Produit à surveiller *</label>
+                <select class="form-select" id="seuil-matiereId">
+                    <option value="">Sélectionner...</option>
+                    {% for m in matieres %}
+                        <option value="{{ m.id }}">{{ m.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="mp-cards" id="mp-preview-cards"></div>
+            <div class="form-actions">
+                <button type="button" class="btn btn-primary btn-full" id="seuil-btn-suivant">Suivant</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-seuil-add">Annulez</button>
+            </div>
+        </div>
+
+        <!-- Étape 2 -->
+        <div id="seuil-step-2" style="display:none;">
+            <form method="POST" action="/reporting/seuils/add">
+                <input type="hidden" name="matiereId" id="seuil-hidden-matiereId">
+
+                <!-- Produit sélectionné recap -->
+                <div class="produit-selectionne">
+                    <div>
+                        <div class="produit-selectionne__label">Produit Sélectionné</div>
+                        <div class="produit-selectionne__val" id="seuil-sel-val">—</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="produit-selectionne__label">Prix MP Actuel</div>
+                        <div class="produit-selectionne__prix" id="seuil-sel-prix">—</div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Seuil d'achat — déclenchement production *</label>
+                    <input class="form-input" type="number" step="0.01" name="seuilAchat" placeholder="4.20" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Seuil de vente — arrêt production *</label>
+                    <input class="form-input" type="number" step="0.01" name="seuilVente" placeholder="6.40" required>
+                </div>
+
+                <div class="declenchement-block">
+                    <div class="declenchement-block__header">
+                        <span class="declenchement-block__title">Activé</span>
+                        <label class="toggle">
+                            <input type="checkbox" name="declenchementAuto">
+                            <span class="toggle__track"></span>
+                            <span class="toggle__thumb"></span>
+                        </label>
+                    </div>
+                    <p class="declenchement-block__desc">La production se lancera/stoppera automatiquement selon les seuils.</p>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-full">Confirmer</button>
+                    <button type="button" class="btn btn-ghost btn-full" id="seuil-btn-retour">Retour</button>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="/script/reporting.js"></script>
+{% endblock %}

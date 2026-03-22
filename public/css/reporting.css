@@ -1,0 +1,292 @@
+/* ── ONGLETS (même pattern que production.css) ── */
+.page-tabs { display:flex; gap:6px; margin-bottom:0; }
+.page-tab {
+  padding: 5px 16px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .15s;
+  display: inline-block;
+  white-space: nowrap;
+}
+.page-tab:hover { border-color:var(--blue-bd); color:var(--text); }
+.page-tab.active { background:var(--text-link); border-color:var(--text-link); color:#fff; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* ── BARRE PÉRIODE ── */
+.period-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.period-btns { display:flex; gap:6px; }
+
+/* ── CHART ── */
+.chart-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px 28px 20px;
+  margin-bottom: 20px;
+}
+.chart-card__title {
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.chart-wrap { position:relative; height:240px; }
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+.chart-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.chart-legend__dot {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+}
+
+/* ── BESOINS ESTIMÉS ── */
+.besoins-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+.besoins-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+.besoin-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+}
+.besoin-card__nom {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.besoin-card__value-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.besoin-card__value {
+  font-size: 36px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -.02em;
+}
+.besoin-card__unit { font-size:12px; color:var(--muted); }
+.besoin-card__sublabel { font-size:11px; color:var(--muted); margin-bottom:12px; }
+.besoin-card__stock-row {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.besoin-card__stock-row strong { color:var(--text); }
+.besoin-card__bar {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--border);
+  overflow: hidden;
+}
+.besoin-card__bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width .4s;
+}
+.besoin-card__bar-fill--green { background: var(--green); }
+.besoin-card__bar-fill--yellow { background: #F5C518; }
+.besoin-card__bar-fill--red { background: var(--red); }
+
+/* ── CONFIG SEUILS — TITRE HORS CARD ── */
+.seuils-title {
+  font-size: 26px;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 20px;
+  letter-spacing: -.01em;
+}
+
+/* ── CONFIG SEUILS — CARD AVEC BORDER BLEUE ── */
+.seuils-card {
+  background: var(--surface);
+  border: 1.5px solid var(--blue-bd);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+}
+.seuils-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.seuils-card__label {
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text);
+}
+
+/* ── TAUX PILLS ── */
+.taux-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.taux-pill--achat {
+  background: rgba(79,138,255,.15);
+  color: var(--text-link);
+}
+.taux-pill--vente {
+  background: var(--red-dim);
+  color: var(--red);
+}
+.taux-pill__unit { font-size:11px; font-weight:400; color:var(--muted); }
+
+/* ── TOGGLE SWITCH ── */
+.toggle {
+  position: relative;
+  width: 38px; height: 22px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.toggle input { opacity:0; width:0; height:0; }
+.toggle__track {
+  position: absolute; inset: 0;
+  border-radius: 22px;
+  background: var(--border);
+  cursor: pointer;
+  transition: background .2s;
+}
+.toggle input:checked + .toggle__track { background: var(--green); }
+.toggle__thumb {
+  position: absolute;
+  top: 4px; left: 4px;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  pointer-events: none;
+  transition: transform .2s;
+}
+.toggle input:checked ~ .toggle__thumb { transform: translateX(16px); }
+
+.toggle-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ── STEPPER ── */
+.stepper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.stepper__step {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.stepper__step.active { color: var(--text); }
+.stepper__step.done   { color: var(--green); }
+.stepper__dot {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; font-weight: 700;
+  flex-shrink: 0;
+}
+.stepper__step.active .stepper__dot { background:var(--text-link); border-color:var(--text-link); color:#fff; }
+.stepper__step.done   .stepper__dot { background:var(--green);     border-color:var(--green);     color:#fff; }
+.stepper__line { flex:1; height:1px; background:var(--border); margin:0 10px; }
+.stepper__subtitle {
+  font-size: 11px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+/* ── MP CARDS (étape 1) ── */
+.mp-cards { display:flex; flex-direction:column; gap:8px; margin-bottom:18px; }
+.mp-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.mp-card__left {}
+.mp-card__label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px; }
+.mp-card__nom   { font-size:13px; color: var(--text-link); font-weight:500; }
+.mp-card__right { text-align:right; }
+.mp-card__prix-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px; }
+.mp-card__prix  { font-size:14px; font-weight:600; color:var(--text); }
+
+/* ── PRODUIT SÉLECTIONNÉ (étape 2) ── */
+.produit-selectionne {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 18px;
+}
+.produit-selectionne__label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:2px; }
+.produit-selectionne__val   { font-size:13px; color:var(--text-link); font-weight:500; }
+.produit-selectionne__prix  { font-size:14px; font-weight:600; color:var(--text); }
+
+/* ── DÉCLENCHEMENT AUTO BLOCK ── */
+.declenchement-block {
+  padding: 12px 14px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 18px;
+}
+.declenchement-block__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.declenchement-block__title { font-size:12px; font-weight:600; color:var(--text); }
+.declenchement-block__desc  { font-size:11px; color:var(--muted); line-height:1.4; }

@@ -1,0 +1,65 @@
+/* ── LOGIN PAGE ── */
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+}
+
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 52px 48px;
+  width: 440px;
+  max-width: 95vw;
+}
+
+.login-card__title {
+  font-size: 36px;
+  font-weight: 400;
+  text-align: center;
+  margin-bottom: 40px;
+  color: var(--text);
+  letter-spacing: -.02em;
+}
+
+/* Les labels Mail / Mot de passe sont en texte normal (pas uppercase) */
+.login-card .form-label {
+  font-size: 13px;
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+/* Input très arrondi comme maquette */
+.login-card .form-input {
+  border-radius: var(--radius-xs);
+  padding: 12px 18px;
+}
+
+/* Bouton connecter — pleine largeur, très arrondi, bleu */
+.login-card .btn-primary {
+  width: 100%;
+  padding: 11px;
+  border-radius: var(--radius-xs);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.login-card__links {
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 20px;
+}
+.login-card__links a {
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color .15s;
+}
+.login-card__links a:hover { color: var(--text); }

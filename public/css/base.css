@@ -1,0 +1,52 @@
+/* ── RESET & VARIABLES ── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #0D0F18;
+  --surface: #161B2E;
+  --surface2: #1C2237;
+  --border: #252D45;
+  --text: #E2E6F0;
+  --text-link:rgba(79, 138, 255, 1);
+  --muted: #5A6380;
+  --blue: rgba(79, 138, 255, 0.1);
+  --blue-border: rgba(79, 138, 255, 0.2);
+  --blue-dim: rgba(79, 138, 255, .10);
+  --blue-bd: rgba(79, 138, 255, 0.2);
+  --red: #FF4F6B;
+  --red-dim: rgba(255, 79, 107, .10);
+  --red-bd: rgba(255, 79, 107, .28);
+  --green: #2FEEA8;
+  --green-dim: rgba(47, 238, 168, .10);
+  --radius: 14px;
+  --radius-sm: 10px;
+  --radius-xs: 24px;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* ── LAYOUT ── */
+.main {
+  padding: 28px 28px;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align: center;
+  padding: 48px 0;
+  color: var(--muted);
+  font-size: 13px;
+}

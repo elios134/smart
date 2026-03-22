@@ -1,0 +1,33 @@
+/* ── DASHBOARD STATS GRID ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px 28px;
+}
+
+/* Grande valeur chiffrée — très grosse, fine */
+.stat-card__value {
+  font-size: 56px;
+  font-weight: 300;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 14px;
+  letter-spacing: -.02em;
+}
+
+/* Label sous le chiffre — uppercase, petit, grisé */
+.stat-card__label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}

@@ -1,0 +1,35 @@
+model Vente {
+  id             Int      @id @default(autoincrement())
+  numeroCommande String   @unique
+  statut         StatutVente @default(EN_COURS)
+  totalHT        Float    @default(0)
+  tva            Float    @default(20)
+  totalTTC       Float    @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  lignes         LigneVente[]
+
+  @@map("ventes")
+}
+
+model LigneVente {
+  id           Int      @id @default(autoincrement())
+  quantite     Float
+  prixUnitaire Float
+  prixHT       Float
+
+  vente        Vente    @relation(fields: [venteId], references: [id])
+  venteId      Int
+
+  produit      Produit  @relation(fields: [produitId], references: [id])
+  produitId    Int
+
+  @@map("lignes_vente")
+}
+
+enum StatutVente {
+  EN_COURS
+  VALIDEE
+  ANNULEE
+}

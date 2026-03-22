@@ -1,0 +1,103 @@
+{% extends 'layouts/base.twig' %}
+
+{% block style %}
+{% endblock %}
+
+{% block header %}
+<nav class="employe-navbar">
+  <span class="employe-navbar__brand">SmartYield — Espace Employé</span>
+  <div style="display:flex; align-items:center; gap:16px;">
+    <span class="employe-navbar__user">
+      Bonjour, <strong>{{ user.firstName ?? user.lastName ?? 'Employé' }}</strong>
+      <span class="badge badge-muted" style="margin-left:8px;">{{ user.role }}</span>
+    </span>
+    <a href="/employes/logout" class="navbar__logout" style="margin-left:0;">Se déconnecter</a>
+  </div>
+</nav>
+{% endblock %}
+
+{% block main %}
+<div class="main">
+
+  {% if flash.success %}
+  <div class="toast-container">
+    <div class="toast toast-success">✓ {{ flash.success }}</div>
+  </div>
+  {% endif %}
+  {% if flash.error %}
+  <div class="toast-container">
+    <div class="toast toast-error">✕ {{ flash.error }}</div>
+  </div>
+  {% endif %}
+
+  {# Liste des produits accessibles à l'employé #}
+  <div class="card">
+    <div class="card__header">
+      <span class="card__title">Produits</span>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Produit</th>
+          <th>Stock</th>
+          <th>Seuil bas</th>
+          <th>Seuil haut</th>
+          <th>Statut</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in produits %}
+        <tr>
+          <td>{{ p.nom }}</td>
+          <td>{{ p.stock.quantite ?? 0 }}</td>
+          <td>{{ p.seuilBas }}</td>
+          <td>{{ p.seuilHaut }}</td>
+          <td>
+            <span class="badge
+              {% if p.statut == 'ACTIF' %}badge-green
+              {% elseif p.statut == 'EN_ATTENTE' %}badge-blue
+              {% else %}badge-muted{% endif %}">
+              {{ p.statut|replace({'_': ' '}) }}
+            </span>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="empty-state">Aucun produit disponible</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {# Mon profil #}
+  <div class="card">
+    <div class="card__header">
+      <span class="card__title">Mon profil</span>
+    </div>
+    <form method="POST" action="/employes/profil" style="max-width:400px;">
+      <div class="form-group">
+        <label class="form-label">Prénom</label>
+        <input class="form-input" type="text" name="firstName"
+          value="{{ user.firstName ?? '' }}" {{ user.role != 'ADMIN' ? 'readonly' : '' }} required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Nom</label>
+        <input class="form-input" type="text" name="lastName"
+          value="{{ user.lastName ?? '' }}" {{ user.role != 'ADMIN' ? 'readonly' : '' }} required>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Mail</label>
+        <input class="form-input" type="email" name="mail"
+          value="{{ user.mail ?? '' }}" {{ user.role != 'ADMIN' ? 'readonly' : '' }} required>
+      </div>
+      {% if user.role == 'ADMIN' %}
+      <button type="submit" class="btn btn-primary">Sauvegarder</button>
+      {% else %}
+      <div class="badge badge-muted" style="margin-top:8px;">Consultation uniquement — contactez votre responsable pour modifier vos informations</div>
+      {% endif %}
+    </form>
+  </div>
+
+</div>
+{% endblock %}
+
+

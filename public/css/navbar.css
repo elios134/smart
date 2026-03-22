@@ -1,0 +1,78 @@
+/* ── NAVBAR ── */
+.navbar {
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 20px;
+  height: 64px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.navbar__greeting {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+  margin-right: 12px;
+  flex-shrink: 0;
+}
+
+.navbar__links {
+  display: flex;
+  gap: 6px;
+  flex: 1;
+}
+.nav-profil {
+  text-decoration: none;
+}
+.nav-profil.active{
+   color: #fff;
+}
+
+/* Boutons navigation — pills avec bordure */
+.nav-btn {
+  padding: 6px 18px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: border-color .15s, color .15s, background .15s;
+  display: inline-block;
+  white-space: nowrap;
+}
+.nav-btn:hover {
+  border-color: var(--blue-bd);
+  color: var(--text);
+}
+.nav-btn.active {
+  background: var(--text-link);
+  border-color: var(--blue);
+  color: #fff;
+}
+
+/* Bouton déconnexion — rouge pill */
+.navbar__logout {
+  margin-left: auto;
+  flex-shrink: 0;
+  padding: 6px 18px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--red-bd);
+  background: var(--red-dim);
+  color: var(--red);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background .15s, color .15s;
+  display: inline-block;
+  white-space: nowrap;
+}
+.navbar__logout:hover {
+  background: var(--red);
+  color: #fff;
+}
