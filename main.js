@@ -20,6 +20,7 @@ async function createWindow() {
         minWidth: 900,
         minHeight: 600,
         webPreferences: {
+            partition: 'persist:smart-yield-session',
             preload: path.join(__dirname, "preload.js"),
             nodeIntegration: false,
             contextIsolation: true
