@@ -335,6 +335,7 @@ tbody tr:hover td {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* L'opacité gère l'état normal/survol */
   opacity: 0.6;
   transition: opacity .15s;
 }
@@ -343,7 +344,24 @@ tbody tr:hover td {
   opacity: 1;
 }
 
+/* On cache l'image <img> car on va utiliser son URL comme masque */
 .btn-toggle img {
+  display: none;
+}
+
+/* On crée l'icône colorée avec un pseudo-élément */
+.btn-toggle::before {
+  content: "";
   width: 20px;
   height: 20px;
+  
+  /* TA COULEUR ICI */
+  background-color: var(--muted);
+  
+  /* LE MASQUE (POCHOIR) */
+  -webkit-mask: url('../imgs/visibility-off.svg') no-repeat center;
+  mask: url('../imgs/visibility-off.svg') no-repeat center;
+  mask-size: contain;
+  
+  display: block;
 }
