@@ -14,7 +14,7 @@ import "dotenv/config";
 import { createServer } from "http";
 import app from "./src/app.js";
 
-const PORT = process.env.DB_PORT;
+const PORT = process.env.PORT;
 
 const server = createServer(app);
 
