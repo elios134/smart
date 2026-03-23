@@ -1,8 +1,8 @@
 {
   "name": "Smart-Yield",
   "version": "1.0.0",
-  "description": "Application RH Desktop",
-  "author": "Espace RH",
+  "description": "Application gestion entreprise ",
+  "author": "André-Bribanick",
   "main": "main.js",
   "type": "module",
   "scripts": {

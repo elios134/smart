@@ -8,8 +8,8 @@ const __dirname = path.dirname(__filename)
 
 // ── URL du serveur (VPS) ──────────────────────────────
 // En production : https://smartyield.tondomaine.fr
-// En dev local  : http://localhost:3000
-const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000"
+
+const SERVER_URL ="http://51.91.146.83:3506";
 
 let mainWindow
 
