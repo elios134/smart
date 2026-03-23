@@ -321,10 +321,13 @@ tbody tr:hover td {
   align-items: center;
 }
 
+/* Champ de saisie */
 .input-password-wrap .form-input {
   padding-right: 48px;
+  width: 100%; /* Optionnel selon ton layout */
 }
 
+/* Bouton de bascule */
 .btn-toggle {
   position: absolute;
   right: 8px;
@@ -335,33 +338,29 @@ tbody tr:hover td {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* L'opacité gère l'état normal/survol */
   opacity: 0.6;
   transition: opacity .15s;
+  /* Variable pour l'icône (gérée par le JS) */
+  --icon-url: url('../imgs/visibility-off.svg');
 }
 
 .btn-toggle:hover {
   opacity: 1;
 }
 
-/* On cache l'image <img> car on va utiliser son URL comme masque */
+/* On cache l'image HTML d'origine */
 .btn-toggle img {
   display: none;
 }
 
-/* On crée l'icône colorée avec un pseudo-élément */
+/* L'icône stylisée avec la couleur demandée */
 .btn-toggle::before {
   content: "";
   width: 20px;
   height: 20px;
-  
-  /* TA COULEUR ICI */
-  background-color: var(--muted);
-  
-  /* LE MASQUE (POCHOIR) */
-  -webkit-mask: url('../imgs/visibility-off.svg') no-repeat center;
-  mask: url('../imgs/visibility-off.svg') no-repeat center;
+  background-color: var(--muted); 
+  -webkit-mask: var(--icon-url) no-repeat center;
+  mask: var(--icon-url) no-repeat center;
   mask-size: contain;
-  
   display: block;
 }

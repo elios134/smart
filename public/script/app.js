@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
+    // 1. Gestion des Toasts (Disparition auto)
     document.querySelectorAll('.toast').forEach(function (t) {
         setTimeout(function () {
             t.style.transition = 'opacity .4s';
@@ -6,68 +7,57 @@ document.addEventListener('DOMContentLoaded', function () {
             setTimeout(function () { t.remove(); }, 400);
         }, 3500);
     });
-});
-const champMdp = document.querySelector('input[name="password"]');
-const champConfirm = document.querySelector('input[name="password_confirm"]');
-const listeBoutons = document.querySelectorAll('.btn-toggle');
 
-const svgOeilOuvert = "../imgs/visibility-on.svg";
-const svgOeilFerme = "../imgs/visibility-off.svg";
+    // 2. Variables pour les mots de passe
+    const champMdp = document.querySelector('input[name="password"]');
+    const champConfirm = document.querySelector('input[name="password_confirm"]');
+    const listeBoutons = document.querySelectorAll('.btn-toggle');
+    const svgOeilOuvert = "../imgs/visibility-on.svg";
+    const svgOeilFerme = "../imgs/visibility-off.svg";
 
-const inputAvatar = document.getElementById('avatar');
-const previewAvatar = document.getElementById('preview-avatar');
-
-document.addEventListener('DOMContentLoaded', function () {
-
+    // 3. Logique de visibilité du mot de passe
     listeBoutons.forEach(function (bouton) {
         bouton.addEventListener('click', function () {
-
             const inputCible = this.previousElementSibling;
 
             if (inputCible.type === "password") {
                 inputCible.type = "text";
-                this.innerHTML = `<img src="${svgOeilOuvert}" alt="Masquer"">`
+                // On change l'icône via la variable CSS
+                this.style.setProperty('--icon-url', `url('${svgOeilOuvert}')`);
             } else {
                 inputCible.type = "password";
-                this.innerHTML = `<img src="${svgOeilFerme}" alt="Masquer">`;
+                this.style.setProperty('--icon-url', `url('${svgOeilFerme}')`);
             }
         });
     });
+
+    // 4. Validation de correspondance des mots de passe
     function validerMotsDePasse() {
         if (champMdp && champConfirm) {
             if (champMdp.value !== champConfirm.value) {
-
                 champConfirm.setCustomValidity("Les mots de passe ne sont pas identiques");
             } else {
-
                 champConfirm.setCustomValidity("");
             }
         }
     }
+
     if (champMdp && champConfirm) {
         champMdp.addEventListener('input', validerMotsDePasse);
         champConfirm.addEventListener('input', validerMotsDePasse);
     }
-});
 
-document.addEventListener('DOMContentLoaded', function () {
-    if (inputAvatar) {
+    // 5. Gestion de l'Avatar (Preview)
+    const inputAvatar = document.getElementById('avatar');
+    const previewAvatar = document.getElementById('preview-avatar');
+
+    if (inputAvatar && previewAvatar) {
         inputAvatar.addEventListener('change', function () {
-            const fichier = this.files[0]; 
-            if (fichier) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    previewAvatar.src = e.target.result;
-                };
-                reader.readAsDataURL(fichier);
+            const file = this.files[0];
+            if (file) {
+                // Utilisation de URL.createObjectURL (plus moderne et rapide que FileReader)
+                previewAvatar.src = URL.createObjectURL(file);
             }
         });
     }
 });
-
- document.getElementById('avatar').onchange = function (evt) {
-            const [file] = this.files
-            if (file) {
-                document.getElementById('preview-avatar').src = URL.createObjectURL(file)
-            }
-        }
