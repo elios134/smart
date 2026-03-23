@@ -1,56 +1,57 @@
 import "dotenv/config"
-import { app, BrowserWindow } from "electron"
-import { createServer } from "http"
+import { app, BrowserWindow, shell } from "electron"
 import { fileURLToPath } from "url"
 import path from "path"
-import expressApp from "./src/app.js"
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const PORT = process.env.PORT || 3000
-let mainWindow
-let server
+// ── URL du serveur (VPS) ──────────────────────────────
+// En production : https://smartyield.tondomaine.fr
+// En dev local  : http://localhost:3000
+const SERVER_URL = process.env.SERVER_URL || "http://localhost:3000"
 
-async function startServer() {
-    return new Promise((resolve) => {
-        server = createServer(expressApp)
-        server.listen(PORT, () => {
-            console.log(`Serveur Express lancé sur le port ${PORT}`)
-            resolve()
-        })
-    })
-}
+let mainWindow
 
 async function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1280,
         height: 800,
+        minWidth: 900,
+        minHeight: 600,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             nodeIntegration: false,
             contextIsolation: true
         },
         autoHideMenuBar: true,
-        title: "Smart-Yield"
+        title: "Smart-Yield",
+        icon: path.join(__dirname, "public/icon.ico")
     })
 
-    mainWindow.loadURL(`http://localhost:${PORT}/login`)
+    // Charger l'app depuis le VPS
+    mainWindow.loadURL(`${SERVER_URL}/login`)
+
+    // Ouvrir les liens externes dans le navigateur par défaut
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+        if (!url.startsWith(SERVER_URL)) {
+            shell.openExternal(url)
+            return { action: "deny" }
+        }
+        return { action: "allow" }
+    })
+
+    // Gérer les erreurs de connexion au serveur
+    mainWindow.webContents.on("did-fail-load", (event, errorCode, errorDescription) => {
+        mainWindow.loadFile(path.join(__dirname, "public/offline.html"))
+    })
 
     mainWindow.on("closed", () => {
         mainWindow = null
     })
 }
 
-app.whenReady().then(async () => {
-    await startServer()
-    await createWindow()
-})
-
-// Fermer proprement le serveur Express quand Electron quitte
-app.on("before-quit", () => {
-    if (server) server.close()
-})
+app.whenReady().then(createWindow)
 
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") app.quit()

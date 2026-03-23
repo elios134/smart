@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart-Yield — Connexion impossible</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #0D0F18;
+            color: #E2E6F0;
+            font-family: 'DM Sans', 'Segoe UI', sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        .offline-card {
+            text-align: center;
+            max-width: 400px;
+            padding: 48px 32px;
+        }
+        .offline-card__icon {
+            font-size: 48px;
+            margin-bottom: 24px;
+        }
+        .offline-card__title {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .offline-card__text {
+            color: #5A6380;
+            font-size: 14px;
+            line-height: 1.6;
+            margin-bottom: 32px;
+        }
+        .offline-card__btn {
+            display: inline-block;
+            padding: 10px 28px;
+            border-radius: 24px;
+            border: 1.5px solid rgba(79, 138, 255, 0.3);
+            background: rgba(79, 138, 255, 0.1);
+            color: #4F8AFF;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background .15s;
+        }
+        .offline-card__btn:hover {
+            background: rgba(79, 138, 255, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="offline-card">
+        <div class="offline-card__icon">⚡</div>
+        <div class="offline-card__title">Connexion au serveur impossible</div>
+        <p class="offline-card__text">
+            Le serveur Smart-Yield n'est pas joignable. Vérifiez votre connexion internet
+            ou réessayez dans quelques instants.
+        </p>
+        <button class="offline-card__btn" onclick="window.location.reload()">Réessayer</button>
+    </div>
+</body>
+</html>
