@@ -19,7 +19,7 @@ import { flashMiddleware } from "./middleware/flashMiddleware.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-
+const CINQ_ANS = 5 * 365 * 24 * 60 * 60 * 1000;
 
 if (!process.env.SESSION_SECRET) {
   throw new Error("[app.js] SESSION_SECRET manquant dans .env — arrêt immédiat");
@@ -38,7 +38,12 @@ app.use(express.static(path.join(__dirname, "../public")));
 app.use(session({
   secret: process.env.SESSION_SECRET,
   resave: false,
-  saveUninitialized: false
+  saveUninitialized: false,
+  cookie: { 
+    maxAge: CINQ_ANS, 
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production" 
+  }
 }))
 
 app.use(flashMiddleware); // injecte flash.success / flash.error dans tous les templates
