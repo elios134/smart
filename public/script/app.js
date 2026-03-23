@@ -11,8 +11,8 @@ const champMdp = document.querySelector('input[name="password"]');
 const champConfirm = document.querySelector('input[name="password_confirm"]');
 const listeBoutons = document.querySelectorAll('.btn-toggle');
 
-const svgOeilOuvert = "imgs/visibility-on.svg";
-const svgOeilFerme = "imgs/visibility-off.svg";
+const svgOeilOuvert = "../imgs/visibility-on.svg";
+const svgOeilFerme = "../imgs/visibility-off.svg";
 
 const inputAvatar = document.getElementById('avatar');
 const previewAvatar = document.getElementById('preview-avatar');
