@@ -42,7 +42,7 @@ app.use(session({
   cookie: { 
     maxAge: CINQ_ANS, 
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production" 
+    secure: false //process.env.NODE_ENV === "production" 
   }
 }))
 
