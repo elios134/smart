@@ -313,3 +313,37 @@ tbody tr:hover td {
   color: var(--text);
   border-color: var(--blue-bd);
 }
+
+/* ── PASSWORD TOGGLE ── */
+.input-password-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-password-wrap .form-input {
+  padding-right: 48px;
+}
+
+.btn-toggle {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: opacity .15s;
+}
+
+.btn-toggle:hover {
+  opacity: 1;
+}
+
+.btn-toggle img {
+  width: 20px;
+  height: 20px;
+}
