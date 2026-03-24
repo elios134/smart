@@ -1,6 +1,4 @@
-/* ── FOURNISSEURS — MODALES LAYOUT ── */
 
-/* Grille 2 colonnes dans les modales */
 .modal-grid-2 {
     display: grid;
     grid-template-columns: 1fr 1fr;
