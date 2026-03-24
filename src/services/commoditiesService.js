@@ -1,33 +1,35 @@
 /**
  * SMART-YIELD — Service Cours Matières Premières
  *
- * API : CommodityPriceAPI (https://commoditypriceapi.com)
- * Plan : Gratuit à vie — sans carte bancaire — 2 000 req/mois
- * Avantage : 1 seul appel pour toutes les matières (vs N appels avec API Ninjas)
+ * API : Alpha Vantage (https://alphavantage.co)
+ * Plan : Gratuit à vie — sans carte bancaire — 25 req/jour
+ * Inscription : https://www.alphavantage.co/support/#api-key (gratuit, immédiat)
  *
- * Clé .env : COMMODITY_API_KEY=ta_cle_commoditypriceapi
- * Inscription : https://commoditypriceapi.com (gratuit, no CB)
+ * Clé .env : COMMODITY_API_KEY=ta_cle_alphavantage
  *
- * Cache : 1h in-memory → ~720 req/mois max → bien sous la limite free
+ * ⚠️  Alpha Vantage = 1 appel par matière (pas de multi-symbole)
+ *     Avec 11 matières × 1 appel = 11 req par refresh
+ *     Cache 13h → max 1 refresh/13h → ~22 req/jour → sous la limite de 25
+ *
+ * Données : dernière valeur mensuelle (données de marché officielles)
  */
 
-const CACHE_TTL_MS = 180 * 60 * 1000; // 1h
+const CACHE_TTL_MS = 13 * 60 * 60 * 1000; // 13h — ne pas descendre sous 12h (25 req/jour max)
 
-// ── Mapping matières → symboles CommodityPriceAPI ────────────
-// Vérifier/compléter les symboles via : GET /v2/symbols?apiKey=YOUR_KEY
+// ── Mapping matières → fonctions Alpha Vantage ───────────────
+// Référence : https://www.alphavantage.co/documentation/#commodities
 export const COMMODITES = [
-    { apiName: 'XAU',         nom: 'Or',            unite: 'T.oz',   categorie: 'Métaux précieux' },
-    { apiName: 'XAG',         nom: 'Argent',        unite: 'T.oz',   categorie: 'Métaux précieux' },
+    { apiName: 'GOLD',        nom: 'Or',            unite: 'T.oz',   categorie: 'Métaux précieux' },
+    { apiName: 'SILVER',      nom: 'Argent',        unite: 'T.oz',   categorie: 'Métaux précieux' },
     { apiName: 'PLATINUM',    nom: 'Platine',       unite: 'T.oz',   categorie: 'Métaux précieux' },
     { apiName: 'PALLADIUM',   nom: 'Palladium',     unite: 'T.oz',   categorie: 'Métaux précieux' },
     { apiName: 'COPPER',      nom: 'Cuivre',        unite: 'Lb',     categorie: 'Métaux' },
-    { apiName: 'WTIOIL-FUT',  nom: 'Pétrole WTI',   unite: 'Bbl',    categorie: 'Énergie' },
-    { apiName: 'BRENTOIL-FUT',nom: 'Pétrole Brent', unite: 'Bbl',    categorie: 'Énergie' },
-    { apiName: 'NG-FUT',      nom: 'Gaz naturel',   unite: 'MMBtu',  categorie: 'Énergie' },
-    { apiName: 'CORN-FUT',    nom: 'Maïs',          unite: 'Bushel', categorie: 'Agricole' },
-    { apiName: 'COFFEE-FUT',  nom: 'Café',          unite: 'Lb',     categorie: 'Agricole' },
-    { apiName: 'COCOA-FUT',   nom: 'Cacao',         unite: 'T',      categorie: 'Agricole' },
-    { apiName: 'SUGAR-FUT',   nom: 'Sucre',         unite: 'Lb',     categorie: 'Agricole' },
+    { apiName: 'WTI',         nom: 'Pétrole WTI',   unite: 'Bbl',    categorie: 'Énergie' },
+    { apiName: 'BRENT',       nom: 'Pétrole Brent', unite: 'Bbl',    categorie: 'Énergie' },
+    { apiName: 'NATURAL_GAS', nom: 'Gaz naturel',   unite: 'MMBtu',  categorie: 'Énergie' },
+    { apiName: 'CORN',        nom: 'Maïs',          unite: 'Bushel', categorie: 'Agricole' },
+    { apiName: 'COFFEE',      nom: 'Café',          unite: 'Lb',     categorie: 'Agricole' },
+    { apiName: 'SUGAR',       nom: 'Sucre',         unite: 'Lb',     categorie: 'Agricole' },
 ];
 
 // ── Cache ─────────────────────────────────────────────────────
@@ -37,7 +39,45 @@ function isCacheValid() {
     return cache.data && (Date.now() - cache.fetchedAt) < CACHE_TTL_MS;
 }
 
-// ── Fetch tous les cours en un seul appel ────────────────────
+// ── Fetch un seul cours ──────────────────────────────────────
+async function fetchSinglePrice(apiName, apiKey) {
+    try {
+        // interval=monthly → données officielles, 1 valeur mensuelle
+        const url = `https://www.alphavantage.co/query?function=${apiName}&interval=monthly&apikey=${apiKey}`;
+        const res = await fetch(url, {
+            signal: AbortSignal.timeout(8000),
+        });
+
+        if (!res.ok) {
+            console.warn(`[commoditiesService] ${apiName} → HTTP ${res.status}`);
+            return null;
+        }
+
+        const json = await res.json();
+
+        // Réponse : { "data": [ { "date": "2024-01-01", "value": "72.29" }, ... ] }
+        // Erreur rate limit : { "Information": "Thank you for using Alpha Vantage!..." }
+        if (json.Information) {
+            console.warn('[commoditiesService] Rate limit Alpha Vantage atteint');
+            return null;
+        }
+
+        const entries = json.data;
+        if (!Array.isArray(entries) || entries.length === 0) return null;
+
+        // La première entrée est la plus récente
+        const value = parseFloat(entries[0].value);
+        if (isNaN(value)) return null;
+
+        return Math.round(value * 100) / 100;
+
+    } catch (err) {
+        console.warn(`[commoditiesService] ${apiName} erreur :`, err.message);
+        return null;
+    }
+}
+
+// ── Fetch toutes les matières (séquentiel avec délai) ────────
 async function fetchPrixMarche() {
     const apiKey = process.env.COMMODITY_API_KEY;
     if (!apiKey) {
@@ -45,42 +85,16 @@ async function fetchPrixMarche() {
         return {};
     }
 
-    const symbols = COMMODITES.map(c => c.apiName).join(',');
-    const url = `https://api.commoditypriceapi.com/v2/rates/latest?symbols=${symbols}`;
+    const prix = {};
 
-    try {
-        const res = await fetch(url, {
-            headers: { 'x-api-key': apiKey },
-            signal: AbortSignal.timeout(8000),
-        });
-
-        if (!res.ok) {
-            console.warn(`[commoditiesService] HTTP ${res.status}`);
-            return {};
-        }
-
-        const json = await res.json();
-
-        // Réponse : { success: true, rates: { "WTIOIL-FUT": 72.29, "XAU": 2066.98, ... } }
-        if (!json.success || !json.rates) {
-            console.warn('[commoditiesService] Réponse inattendue :', JSON.stringify(json).slice(0, 200));
-            return {};
-        }
-
-        // Arrondir à 2 décimales
-        const prix = {};
-        for (const [symbol, value] of Object.entries(json.rates)) {
-            if (value !== null && value !== undefined) {
-                prix[symbol] = Math.round(value * 100) / 100;
-            }
-        }
-
-        return prix;
-
-    } catch (err) {
-        console.warn('[commoditiesService] Erreur fetch :', err.message);
-        return {};
+    // Séquentiel avec 300ms entre chaque appel pour éviter le rate limiting
+    for (const c of COMMODITES) {
+        const price = await fetchSinglePrice(c.apiName, apiKey);
+        if (price !== null) prix[c.apiName] = price;
+        await new Promise(resolve => setTimeout(resolve, 300));
     }
+
+    return prix;
 }
 
 // ── API publique ─────────────────────────────────────────────
@@ -97,7 +111,7 @@ export async function getCoursMatieres() {
             categorie: c.categorie,
             prix:      prix[c.apiName] ?? null,
             isLive:    prix[c.apiName] !== undefined,
-            variation: 0, // CommodityPriceAPI ne fournit pas la variation sur le plan free
+            variation: 0, // Alpha Vantage free ne fournit pas la variation
         }));
 
         // Ne mettre en cache que si au moins 1 prix reçu
