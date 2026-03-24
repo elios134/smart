@@ -7,29 +7,19 @@
  *
  * Clé .env : COMMODITY_API_KEY=ta_cle_alphavantage
  *
- * ⚠️  Alpha Vantage = 1 appel par matière (pas de multi-symbole)
- *     Avec 11 matières × 1 appel = 11 req par refresh
- *     Cache 13h → max 1 refresh/13h → ~22 req/jour → sous la limite de 25
- *
- * Données : dernière valeur mensuelle (données de marché officielles)
+ * 5 matières × 1 appel = 5 req par refresh
+ * Cache 13h → max 1 refresh/13h → ~10 req/jour → bien sous la limite de 25
  */
 
-const CACHE_TTL_MS = 13 * 60 * 60 * 1000; // 13h — ne pas descendre sous 12h (25 req/jour max)
+const CACHE_TTL_MS = 13 * 60 * 60 * 1000; // 13h
 
-// ── Mapping matières → fonctions Alpha Vantage ───────────────
-// Référence : https://www.alphavantage.co/documentation/#commodities
+// ── Mapping matières → fonctions Alpha Vantage (FREE TIER) ───
 export const COMMODITES = [
-    { apiName: 'GOLD',        nom: 'Or',            unite: 'T.oz',   categorie: 'Métaux précieux' },
-    { apiName: 'SILVER',      nom: 'Argent',        unite: 'T.oz',   categorie: 'Métaux précieux' },
-    { apiName: 'PLATINUM',    nom: 'Platine',       unite: 'T.oz',   categorie: 'Métaux précieux' },
-    { apiName: 'PALLADIUM',   nom: 'Palladium',     unite: 'T.oz',   categorie: 'Métaux précieux' },
-    { apiName: 'COPPER',      nom: 'Cuivre',        unite: 'Lb',     categorie: 'Métaux' },
-    { apiName: 'WTI',         nom: 'Pétrole WTI',   unite: 'Bbl',    categorie: 'Énergie' },
-    { apiName: 'BRENT',       nom: 'Pétrole Brent', unite: 'Bbl',    categorie: 'Énergie' },
-    { apiName: 'NATURAL_GAS', nom: 'Gaz naturel',   unite: 'MMBtu',  categorie: 'Énergie' },
-    { apiName: 'CORN',        nom: 'Maïs',          unite: 'Bushel', categorie: 'Agricole' },
-    { apiName: 'COFFEE',      nom: 'Café',          unite: 'Lb',     categorie: 'Agricole' },
-    { apiName: 'SUGAR',       nom: 'Sucre',         unite: 'Lb',     categorie: 'Agricole' },
+    { apiName: 'WTI',         nom: 'Pétrole WTI',   unite: 'Bbl',   categorie: 'Énergie' },
+    { apiName: 'BRENT',       nom: 'Pétrole Brent', unite: 'Bbl',   categorie: 'Énergie' },
+    { apiName: 'NATURAL_GAS', nom: 'Gaz naturel',   unite: 'MMBtu', categorie: 'Énergie' },
+    { apiName: 'COPPER',      nom: 'Cuivre',        unite: 'Lb',    categorie: 'Métaux' },
+    { apiName: 'ALUMINUM',    nom: 'Aluminium',     unite: 'T',     categorie: 'Métaux' },
 ];
 
 // ── Cache ─────────────────────────────────────────────────────
@@ -42,7 +32,6 @@ function isCacheValid() {
 // ── Fetch un seul cours ──────────────────────────────────────
 async function fetchSinglePrice(apiName, apiKey) {
     try {
-        // interval=monthly → données officielles, 1 valeur mensuelle
         const url = `https://www.alphavantage.co/query?function=${apiName}&interval=monthly&apikey=${apiKey}`;
         const res = await fetch(url, {
             signal: AbortSignal.timeout(8000),
@@ -55,17 +44,19 @@ async function fetchSinglePrice(apiName, apiKey) {
 
         const json = await res.json();
 
-        // Réponse : { "data": [ { "date": "2024-01-01", "value": "72.29" }, ... ] }
-        // Erreur rate limit : { "Information": "Thank you for using Alpha Vantage!..." }
         if (json.Information) {
-            console.warn('[commoditiesService] Rate limit Alpha Vantage atteint');
+            console.warn('[commoditiesService] Limite journalière Alpha Vantage atteinte — réessai dans 24h');
+            return null;
+        }
+
+        if (json['Error Message']) {
+            console.warn(`[commoditiesService] ${apiName} non disponible :`, json['Error Message']);
             return null;
         }
 
         const entries = json.data;
         if (!Array.isArray(entries) || entries.length === 0) return null;
 
-        // La première entrée est la plus récente
         const value = parseFloat(entries[0].value);
         if (isNaN(value)) return null;
 
@@ -87,7 +78,6 @@ async function fetchPrixMarche() {
 
     const prix = {};
 
-    // Séquentiel avec 300ms entre chaque appel pour éviter le rate limiting
     for (const c of COMMODITES) {
         const price = await fetchSinglePrice(c.apiName, apiKey);
         if (price !== null) prix[c.apiName] = price;
@@ -111,10 +101,9 @@ export async function getCoursMatieres() {
             categorie: c.categorie,
             prix:      prix[c.apiName] ?? null,
             isLive:    prix[c.apiName] !== undefined,
-            variation: 0, // Alpha Vantage free ne fournit pas la variation
+            variation: 0,
         }));
 
-        // Ne mettre en cache que si au moins 1 prix reçu
         if (result.some(r => r.isLive)) {
             cache.data      = result;
             cache.fetchedAt = Date.now();
