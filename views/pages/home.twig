@@ -17,165 +17,163 @@
     <!-- KPIs -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-card__value">{{ kpis.produitsCount }}</div>
-            <div class="stat-card__label">Produits</div>
+            <div class="stat-card__value">{{ kpis.mwhProduits }}</div>
+            <div class="stat-card__label">MWh produits aujourd'hui</div>
         </div>
         <div class="stat-card">
-            <div class="stat-card__value">{{ kpis.productionsEnCours }}</div>
-            <div class="stat-card__label">Production en cours</div>
+            <div class="stat-card__value">{{ kpis.mwhStockes }}</div>
+            <div class="stat-card__label">MWh stockés</div>
         </div>
         {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
         <div class="stat-card">
-            <div class="stat-card__value">{{ kpis.ventesAujourdhui }}</div>
-            <div class="stat-card__label">Ventes aujourd'hui</div>
+            <div class="stat-card__value">{{ kpis.caAujourdhui }} €</div>
+            <div class="stat-card__label">CA ventes aujourd'hui</div>
         </div>
         {% endif %}
     </div>
 
-    <!-- Produits -->
+    <!-- Sources actives -->
     <div class="card">
         <div class="card__header">
-            <span class="card__title">Produits</span>
-            <a href="/produits" class="card__link">Gérer les produits →</a>
+            <span class="card__title">Sources d'énergie</span>
+            <a href="/energie" class="card__link">Gérer →</a>
         </div>
         <table>
             <thead>
                 <tr>
-                    <th>Produit</th><th>Cout actuel</th><th>Seuil bas</th>
-                    <th>Seuil haut</th><th>Stock</th><th>Statut</th>
+                    <th>Source</th><th>Type</th><th>Stock (MWh)</th>
+                    <th>Coût prod.</th><th>Statut</th>
                 </tr>
             </thead>
             <tbody>
-                {% for produit in produits %}
+                {% for s in sources %}
                 <tr>
-                    <td>{{ produit.nom }}</td>
-                    <td>{{ produit.coutActuel }}</td>
-                    <td>{{ produit.seuilBas }}</td>
-                    <td>{{ produit.seuilHaut }}</td>
-                    <td>{{ produit.stock.quantite ?? 0 }}</td>
+                    <td>{{ s.nom }}</td>
+                    <td><span class="badge badge-blue">{{ s.type }}</span></td>
+                    <td>{{ s.stock.quantite ?? 0 }}</td>
+                    <td>{{ s.coutProduction }} €/MWh</td>
                     <td>
-                        {% if produit.statut == 'ACTIF' %}<span class="badge badge-green">{{ produit.statut }}</span>
-                        {% elseif produit.statut == 'INACTIF' %}<span class="badge badge-red">{{ produit.statut }}</span>
-                        {% else %}<span class="badge badge-blue">{{ produit.statut }}</span>{% endif %}
+                        {% if s.actif %}<span class="badge badge-green">ACTIF</span>
+                        {% else %}<span class="badge badge-muted">INACTIF</span>{% endif %}
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="6" class="empty-state">Aucun produit</td></tr>
+                <tr><td colspan="5" class="empty-state">Aucune source — <a href="/energie" class="card__link">En configurer une →</a></td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 
-    <!-- Employés — SUPER_ADMIN uniquement -->
+    <!-- Sessions en cours + Alertes -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-card__value">{{ kpis.sessionsEnCours }}</div>
+            <div class="stat-card__label">Sessions en cours — <a href="/planification" class="card__link">Planifier →</a></div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__value">{{ alertes|length }}</div>
+            <div class="stat-card__label">Seuils actifs — <a href="/energie" class="card__link">Configurer →</a></div>
+        </div>
+    </div>
+
     {% if userRole == 'SUPER_ADMIN' %}
+    <!-- Employés -->
     <div class="card">
         <div class="card__header">
-            <span class="card__title">Employé</span>
-            <button class="btn btn-primary" data-modal-open="modal-employe-add">Ajoutez</button>
+            <span class="card__title">Employés</span>
+            <button class="btn btn-primary" data-modal-open="modal-employe-add">Ajouter</button>
         </div>
         <table>
             <thead>
-                <tr><th>Nom</th><th>Prénom</th><th>Mail</th><th>Rôle</th><th>Actions</th></tr>
+                <tr><th>Nom</th><th>Prénom</th><th>Rôle</th><th>Actions</th></tr>
             </thead>
             <tbody>
-                {% for employe in employes %}
+                {% for e in employes %}
                 <tr>
-                    <td>{{ employe.lastName }}</td>
-                    <td>{{ employe.firstName }}</td>
-                    <td>{{ employe.mail }}</td>
-                    <td><span class="badge badge-muted">{{ employe.role }}</span></td>
-                    <td style="display:flex;gap:8px;">
+                    <td>{{ e.lastName }}</td>
+                    <td>{{ e.firstName }}</td>
+                    <td><span class="badge badge-blue">{{ e.role }}</span></td>
+                    <td>
                         <button class="btn btn-outline"
                             data-modal-open="modal-employe-edit"
                             data-form="form-employe-edit"
-                            data-action="/employes/{{ employe.id }}/edit"
-                            data-fields='{"edit-emp-lastName":"{{ employe.lastName }}","edit-emp-firstName":"{{ employe.firstName }}","edit-emp-mail":"{{ employe.mail }}","edit-emp-role":"{{ employe.role }}"}'>
-                            Modifié
+                            data-action="/employes/{{ e.id }}/edit"
+                            data-fields='{"edit-emp-firstName":"{{ e.firstName }}","edit-emp-lastName":"{{ e.lastName }}","edit-emp-mail":"{{ e.mail }}","edit-emp-role":"{{ e.role }}"}'>
+                            Modifier
                         </button>
                         <button class="btn btn-danger"
                             data-modal-open="modal-employe-delete"
                             data-form="form-employe-delete"
-                            data-action="/employes/{{ employe.id }}/delete"
-                            data-confirm-text="Supprimer {{ employe.firstName }} {{ employe.lastName }} ?"
+                            data-action="/employes/{{ e.id }}/delete"
+                            data-confirm-text="Supprimer {{ e.firstName }} {{ e.lastName }} ?"
                             data-confirm-target="delete-employe-text">
                             Supprimer
                         </button>
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="5" class="empty-state">Aucun employé</td></tr>
+                <tr><td colspan="4" class="empty-state">Aucun employé</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <div id="modal-employe-add" class="modal-backdrop">
+        <div class="modal">
+            <h3 class="modal__title">Ajouter un employé</h3>
+            <form method="POST" action="/employes/add">
+                <div class="form-group"><label class="form-label">Prénom *</label><input class="form-input" type="text" name="firstName" required></div>
+                <div class="form-group"><label class="form-label">Nom *</label><input class="form-input" type="text" name="lastName" required></div>
+                <div class="form-group"><label class="form-label">Email *</label><input class="form-input" type="email" name="mail" required></div>
+                <div class="form-group"><label class="form-label">Rôle *</label>
+                    <select class="form-select" name="role" required>
+                        <option value="ADMIN">Admin</option>
+                        <option value="OPERATEUR">Opérateur</option>
+                    </select>
+                </div>
+                <div class="form-group"><label class="form-label">Mot de passe *</label><input class="form-input" type="password" name="password" required></div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-full">Ajouter</button>
+                    <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-employe-add">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-employe-edit" class="modal-backdrop">
+        <div class="modal">
+            <h3 class="modal__title">Modifier l'employé</h3>
+            <form id="form-employe-edit" method="POST" action="">
+                <div class="form-group"><label class="form-label">Prénom *</label><input class="form-input" type="text" id="edit-emp-firstName" name="firstName" required></div>
+                <div class="form-group"><label class="form-label">Nom *</label><input class="form-input" type="text" id="edit-emp-lastName" name="lastName" required></div>
+                <div class="form-group"><label class="form-label">Email *</label><input class="form-input" type="email" id="edit-emp-mail" name="mail" required></div>
+                <div class="form-group"><label class="form-label">Rôle *</label>
+                    <select class="form-select" id="edit-emp-role" name="role">
+                        <option value="ADMIN">Admin</option>
+                        <option value="OPERATEUR">Opérateur</option>
+                    </select>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-full">Modifier</button>
+                    <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-employe-edit">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-employe-delete" class="modal-backdrop">
+        <div class="modal">
+            <h3 class="modal__title">Supprimer l'employé</h3>
+            <p id="delete-employe-text" class="modal__confirm-text"></p>
+            <form id="form-employe-delete" method="POST" action="">
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
+                    <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-employe-delete">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
     {% endif %}
-</div>
-<!-- Modales Employés — SUPER_ADMIN uniquement -->
-{% if userRole == 'SUPER_ADMIN' %}
-<div id="modal-employe-add" class="modal-backdrop">
-    <div class="modal">
-        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Ajouter un employé</h3>
-        <form method="POST" action="/employes/add">
-            <div class="form-group"><label class="form-label">NOM :</label>
-                <input type="text" name="lastName" class="form-input" placeholder="SWAG..." required></div>
-            <div class="form-group"><label class="form-label">PRENOM :</label>
-                <input type="text" name="firstName" class="form-input" placeholder="YOLO" required></div>
-            <div class="form-group"><label class="form-label">MAIL :</label>
-                <input type="mail" name="mail" class="form-input" placeholder="yolo@swag.fr" required></div>
-            <div class="form-group"><label class="form-label">ROLES :</label>
-                <select name="role" class="form-select">
-                    <option value="OPERATEUR">Opérateur</option>
-                    <option value="ADMIN">Admin</option>
-                </select></div>
-            <div class="form-group"><label class="form-label">MOT DE PASSE :</label>
-                <div class="input-password-wrap">
-                  <input type="password" name="password" class="form-input" required>
-                  <button type="button" class="btn-toggle"><img src="/imgs/visibility-off.svg" alt="Afficher"></button>
-                </div></div>
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary btn-full">Ajoutez</button>
-                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-employe-add">Annulez</button>
-            </div>
-        </form>
-    </div>
-</div>
 
-<!-- Modal Édition Employé -->
-<div id="modal-employe-edit" class="modal-backdrop">
-    <div class="modal">
-        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Modifier l'employé</h3>
-        <form id="form-employe-edit" method="POST" action="">
-            <div class="form-group"><label class="form-label">NOM :</label>
-                <input type="text" id="edit-emp-lastName" name="lastName" class="form-input" required></div>
-            <div class="form-group"><label class="form-label">PRENOM :</label>
-                <input type="text" id="edit-emp-firstName" name="firstName" class="form-input" required></div>
-            <div class="form-group"><label class="form-label">MAIL :</label>
-                <input type="email" id="edit-emp-mail" name="mail" class="form-input" required></div>
-            <div class="form-group"><label class="form-label">ROLES :</label>
-                <select id="edit-emp-role" name="role" class="form-select">
-                    <option value="OPERATEUR">Opérateur</option>
-                    <option value="ADMIN">Admin</option>
-                </select></div>
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary btn-full">Modifié</button>
-                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-employe-edit">Annulez</button>
-            </div>
-        </form>
-    </div>
 </div>
-
-<!-- Modal Suppression Employé -->
-<div id="modal-employe-delete" class="modal-backdrop">
-    <div class="modal">
-        <h3 style="margin-bottom:16px;font-size:18px;font-weight:500;">Supprimer l'employé</h3>
-        <p id="delete-employe-text" style="color:var(--muted);margin-bottom:24px;"></p>
-        <form id="form-employe-delete" method="POST" action="">
-            <div class="form-actions">
-                <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
-                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-employe-delete">Annulez</button>
-            </div>
-        </form>
-    </div>
-</div>
-{% endif %}
 {% endblock %}

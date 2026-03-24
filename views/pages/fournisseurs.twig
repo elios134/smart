@@ -10,11 +10,9 @@
     {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
     {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
 
-    <a href="/stock" class="section-label">Retour →</a>
-
     <div class="card">
         <div class="card__header">
-            <span class="card__title">Gestion des Fournisseurs</span>
+            <span class="card__title">Gestion des Fournisseurs & Clients</span>
             {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
             <button class="btn btn-primary" data-modal-open="modal-fournisseur-add">Ajouter</button>
             {% endif %}
@@ -22,38 +20,35 @@
         <table>
             <thead>
                 <tr>
-                    <th>Nom</th><th>Contact</th><th>Mail</th><th>Téléphone</th>
-                    <th>Matières fournies</th><th>Nb commandes</th><th>Dernier achat</th>{% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}<th>Actions</th>{% endif %}
+                    <th>Nom</th><th>Type</th><th>Contact</th><th>Mail</th><th>Téléphone</th>
+                    <th>Délai (j)</th>{% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}<th>Actions</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
                 {% for f in fournisseurs %}
                 <tr>
                     <td>{{ f.nom }}</td>
-                    <td>{{ f.nomContact }}</td>
-                    <td>{{ f.email }}</td>
-                    <td>{{ f.telephone }}</td>
                     <td>
-                        {% if f.matieresNoms %}
-                            {% for fm in f.matieres %}
-                                <span class="badge badge-blue">{{ fm.matiere.nom }}</span>
-                            {% endfor %}
+                        {% if f.typeTiers == 'CLIENT' %}
+                            <span class="badge badge-green">CLIENT</span>
                         {% else %}
-                            <span class="muted-dash">—</span>
+                            <span class="badge badge-blue">FOURNISSEUR</span>
                         {% endif %}
                     </td>
-                    <td>{{ f.nbCommandes }}</td>
-                    <td>{{ f.dernierAchat ? f.dernierAchat|date('d/m/Y') : '—' }}</td>
+                    <td>{{ f.nomContact ?? '—' }}</td>
+                    <td>{{ f.mail ?? '—' }}</td>
+                    <td>{{ f.telephone ?? '—' }}</td>
+                    <td>{{ f.delaiLivraison ?? '—' }}</td>
                     {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
                     <td>
                         <button class="btn btn-outline"
                             data-modal-open="modal-fournisseur-edit"
                             data-form="form-fournisseur-edit"
                             data-action="/fournisseurs/{{ f.id }}/edit"
-                            data-fields='{"edit-f-nom":"{{ f.nom }}","edit-f-contact":"{{ f.nomContact }}","edit-f-fonction":"{{ f.fonctionContact ?? "" }}","edit-f-email":"{{ f.email }}","edit-f-tel":"{{ f.telephone }}","edit-f-delai":"{{ f.delaiLivraison }}","edit-f-notes":"{{ f.notes ?? "" }}"}'
-                            data-matieres="{{ f.matiereIds|join(',') }}">
+                            data-fields='{"edit-f-nom":"{{ f.nom }}","edit-f-contact":"{{ f.nomContact ?? "" }}","edit-f-fonction":"{{ f.fonctionContact ?? "" }}","edit-f-mail":"{{ f.mail ?? "" }}","edit-f-tel":"{{ f.telephone ?? "" }}","edit-f-delai":"{{ f.delaiLivraison ?? "" }}","edit-f-notes":"{{ f.notes ?? "" }}"}'>
                             Modifier
                         </button>
+                        {% if userRole == 'SUPER_ADMIN' %}
                         <button class="btn btn-danger"
                             data-modal-open="modal-fournisseur-delete"
                             data-form="form-fournisseur-delete"
@@ -62,11 +57,12 @@
                             data-confirm-target="delete-fournisseur-text">
                             Supprimer
                         </button>
+                        {% endif %}
                     </td>
                     {% endif %}
                 </tr>
                 {% else %}
-                <tr><td colspan="8" class="empty-state">Aucun fournisseur</td></tr>
+                <tr><td colspan="7" class="empty-state">Aucun fournisseur ou client enregistré</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -74,59 +70,27 @@
 </div>
 
 {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
-<!-- Modal Ajout Fournisseur -->
 <div id="modal-fournisseur-add" class="modal-backdrop">
     <div class="modal">
-        <h3 class="modal__title">Ajouter un fournisseur</h3>
+        <h3 class="modal__title">Ajouter un fournisseur / client</h3>
         <form method="POST" action="/fournisseurs/add">
-            <div class="form-group">
-                <label class="form-label">NOM DE L'ENTREPRISE *</label>
-                <input class="form-input" type="text" name="nom" placeholder="SWAG" required>
+            <div class="form-group"><label class="form-label">Nom *</label><input class="form-input" type="text" name="nom" required></div>
+            <div class="form-group"><label class="form-label">Type *</label>
+                <select class="form-select" name="typeTiers" required>
+                    <option value="FOURNISSEUR">Fournisseur d'énergie</option>
+                    <option value="CLIENT">Client acheteur</option>
+                </select>
             </div>
-            <div class="modal-grid-2">
-                <div class="form-group">
-                    <label class="form-label">NOM DU CONTACT</label>
-                    <input class="form-input" type="text" name="nomContact" placeholder="SWAG Yolo">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">FONCTION DU CONTACT</label>
-                    <input class="form-input" type="text" name="fonctionContact" placeholder="Responsable">
-                </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group"><label class="form-label">Nom du contact</label><input class="form-input" type="text" name="nomContact"></div>
+                <div class="form-group"><label class="form-label">Fonction</label><input class="form-input" type="text" name="fonctionContact"></div>
             </div>
-            <div class="modal-grid-2">
-                <div class="form-group">
-                    <label class="form-label">EMAIL *</label>
-                    <input class="form-input" type="email" name="email" placeholder="contact@fournisseur.fr" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">TÉLÉPHONE</label>
-                    <input class="form-input" type="text" name="telephone" placeholder="06 XX XX XX XX">
-                </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" name="mail"></div>
+                <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" type="text" name="telephone"></div>
             </div>
-            <div class="form-group">
-                <label class="form-label">DÉLAI DE LIVRAISON HABITUEL</label>
-                <div class="delai-row">
-                    <input class="form-input" type="number" name="delaiLivraison" placeholder="5">
-                    <span class="delai-row__unit">jours ouvrés</span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">MATIÈRES PREMIÈRES FOURNIES</label>
-                <div class="checkbox-grid">
-                    {% for m in matieres %}
-                    <label class="checkbox-item">
-                        <input type="checkbox" name="matiereIds" value="{{ m.id }}">
-                        <span>{{ m.nom }} ({{ m.unite }})</span>
-                    </label>
-                    {% else %}
-                    <span class="matieres-empty">Aucune matière — ajoutez-en d'abord dans Stock</span>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">NOTES</label>
-                <textarea class="form-input" name="notes" placeholder="Lorem ipsum..." rows="3"></textarea>
-            </div>
+            <div class="form-group"><label class="form-label">Délai de livraison (jours)</label><input class="form-input" type="number" name="delaiLivraison" placeholder="5"></div>
+            <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" name="notes" rows="3"></textarea></div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary btn-full">Ajouter</button>
                 <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-fournisseur-add">Annuler</button>
@@ -135,57 +99,27 @@
     </div>
 </div>
 
-<!-- Modal Édition Fournisseur -->
 <div id="modal-fournisseur-edit" class="modal-backdrop">
     <div class="modal">
-        <h3 class="modal__title">Modifier le fournisseur</h3>
+        <h3 class="modal__title">Modifier</h3>
         <form id="form-fournisseur-edit" method="POST" action="">
-            <div class="form-group">
-                <label class="form-label">NOM DE L'ENTREPRISE *</label>
-                <input class="form-input" type="text" id="edit-f-nom" name="nom" required>
+            <div class="form-group"><label class="form-label">Nom *</label><input class="form-input" type="text" id="edit-f-nom" name="nom" required></div>
+            <div class="form-group"><label class="form-label">Type *</label>
+                <select class="form-select" name="typeTiers" required>
+                    <option value="FOURNISSEUR">Fournisseur d'énergie</option>
+                    <option value="CLIENT">Client acheteur</option>
+                </select>
             </div>
-            <div class="modal-grid-2">
-                <div class="form-group">
-                    <label class="form-label">NOM DU CONTACT</label>
-                    <input class="form-input" type="text" id="edit-f-contact" name="nomContact">
-                </div>
-                <div class="form-group">
-                    <label class="form-label">FONCTION DU CONTACT</label>
-                    <input class="form-input" type="text" id="edit-f-fonction" name="fonctionContact">
-                </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group"><label class="form-label">Nom du contact</label><input class="form-input" type="text" id="edit-f-contact" name="nomContact"></div>
+                <div class="form-group"><label class="form-label">Fonction</label><input class="form-input" type="text" id="edit-f-fonction" name="fonctionContact"></div>
             </div>
-            <div class="modal-grid-2">
-                <div class="form-group">
-                    <label class="form-label">EMAIL *</label>
-                    <input class="form-input" type="email" id="edit-f-email" name="email" required>
-                </div>
-                <div class="form-group">
-                    <label class="form-label">TÉLÉPHONE</label>
-                    <input class="form-input" type="text" id="edit-f-tel" name="telephone">
-                </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group"><label class="form-label">Email</label><input class="form-input" type="email" id="edit-f-mail" name="mail"></div>
+                <div class="form-group"><label class="form-label">Téléphone</label><input class="form-input" type="text" id="edit-f-tel" name="telephone"></div>
             </div>
-            <div class="form-group">
-                <label class="form-label">DÉLAI DE LIVRAISON HABITUEL</label>
-                <div class="delai-row">
-                    <input class="form-input" type="number" id="edit-f-delai" name="delaiLivraison">
-                    <span class="delai-row__unit">jours ouvrés</span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">MATIÈRES PREMIÈRES FOURNIES</label>
-                <div id="edit-f-matieres" class="checkbox-grid">
-                    {% for m in matieres %}
-                    <label class="checkbox-item">
-                        <input type="checkbox" name="matiereIds" value="{{ m.id }}">
-                        <span>{{ m.nom }} ({{ m.unite }})</span>
-                    </label>
-                    {% endfor %}
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">NOTES</label>
-                <textarea class="form-input" id="edit-f-notes" name="notes" rows="3"></textarea>
-            </div>
+            <div class="form-group"><label class="form-label">Délai de livraison (jours)</label><input class="form-input" type="number" id="edit-f-delai" name="delaiLivraison"></div>
+            <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="edit-f-notes" name="notes" rows="3"></textarea></div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary btn-full">Modifier</button>
                 <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-fournisseur-edit">Annuler</button>
@@ -194,7 +128,6 @@
     </div>
 </div>
 
-<!-- Modal Suppression Fournisseur -->
 <div id="modal-fournisseur-delete" class="modal-backdrop">
     <div class="modal">
         <h3 class="modal__title">Supprimer le fournisseur</h3>
@@ -208,12 +141,4 @@
     </div>
 </div>
 {% endif %}
-{% endblock %}
-
-{% block style %}
-<link rel="stylesheet" href="/css/fournisseurs.css">
-{% endblock %}
-
-{% block script %}
-<script src="/script/fournisseurs.js"></script>
 {% endblock %}

@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { authMiddleware, requireRole } from '../services/authMiddleware.js';
+import { getPlanification, postAddSession, postLancerSession, postTerminerSession, postDeleteSession } from '../controllers/planificationController.js';
+const router = Router();
+router.get('/',              authMiddleware, getPlanification);
+router.post('/add',          authMiddleware, postAddSession);
+router.post('/:id/lancer',   authMiddleware, postLancerSession);
+router.post('/:id/terminer', authMiddleware, postTerminerSession);
+router.post('/:id/delete',   authMiddleware, requireRole('SUPER_ADMIN', 'ADMIN'), postDeleteSession);
+export { router as planificationRouter };

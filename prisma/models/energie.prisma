@@ -9,7 +9,8 @@ model SourceEnergie {
   updatedAt      DateTime   @updatedAt
 
   stock          StockEnergie?
-  productions    ProductionEnergie[]
+  sessions       SessionEnergie[]
+  achats         AchatEnergie[]
   ventes         VenteEnergie[]
   seuil          SeuilEnergie?
 
@@ -35,53 +36,56 @@ model StockEnergie {
   @@map("stocks_energie")
 }
 
-model ProductionEnergie {
-  id            Int               @id @default(autoincrement())
-  quantite      Float             @default(0)
-  coutTotal     Float             @default(0)
-  debutProd     DateTime
-  finProd       DateTime?
-  statut        StatutProdEnergie @default(EN_COURS)
-  declenchement String            @default("MANUEL")
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
+model AchatEnergie {
+  id        Int      @id @default(autoincrement())
+  quantite  Float
+  prixAchat Float
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  source        SourceEnergie @relation(fields: [sourceId], references: [id])
-  sourceId      Int
+  source    SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId  Int
 
-  @@map("productions_energie")
-}
+  tiers     Tiers?   @relation(fields: [tiersId], references: [id])
+  tiersId   Int?
 
-enum StatutProdEnergie {
-  EN_COURS
-  TERMINEE
-  ANNULEE
+  @@map("achats_energie")
 }
 
 model VenteEnergie {
-  id         Int      @id @default(autoincrement())
-  quantite   Float
-  prixVente  Float
-  total      Float
-  createdAt  DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  quantite  Float
+  prixVente Float
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  source     SourceEnergie @relation(fields: [sourceId], references: [id])
-  sourceId   Int
+  source    SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId  Int
+
+  tiers     Tiers?   @relation(fields: [tiersId], references: [id])
+  tiersId   Int?
 
   @@map("ventes_energie")
 }
 
 model SeuilEnergie {
-  id                  Int         @id @default(autoincrement())
-  seuilDeclenchement  Float       @default(20)
-  seuilArret          Float       @default(10)
-  declenchementAuto   Boolean     @default(false)
-  statut              StatutSeuil @default(ACTIF)
-  createdAt           DateTime    @default(now())
-  updatedAt           DateTime    @updatedAt
+  id                 Int         @id @default(autoincrement())
+  seuilDeclenchement Float       @default(20)
+  seuilArret         Float       @default(10)
+  declenchementAuto  Boolean     @default(false)
+  statut             StatutActif @default(ACTIF)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
 
-  source              SourceEnergie @relation(fields: [sourceId], references: [id])
-  sourceId            Int           @unique
+  source             SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId           Int           @unique
 
   @@map("seuils_energie")
+}
+
+enum StatutActif {
+  ACTIF
+  INACTIF
 }

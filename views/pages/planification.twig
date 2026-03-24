@@ -1,0 +1,223 @@
+{% extends "layouts/base.twig" %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css">
+<link rel="stylesheet" href="/css/planification.css">
+{% endblock %}
+
+{% block header %}
+    {% include "partials/_navbar.twig" %}
+{% endblock %}
+
+{% block main %}
+<div class="main">
+
+    {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
+    {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
+
+    <script id="calendar-events-data" type="application/json">{{ eventsCalendar|raw }}</script>
+
+    <div class="page-tabs">
+        <a class="page-tab active" data-tab="planification" href="#">Calendrier</a>
+        <a class="page-tab" data-tab="sessions" href="#">Sessions</a>
+        <a class="page-tab" data-tab="cours" href="#">Mix ENTSO-E</a>
+    </div>
+
+    <!-- ── TAB CALENDRIER ── -->
+    <div id="tab-planification" class="tab-panel active">
+        <div class="card">
+            <div class="card__header">
+                <span class="card__title">Planning des sessions de production</span>
+                <button class="btn btn-primary" data-modal-open="modal-session-add">Planifier</button>
+            </div>
+            <div id="calendar"></div>
+        </div>
+    </div>
+
+    <!-- ── TAB SESSIONS ── -->
+    <div id="tab-sessions" class="tab-panel">
+        <div class="card">
+            <div class="card__header">
+                <span class="card__title">Toutes les sessions</span>
+                <button class="btn btn-primary" data-modal-open="modal-session-add">Planifier</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Titre</th><th>Source</th><th>MWh prévus</th><th>MWh produits</th>
+                        <th>Coût</th><th>Début prévu</th><th>Décl.</th><th>Statut</th><th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sessions %}
+                    <tr>
+                        <td>{{ s.titre }}</td>
+                        <td>{{ s.source.nom }}</td>
+                        <td>{{ s.quantitePrevue }} MWh</td>
+                        <td>{{ s.quantiteProduite }} MWh</td>
+                        <td>{{ s.coutTotal }} €</td>
+                        <td>{{ s.debutPrev|date('d/m/Y') }}</td>
+                        <td>
+                            {% if s.declenchement == 'AUTO' %}<span class="badge badge-blue">AUTO</span>
+                            {% else %}<span class="badge badge-muted">MANUEL</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if s.statut == 'EN_ATTENTE' %}<span class="badge badge-muted">EN ATTENTE</span>
+                            {% elseif s.statut == 'EN_COURS' %}<span class="badge badge-green">EN COURS</span>
+                            {% elseif s.statut == 'TERMINEE' %}<span class="badge badge-blue">TERMINÉE</span>
+                            {% else %}<span class="badge badge-red">ANNULÉE</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if s.statut == 'EN_ATTENTE' %}
+                            <form method="POST" action="/planification/{{ s.id }}/lancer" style="display:inline;">
+                                <button type="submit" class="btn btn-primary">Lancer</button>
+                            </form>
+                            {% endif %}
+                            {% if s.statut == 'EN_COURS' %}
+                            <button class="btn btn-primary"
+                                data-modal-open="modal-terminer"
+                                data-form="form-terminer"
+                                data-action="/planification/{{ s.id }}/terminer">
+                                Terminer
+                            </button>
+                            {% endif %}
+                            {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
+                            <button class="btn btn-danger"
+                                data-modal-open="modal-session-delete"
+                                data-form="form-session-delete"
+                                data-action="/planification/{{ s.id }}/delete"
+                                data-confirm-text="Supprimer {{ s.titre }} ?"
+                                data-confirm-target="delete-session-text">
+                                Supprimer
+                            </button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="9" class="empty-state">Aucune session planifiée</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- ── TAB COURS MIX ── -->
+    <div id="tab-cours" class="tab-panel">
+        <div class="card">
+            <div class="card__header">
+                <span class="card__title">Mix de production national — France</span>
+                {% if mix %}
+                    <span class="badge badge-green">LIVE ENTSO-E</span>
+                {% else %}
+                    <span class="badge badge-muted">API non configurée</span>
+                {% endif %}
+            </div>
+
+            {% if alertesAchat %}
+            <div class="alertes-grid">
+                {% for s in alertesAchat %}
+                <div class="alerte-card alerte-card--achat">
+                    <div>
+                        <div class="alerte-card__badge">Signal production</div>
+                        <div class="alerte-card__name">{{ s.nom }}</div>
+                        <div class="alerte-card__sub">Mix {{ s.type }} élevé — bon moment pour produire</div>
+                    </div>
+                    <span class="badge badge-blue">PRODUIRE</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if alertesVente %}
+            <div class="alertes-grid">
+                {% for s in alertesVente %}
+                <div class="alerte-card alerte-card--vente">
+                    <div>
+                        <div class="alerte-card__badge">Signal vente</div>
+                        <div class="alerte-card__name">{{ s.nom }}</div>
+                        <div class="alerte-card__sub">Mix {{ s.type }} bas — envisager la revente</div>
+                    </div>
+                    <span class="badge badge-red">VENDRE</span>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if mix %}
+            <div class="cours-kpis">
+                {% if mix.EOLIEN is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Éolien</div><div class="cours-kpi__value">{{ mix.EOLIEN }}%</div></div>{% endif %}
+                {% if mix.SOLAIRE is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Solaire</div><div class="cours-kpi__value">{{ mix.SOLAIRE }}%</div></div>{% endif %}
+                {% if mix.HYDRAULIQUE is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Hydraulique</div><div class="cours-kpi__value">{{ mix.HYDRAULIQUE }}%</div></div>{% endif %}
+                {% if mix.NUCLEAIRE is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Nucléaire</div><div class="cours-kpi__value">{{ mix.NUCLEAIRE }}%</div></div>{% endif %}
+            </div>
+            {% else %}
+            <p class="empty-state">Configurez ENTSOE_API_KEY dans votre .env pour activer les données temps réel</p>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal Planifier -->
+<div id="modal-session-add" class="modal-backdrop">
+    <div class="modal">
+        <h3 class="modal__title">Planifier une session de production</h3>
+        <form method="POST" action="/planification/add">
+            <div class="form-group"><label class="form-label">Titre *</label><input class="form-input" type="text" name="titre" placeholder="Production éolienne mars" required></div>
+            <div class="form-group"><label class="form-label">Source *</label>
+                <select class="form-select" name="sourceId" required>
+                    <option value="">Sélectionner...</option>
+                    {% for s in sources %}
+                    <option value="{{ s.id }}">{{ s.nom }} ({{ s.type }})</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group"><label class="form-label">Quantité prévue (MWh)</label><input class="form-input" type="number" step="0.01" name="quantitePrevue" placeholder="100"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+                <div class="form-group"><label class="form-label">Début prévu *</label><input class="form-input" type="datetime-local" name="debutPrev" required></div>
+                <div class="form-group"><label class="form-label">Fin prévue *</label><input class="form-input" type="datetime-local" name="finPrev" required></div>
+            </div>
+            <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" name="notes" rows="3"></textarea></div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-full">Planifier</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-session-add">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Terminer -->
+<div id="modal-terminer" class="modal-backdrop">
+    <div class="modal">
+        <h3 class="modal__title">Clôturer la session</h3>
+        <form id="form-terminer" method="POST" action="">
+            <div class="form-group"><label class="form-label">MWh produits réellement *</label><input class="form-input" type="number" step="0.01" name="quantiteProduite" placeholder="95" required></div>
+            <div class="form-group"><label class="form-label">Coût total (€)</label><input class="form-input" type="number" step="0.01" name="coutTotal" placeholder="4200"></div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-full">Terminer & créditer le stock</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-terminer">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Suppression -->
+<div id="modal-session-delete" class="modal-backdrop">
+    <div class="modal">
+        <h3 class="modal__title">Supprimer la session</h3>
+        <p id="delete-session-text" class="modal__confirm-text"></p>
+        <form id="form-session-delete" method="POST" action="">
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-session-delete">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="/script/planification.js"></script>
+{% endblock %}

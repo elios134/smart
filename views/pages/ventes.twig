@@ -18,15 +18,15 @@
     <!-- KPIs -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="stat-card__value">{{ kpis.chiffreAffaires }}$</div>
-            <div class="stat-card__label">Chiffres d'affaires</div>
+            <div class="stat-card__value">{{ kpis.chiffreAffaires }} €</div>
+            <div class="stat-card__label">Chiffre d'affaires</div>
         </div>
         <div class="stat-card">
             <div class="stat-card__value">{{ kpis.nbVentes }}</div>
-            <div class="stat-card__label">Nombres de ventes</div>
+            <div class="stat-card__label">Nombre de ventes</div>
         </div>
         <div class="stat-card">
-            <div class="stat-card__value">{{ kpis.panierMoyen }}$</div>
+            <div class="stat-card__value">{{ kpis.panierMoyen }} €</div>
             <div class="stat-card__label">Panier moyen</div>
         </div>
     </div>
@@ -40,84 +40,100 @@
         <table>
             <thead>
                 <tr>
-                    <th>Numéro de commande</th><th>Quantité</th><th>Total TTC</th>
-                    <th>Date</th><th>Statut</th><th>Actions</th>
+                    <th>Source</th><th>Client</th><th>Quantité (MWh)</th>
+                    <th>Prix (€/MWh)</th><th>Total (€)</th><th>Date</th><th>Actions</th>
                 </tr>
             </thead>
             <tbody>
-                {% for vente in ventes %}
+                {% for v in ventes %}
                 <tr>
-                    <td>{{ vente.numeroCommande }}</td>
-                    <td>{{ vente.qteTotale }}</td>
-                    <td>{{ vente.totalTTC }}$</td>
-                    <td>{{ vente.createdAt ? vente.createdAt|date('d/m/Y') : '—' }}</td>
+                    <td>{{ v.source.nom }}</td>
+                    <td>{{ v.tiers ? v.tiers.nom : '—' }}</td>
+                    <td>{{ v.quantite }} MWh</td>
+                    <td>{{ v.prixVente }} €</td>
+                    <td><strong>{{ v.total }} €</strong></td>
+                    <td>{{ v.createdAt|date('d/m/Y') }}</td>
                     <td>
-                        {% if vente.statut == 'VALIDEE' %}<span class="badge badge-green">VALIDÉE</span>
-                        {% elseif vente.statut == 'ANNULEE' %}<span class="badge badge-red">ANNULÉE</span>
-                        {% else %}<span class="badge badge-blue">EN COURS</span>{% endif %}
-                    </td>
-                    <td style="display:flex;gap:6px;">
-                        <a href="/ventes/{{ vente.id }}" class="btn btn-outline" style="font-size:11px;padding:5px 12px;">Détails</a>
+                        <a href="/ventes/{{ v.id }}" class="btn btn-outline">Détails</a>
+                        {% if userRole == 'SUPER_ADMIN' %}
                         <button class="btn btn-danger"
                             data-modal-open="modal-vente-delete"
                             data-form="form-vente-delete"
-                            data-action="/ventes/{{ vente.id }}/delete"
-                            data-confirm-text="Supprimer la commande {{ vente.numeroCommande }} ?"
-                            data-confirm-target="delete-vente-text"
-                            style="font-size:11px;padding:5px 12px;">Supprimer</button>
+                            data-action="/ventes/{{ v.id }}/delete"
+                            data-confirm-text="Supprimer cette vente de {{ v.quantite }} MWh ?"
+                            data-confirm-target="delete-vente-text">
+                            Supprimer
+                        </button>
+                        {% endif %}
                     </td>
                 </tr>
                 {% else %}
-                <tr><td colspan="6" class="empty-state">Aucune vente enregistrée</td></tr>
+                <tr><td colspan="7" class="empty-state">Aucune vente enregistrée</td></tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Modal Nouvelle Vente -->
+<!-- Modal Nouvelle vente -->
 <div id="modal-vente-add" class="modal-backdrop">
     <div class="modal">
-        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Nouvelle vente</h3>
+        <h3 class="modal__title">Nouvelle vente d'énergie</h3>
         <form method="POST" action="/ventes/add">
             <div class="form-group">
-                <label class="form-label">PRODUITS *</label>
-                <select class="form-select" name="produitId" id="vente-produitId" required>
+                <label class="form-label">Source *</label>
+                <select class="form-select" name="sourceId" required>
                     <option value="">Sélectionner...</option>
-                    {% for p in produits %}
-                        <option value="{{ p.id }}" data-prix="{{ p.prixVente }}">{{ p.nom }}</option>
+                    {% for s in sources %}
+                    <option value="{{ s.id }}" data-prix="{{ s.coutProduction }}">
+                        {{ s.nom }} — stock : {{ s.stock.quantite ?? 0 }} MWh
+                    </option>
                     {% endfor %}
                 </select>
             </div>
             <div class="form-group">
-                <label class="form-label">QUANTITE *</label>
-                <input class="form-input" type="number" step="0.01" name="quantite" id="vente-quantite" placeholder="155" required>
+                <label class="form-label">Client</label>
+                <select class="form-select" name="tiersId">
+                    <option value="">Aucun</option>
+                    {% for c in clients %}
+                    <option value="{{ c.id }}">{{ c.nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Quantité (MWh) *</label>
+                <input class="form-input" type="number" step="0.01" id="vente-quantite" name="quantite" placeholder="50" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Prix de vente (€/MWh) *</label>
+                <input class="form-input" type="number" step="0.01" id="vente-prix" name="prixVente" placeholder="80" required>
             </div>
             <div class="total-estime">
-                <span>Total Estimé</span>
-                <span class="total-estime__value" id="vente-total-estime">0$</span>
+                <span>Total estimé</span>
+                <span class="total-estime__value" id="vente-total-estime">0 €</span>
             </div>
             <div class="form-actions">
-                <button type="submit" class="btn btn-primary btn-full">Ajoutez</button>
-                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-vente-add">Annulez</button>
+                <button type="submit" class="btn btn-primary btn-full">Valider la vente</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-vente-add">Annuler</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal Suppression Vente -->
+<!-- Modal Suppression -->
 <div id="modal-vente-delete" class="modal-backdrop">
     <div class="modal">
-        <h3 style="margin-bottom:16px;font-size:18px;font-weight:500;">Supprimer la vente</h3>
-        <p id="delete-vente-text" style="color:var(--muted);margin-bottom:24px;"></p>
+        <h3 class="modal__title">Supprimer la vente</h3>
+        <p id="delete-vente-text" class="modal__confirm-text"></p>
         <form id="form-vente-delete" method="POST" action="">
             <div class="form-actions">
                 <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
-                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-vente-delete">Annulez</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-vente-delete">Annuler</button>
             </div>
         </form>
     </div>
 </div>
+
 {% endblock %}
 
 {% block script %}

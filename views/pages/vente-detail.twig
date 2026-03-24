@@ -14,94 +14,88 @@
     {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
     {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
 
-    <a href="/ventes" class="section-label" style="margin-bottom:20px;display:inline-block;">← Retour aux ventes</a>
+    <a href="/ventes" class="section-label">← Retour aux ventes</a>
 
     <div class="detail-grid">
-        <!-- Détails commande -->
+        <!-- Détails de la vente -->
         <div class="card">
             <div class="card__header">
-                <span class="card__title">Détails commande</span>
+                <span class="card__title">Détails de la vente</span>
             </div>
             <div class="detail-row">
-                <span class="detail-row__label">N°Commande</span>
-                <span class="detail-row__value">{{ vente.numeroCommande }}</span>
+                <span class="detail-row__label">Référence</span>
+                <span class="detail-row__value">#{{ vente.id }}</span>
             </div>
             <div class="detail-row">
                 <span class="detail-row__label">Date</span>
-                <span class="detail-row__value">{{ vente.createdAt ? vente.createdAt|date('d/m/Y') : '—' }}</span>
+                <span class="detail-row__value">{{ vente.createdAt|date('d/m/Y H:i') }}</span>
             </div>
             <div class="detail-row">
-                <span class="detail-row__label">Statut</span>
+                <span class="detail-row__label">Source</span>
                 <span class="detail-row__value">
-                    {% if vente.statut == 'VALIDEE' %}<span class="badge badge-green">Validée</span>
-                    {% elseif vente.statut == 'ANNULEE' %}<span class="badge badge-red">Annulée</span>
-                    {% else %}<span class="badge badge-blue">En cours</span>{% endif %}
+                    <span class="badge badge-blue">{{ vente.source.type }}</span>
+                    {{ vente.source.nom }}
                 </span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-row__label">Client</span>
+                <span class="detail-row__value">{{ vente.tiers ? vente.tiers.nom : '—' }}</span>
             </div>
         </div>
 
-        <!-- Produit vendu (première ligne) -->
-        {% if vente.lignes|length > 0 %}
-        {% set ligne = vente.lignes[0] %}
+        <!-- Informations source -->
         <div class="card">
             <div class="card__header">
-                <span class="card__title">Produit vendu</span>
+                <span class="card__title">Source d'énergie</span>
             </div>
             <div class="detail-row">
                 <span class="detail-row__label">Nom</span>
-                <span class="detail-row__value">{{ ligne.produit.nom ?? '—' }}</span>
+                <span class="detail-row__value">{{ vente.source.nom }}</span>
             </div>
             <div class="detail-row">
-                <span class="detail-row__label">Unité</span>
-                <span class="detail-row__value">kg</span>
+                <span class="detail-row__label">Type</span>
+                <span class="detail-row__value"><span class="badge badge-blue">{{ vente.source.type }}</span></span>
             </div>
             <div class="detail-row">
                 <span class="detail-row__label">Coût de prod.</span>
-                <span class="detail-row__value">{{ ligne.produit.coutActuel ?? '—' }} €</span>
+                <span class="detail-row__value">{{ vente.source.coutProduction }} €/MWh</span>
             </div>
         </div>
-        {% endif %}
     </div>
 
-    <!-- Lignes de facturation -->
+    <!-- Détail financier -->
     <div class="card">
         <div class="card__header">
-            <span class="card__title">Lignes de facturation</span>
+            <span class="card__title">Détail financier</span>
         </div>
         <table>
             <thead>
                 <tr>
-                    <th>Désignation</th><th>Quantité</th>
-                    <th>Prix unitaire</th><th>Prix HT</th>
+                    <th>Désignation</th><th>Quantité</th><th>Prix unitaire</th><th>Total</th>
                 </tr>
             </thead>
             <tbody>
-                {% for ligne in vente.lignes %}
                 <tr>
-                    <td>{{ ligne.produit.nom ?? '—' }}</td>
-                    <td>{{ ligne.quantite }} kg</td>
-                    <td>{{ ligne.prixUnitaire }} $</td>
-                    <td>{{ ligne.prixHT }} $</td>
+                    <td>Énergie — {{ vente.source.nom }} ({{ vente.source.type }})</td>
+                    <td>{{ vente.quantite }} MWh</td>
+                    <td>{{ vente.prixVente }} €/MWh</td>
+                    <td><strong>{{ vente.total }} €</strong></td>
                 </tr>
-                {% else %}
-                <tr><td colspan="4" class="empty-state">Aucune ligne</td></tr>
-                {% endfor %}
             </tbody>
         </table>
 
-        <!-- Totaux -->
         <div class="facture-totaux">
             <div class="facture-ligne">
-                <span class="facture-ligne__label">Sous-total</span>
-                <span class="facture-ligne__value">HTX {{ vente.totalHT }} €</span>
+                <span class="facture-ligne__label">Coût de production</span>
+                <span class="facture-ligne__value">{{ (vente.quantite * vente.source.coutProduction)|round(2) }} €</span>
             </div>
             <div class="facture-ligne">
-                <span class="facture-ligne__label">TVA ({{ vente.tva }}%)</span>
-                <span class="facture-ligne__value">{{ montantTVA }} €</span>
+                <span class="facture-ligne__label">Prix de vente</span>
+                <span class="facture-ligne__value">{{ vente.prixVente }} €/MWh</span>
             </div>
             <div class="facture-ligne facture-ligne--ttc">
-                <span class="facture-ligne__label">Total TTC</span>
-                <span class="facture-ligne__value">{{ vente.totalTTC }} €</span>
+                <span class="facture-ligne__label">Total encaissé</span>
+                <span class="facture-ligne__value">{{ vente.total }} €</span>
             </div>
         </div>
     </div>

@@ -1,0 +1,28 @@
+model SessionEnergie {
+  id               Int           @id @default(autoincrement())
+  titre            String
+  quantitePrevue   Float         @default(0)
+  quantiteProduite Float         @default(0)
+  coutTotal        Float         @default(0)
+  debutPrev        DateTime
+  finPrev          DateTime
+  debutReel        DateTime?
+  finReel          DateTime?
+  statut           StatutSession @default(EN_ATTENTE)
+  notes            String?       @db.Text
+  declenchement    String        @default("MANUEL")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  source           SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId         Int
+
+  @@map("sessions_energie")
+}
+
+enum StatutSession {
+  EN_ATTENTE
+  EN_COURS
+  TERMINEE
+  ANNULEE
+}

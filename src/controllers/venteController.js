@@ -1,127 +1,92 @@
-import prisma from "../../prisma/prismaClient.js";
+import prisma from '../../prisma/prismaClient.js';
 
 // GET /ventes
 export async function getVentes(req, res) {
     try {
-        const [ventes, produits] = await Promise.all([
-            prisma.vente.findMany({
-                include: { lignes: { include: { produit: true } } },
-                orderBy: { createdAt: "desc" }
+        const [ventes, sources, clients] = await Promise.all([
+            prisma.venteEnergie.findMany({
+                include: { source: true, tiers: true },
+                orderBy: { createdAt: 'desc' }
             }),
-            prisma.produit.findMany({
-                include: { stock: true },
-                orderBy: { nom: "asc" }
-            })
+            prisma.sourceEnergie.findMany({ where: { actif: true }, include: { stock: true }, orderBy: { nom: 'asc' } }),
+            prisma.tiers.findMany({ where: { typeTiers: 'CLIENT' }, orderBy: { nom: 'asc' } })
         ]);
 
-        // Calcul qteTotale côté JS
-        const ventesAvecQte = ventes.map(v => ({
-            ...v,
-            qteTotale: v.lignes.reduce((s, l) => s + l.quantite, 0)
-        }));
+        const kpis = {
+            chiffreAffaires: Math.round(ventes.reduce((acc, v) => acc + v.total, 0) * 100) / 100,
+            nbVentes:        ventes.length,
+            panierMoyen:     ventes.length > 0 ? Math.round((ventes.reduce((acc, v) => acc + v.total, 0) / ventes.length) * 100) / 100 : 0
+        };
 
-        // KPIs
-        const chiffreAffaires = ventes.reduce((sum, v) => sum + (v.totalTTC ?? 0), 0);
-        const nbVentes        = ventes.length;
-        const panierMoyen     = nbVentes > 0 ? Math.round(chiffreAffaires / nbVentes) : 0;
-
-        res.render("pages/ventes.twig", {
-            title: "Mes Ventes",
-            user: req.session.user,
-            navActive: "ventes",
+        res.render('pages/ventes.twig', {
+            title:    'Ventes d\'énergie',
+            user:     req.session.user,
+            navActive:'ventes',
             userRole: req.userRole,
-            ventes: ventesAvecQte,
-            produits,
-            kpis: { chiffreAffaires, nbVentes, panierMoyen }
+            ventes, sources, clients, kpis
         });
     } catch (error) {
         console.error(error);
-        res.redirect("/home?error=Erreur lors du chargement des ventes");
-    }
-}
-
-// POST /ventes/add
-export async function postAddVente(req, res) {
-    const { produitId, quantite } = req.body;
-    try {
-        const produit = await prisma.produit.findUnique({
-            where: { id: parseInt(produitId) }
-        });
-        if (!produit) return res.redirect("/ventes?error=Produit introuvable");
-
-        const qte      = parseFloat(quantite) || 0;
-        const prixHT   = produit.prixVente * qte;
-        const tauxTVA  = 20;
-        const totalTTC = prixHT * (1 + tauxTVA / 100);
-
-        // Numéro de commande unique
-        const numeroCommande = "CMD-" + Date.now();
-
-        await prisma.vente.create({
-            data: {
-                numeroCommande,
-                totalHT: prixHT,
-                tva: tauxTVA,
-                totalTTC,
-                statut: "EN_COURS",
-                lignes: {
-                    create: [{
-                        produitId: produit.id,
-                        quantite: qte,
-                        prixUnitaire: produit.prixVente,
-                        prixHT
-                    }]
-                }
-            }
-        });
-
-        // Décrémenter le stock produit
-        await prisma.stock.upsert({
-            where:  { produitId: produit.id },
-            update: { quantite: { decrement: qte } },
-            create: { produitId: produit.id, quantite: 0 }
-        });
-
-        res.redirect("/ventes?success=Vente créée");
-    } catch (error) {
-        console.error(error);
-        res.redirect("/ventes?error=Erreur lors de la création");
+        res.redirect('/home?error=Erreur lors du chargement des ventes');
     }
 }
 
 // GET /ventes/:id
 export async function getVenteDetail(req, res) {
     try {
-        const vente = await prisma.vente.findUnique({
-            where: { id: parseInt(req.params.id) },
-            include: { lignes: { include: { produit: true } } }
+        const vente = await prisma.venteEnergie.findUnique({
+            where:   { id: parseInt(req.params.id) },
+            include: { source: true, tiers: true }
         });
-        if (!vente) return res.redirect("/ventes?error=Vente introuvable");
+        if (!vente) return res.redirect('/ventes?error=Vente introuvable');
 
-        const montantTVA = vente.totalTTC - vente.totalHT;
-
-        res.render("pages/vente-detail.twig", {
-            title: "Détails commande",
-            user: req.session.user,
-            navActive: "ventes",
+        res.render('pages/vente-detail.twig', {
+            title:    `Vente #${vente.id}`,
+            user:     req.session.user,
+            navActive:'ventes',
             userRole: req.userRole,
-            vente,
-            montantTVA
+            vente
         });
     } catch (error) {
         console.error(error);
-        res.redirect("/ventes?error=Erreur lors du chargement");
+        res.redirect('/ventes?error=Erreur lors du chargement');
+    }
+}
+
+// POST /ventes/add
+export async function postAddVente(req, res) {
+    const { sourceId, tiersId, quantite, prixVente } = req.body;
+    try {
+        const qty   = parseFloat(quantite) || 0;
+        const prix  = parseFloat(prixVente) || 0;
+        const total = Math.round(qty * prix * 100) / 100;
+
+        const stock = await prisma.stockEnergie.findUnique({ where: { sourceId: parseInt(sourceId) } });
+        if (!stock || stock.quantite < qty) {
+            return res.redirect('/ventes?error=Stock insuffisant pour cette vente');
+        }
+
+        await prisma.venteEnergie.create({
+            data: { sourceId: parseInt(sourceId), tiersId: tiersId ? parseInt(tiersId) : null, quantite: qty, prixVente: prix, total }
+        });
+        await prisma.stockEnergie.update({
+            where: { sourceId: parseInt(sourceId) },
+            data:  { quantite: { decrement: qty } }
+        });
+        res.redirect('/ventes?success=Vente enregistrée — stock mis à jour');
+    } catch (error) {
+        console.error(error);
+        res.redirect('/ventes?error=Erreur lors de l\'enregistrement');
     }
 }
 
 // POST /ventes/:id/delete
 export async function postDeleteVente(req, res) {
     try {
-        await prisma.ligneVente.deleteMany({ where: { venteId: parseInt(req.params.id) } });
-        await prisma.vente.delete({ where: { id: parseInt(req.params.id) } });
-        res.redirect("/ventes?success=Vente supprimée");
+        await prisma.venteEnergie.delete({ where: { id: parseInt(req.params.id) } });
+        res.redirect('/ventes?success=Vente supprimée');
     } catch (error) {
         console.error(error);
-        res.redirect("/ventes?error=Erreur lors de la suppression");
+        res.redirect('/ventes?error=Erreur lors de la suppression');
     }
 }
