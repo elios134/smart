@@ -1,7 +1,46 @@
 /* ── ÉNERGIE ── */
-.energie-alertes { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
-.source-dot { display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:6px; vertical-align:middle; }
-.energie-config-desc { font-size:13px; color:var(--muted); margin-bottom:16px; line-height:1.5; }
-.energie-field-hint { font-size:11px; color:var(--muted); margin-top:5px; line-height:1.4; }
-.modal__title { margin-bottom:24px; font-size:18px; font-weight:500; color:var(--text); }
-.modal__confirm-text { color:var(--muted); margin-bottom:24px; }
+.energie-alertes {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.source-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+.energie-config-desc {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    line-height: 1.5;
+}
+
+.energie-field-hint {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 5px;
+    line-height: 1.4;
+}
+
+.modal__title {
+    margin-bottom: 24px;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.modal__confirm-text {
+    color: var(--muted);
+    margin-bottom: 24px;
+}
+
+.page-tabs {
+    margin-bottom: 20px;
+}
