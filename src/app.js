@@ -12,6 +12,7 @@ import { fournisseurRouter } from "./routes/fournisseurRouter.js";
 import { productionRouter } from "./routes/productionRouter.js";
 import { venteRouter } from "./routes/venteRouter.js";
 import { reportingRouter } from "./routes/reportingRouter.js";
+import { energieRouter } from "./routes/energieRouter.js";
 
 import session from "express-session";
 import twig from "twig";
@@ -60,5 +61,6 @@ app.use("/fournisseurs", fournisseurRouter);
 app.use("/production", productionRouter);
 app.use("/ventes", venteRouter);
 app.use("/reporting", reportingRouter);
+app.use("/energie", energieRouter);
 
 export default app;

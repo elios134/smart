@@ -1,0 +1,87 @@
+model SourceEnergie {
+  id             Int        @id @default(autoincrement())
+  nom            String
+  type           TypeSource
+  coutProduction Float      @default(0)
+  couleur        String     @default("#4F8AFF")
+  actif          Boolean    @default(true)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  stock          StockEnergie?
+  productions    ProductionEnergie[]
+  ventes         VenteEnergie[]
+  seuil          SeuilEnergie?
+
+  @@map("sources_energie")
+}
+
+enum TypeSource {
+  EOLIEN
+  SOLAIRE
+  HYDRAULIQUE
+  HYDROGENE
+  RESEAU
+}
+
+model StockEnergie {
+  id        Int      @id @default(autoincrement())
+  quantite  Float    @default(0)
+  updatedAt DateTime @updatedAt
+
+  source    SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId  Int           @unique
+
+  @@map("stocks_energie")
+}
+
+model ProductionEnergie {
+  id            Int               @id @default(autoincrement())
+  quantite      Float             @default(0)
+  coutTotal     Float             @default(0)
+  debutProd     DateTime
+  finProd       DateTime?
+  statut        StatutProdEnergie @default(EN_COURS)
+  declenchement String            @default("MANUEL")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  source        SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId      Int
+
+  @@map("productions_energie")
+}
+
+enum StatutProdEnergie {
+  EN_COURS
+  TERMINEE
+  ANNULEE
+}
+
+model VenteEnergie {
+  id         Int      @id @default(autoincrement())
+  quantite   Float
+  prixVente  Float
+  total      Float
+  createdAt  DateTime @default(now())
+
+  source     SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId   Int
+
+  @@map("ventes_energie")
+}
+
+model SeuilEnergie {
+  id                  Int         @id @default(autoincrement())
+  seuilDeclenchement  Float       @default(20)
+  seuilArret          Float       @default(10)
+  declenchementAuto   Boolean     @default(false)
+  statut              StatutSeuil @default(ACTIF)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  source              SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId            Int           @unique
+
+  @@map("seuils_energie")
+}
