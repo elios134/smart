@@ -1,0 +1,74 @@
+/* ── FOURNISSEURS — MODALES LAYOUT ── */
+
+/* Grille 2 colonnes dans les modales */
+.modal-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+/* Ligne délai de livraison */
+.delai-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.delai-row .form-input {
+    width: 80px;
+}
+
+.delai-row__unit {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Titre des modales */
+.modal__title {
+    margin-bottom: 24px;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--text);
+}
+
+/* Texte de confirmation suppression */
+.modal__confirm-text {
+    color: var(--muted);
+    margin-bottom: 24px;
+}
+
+/* Matières vides */
+.matieres-empty {
+    color: var(--muted);
+    font-size: 13px;
+}
+
+/* Cellule matières — tiret si vide */
+.muted-dash {
+    color: var(--muted);
+}
+
+/* ── CHECKBOX GRID — MATIÈRES PREMIÈRES ── */
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 8px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--text);
+    cursor: pointer;
+}
+
+.checkbox-item input[type="checkbox"] {
+    accent-color: var(--text-link);
+}
