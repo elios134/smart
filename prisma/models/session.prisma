@@ -1,0 +1,7 @@
+model Session {
+  sid       String   @id
+  data      String   @db.Text
+  expiresAt DateTime
+
+  @@map("sessions")
+}

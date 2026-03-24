@@ -6,9 +6,6 @@ import path from "path"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-// ── URL du serveur (VPS) ──────────────────────────────
-// En production : https://smartyield.tondomaine.fr
-
 const SERVER_URL ="http://51.91.146.83:3506";
 
 let mainWindow

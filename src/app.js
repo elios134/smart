@@ -16,10 +16,12 @@ import { reportingRouter } from "./routes/reportingRouter.js";
 import session from "express-session";
 import twig from "twig";
 import { flashMiddleware } from "./middleware/flashMiddleware.js";
+import { PrismaSessionStore } from "./services/sessionStore.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const CINQ_ANS = 5 * 365 * 24 * 60 * 60 * 1000;
+
 
 if (!process.env.SESSION_SECRET) {
   throw new Error("[app.js] SESSION_SECRET manquant dans .env — arrêt immédiat");
@@ -37,12 +39,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, "../public")));
 app.use(session({
   secret: process.env.SESSION_SECRET,
+  store: new PrismaSessionStore(),
   resave: false,
   saveUninitialized: false,
-  cookie: { 
-    maxAge: CINQ_ANS, 
+  cookie: {
+    maxAge: CINQ_ANS,
     httpOnly: true,
-    secure: false //process.env.NODE_ENV === "production" 
+    secure: false //process.env.NODE_ENV === "production"
   }
 }))
 
