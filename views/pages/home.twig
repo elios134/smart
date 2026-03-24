@@ -64,18 +64,6 @@
         </table>
     </div>
 
-    <!-- Sessions en cours + Alertes -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-card__value">{{ kpis.sessionsEnCours }}</div>
-            <div class="stat-card__label">Sessions en cours — <a href="/planification" class="card__link">Planifier →</a></div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-card__value">{{ alertes|length }}</div>
-            <div class="stat-card__label">Seuils actifs — <a href="/energie" class="card__link">Configurer →</a></div>
-        </div>
-    </div>
-
     {% if userRole == 'SUPER_ADMIN' %}
     <!-- Employés -->
     <div class="card">

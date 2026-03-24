@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var raw = document.getElementById('calendar-events-data');
     if (raw) { try { eventsData = JSON.parse(raw.textContent); } catch (e) {} }
     var cal = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'timeGridWeek', locale: 'fr',
+        initialView: 'timeGridMonth', locale: 'fr',
         headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
         events: eventsData, height: 520,
         buttonText: { today: "Aujourd'hui", month: 'Mois', week: 'Semaine' }

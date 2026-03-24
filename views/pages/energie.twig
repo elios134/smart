@@ -1,264 +1,362 @@
 {% extends "layouts/base.twig" %}
 
 {% block style %}
-<link rel="stylesheet" href="/css/energie.css">
+	<link rel="stylesheet" href="/css/energie.css">
 {% endblock %}
 
 {% block header %}
-    {% include "partials/_navbar.twig" %}
+	{% include "partials/_navbar.twig" %}
 {% endblock %}
 
 {% block main %}
-<div class="main">
+	<div class="main">
 
-    {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
-    {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
+		{% if flash.success %}
+			<div class="toast toast-success">✓
+				{{ flash.success }}</div>
+		{% endif %}
+		{% if flash.error %}
+			<div class="toast toast-error">✕
+				{{ flash.error }}</div>
+		{% endif %}
 
-    {% if alertes %}
-    <div class="energie-alertes">
-        {% for a in alertes %}
-        <div class="alerte-card alerte-card--vente">
-            <div>
-                <div class="alerte-card__badge">Alerte vente</div>
-                <div class="alerte-card__name">{{ a.source.nom }}</div>
-                <div class="alerte-card__sub">Mix {{ a.source.type }} : {{ a.mixPct }}% — sous le seuil d'arrêt</div>
-            </div>
-            <span class="badge badge-red">VENDRE</span>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
+		{% if alertes %}
+			<div class="energie-alertes">
+				{% for a in alertes %}
+					<div class="alerte-card alerte-card--vente">
+						<div>
+							<div class="alerte-card__badge">Alerte vente</div>
+							<div class="alerte-card__name">{{ a.source.nom }}</div>
+							<div class="alerte-card__sub">Mix
+								{{ a.source.type }}
+								:
+								{{ a.mixPct }}% — sous le seuil d'arrêt</div>
+						</div>
+						<span class="badge badge-red">VENDRE</span>
+					</div>
+				{% endfor %}
+			</div>
+		{% endif %}
 
-    <div class="page-tabs">
-        <a class="page-tab active" data-tab="mix" href="#">Mix ENTSO-E</a>
-        <a class="page-tab" data-tab="sources" href="#">Sources</a>
-        <a class="page-tab" data-tab="config" href="#">Seuils</a>
-    </div>
+		<div class="page-tabs">
+			<a class="nav-btn active" data-tab="mix" href="#">Mix ENTSO-E</a>
+			<a class="nav-btn" data-tab="sources" href="#">Sources</a>
+			<a class="nav-btn" data-tab="config" href="#">Seuils</a>
+		</div>
 
-    <!-- ── TAB MIX ── -->
-    <div id="tab-mix" class="tab-panel active">
-        <div class="card">
-            <div class="card__header">
-                <span class="card__title">Mix Production National — France</span>
-                {% if mixObj %}<span class="badge badge-green">LIVE ENTSO-E</span>
-                {% else %}<span class="badge badge-muted">API non configurée</span>{% endif %}
-            </div>
-            {% if mixObj %}
-            <div class="cours-header">
-                <div>
-                    <div class="cours-header__title">Données en temps réel</div>
-                    <div class="cours-header__meta">Total réseau : {{ mixObj._totalMW }} MW — {{ mixObj._fetchedAt }}</div>
-                </div>
-            </div>
-            <div class="cours-kpis">
-                {% if mixObj.EOLIEN is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Éolien</div><div class="cours-kpi__value">{{ mixObj.EOLIEN }}%</div></div>{% endif %}
-                {% if mixObj.SOLAIRE is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Solaire</div><div class="cours-kpi__value">{{ mixObj.SOLAIRE }}%</div></div>{% endif %}
-                {% if mixObj.HYDRAULIQUE is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Hydraulique</div><div class="cours-kpi__value">{{ mixObj.HYDRAULIQUE }}%</div></div>{% endif %}
-                {% if mixObj.NUCLEAIRE is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Nucléaire</div><div class="cours-kpi__value">{{ mixObj.NUCLEAIRE }}%</div></div>{% endif %}
-            </div>
-            {% else %}
-            <p class="empty-state">Configurez ENTSOE_API_KEY dans votre .env pour activer les données temps réel</p>
-            {% endif %}
-        </div>
-    </div>
+		<!-- ── TAB MIX ── -->
+		<div id="tab-mix" class="tab-panel active">
+			<div class="card">
+				<div class="card__header">
+					<span class="card__title">Mix Production National — France</span>
+					{% if mixObj %}
+						<span class="badge badge-green">LIVE ENTSO-E</span>
+					{% else %}
+						<span class="badge badge-muted">API non configurée</span>
+					{% endif %}
+				</div>
+				{% if mixObj %}
+					<div class="cours-header">
+						<div>
+							<div class="cours-header__title">Données en temps réel</div>
+							<div class="cours-header__meta">Total réseau :
+								{{ mixObj._totalMW }}
+								MW —
+								{{ mixObj._fetchedAt }}</div>
+						</div>
+					</div>
+					<div class="cours-kpis">
+						{% if mixObj.EOLIEN is defined %}
+							<div class="cours-kpi">
+								<div class="cours-kpi__label">Éolien</div>
+								<div class="cours-kpi__value">{{ mixObj.EOLIEN }}%</div>
+							</div>
+						{% endif %}
+						{% if mixObj.SOLAIRE is defined %}
+							<div class="cours-kpi">
+								<div class="cours-kpi__label">Solaire</div>
+								<div class="cours-kpi__value">{{ mixObj.SOLAIRE }}%</div>
+							</div>
+						{% endif %}
+						{% if mixObj.HYDRAULIQUE is defined %}
+							<div class="cours-kpi">
+								<div class="cours-kpi__label">Hydraulique</div>
+								<div class="cours-kpi__value">{{ mixObj.HYDRAULIQUE }}%</div>
+							</div>
+						{% endif %}
+						{% if mixObj.NUCLEAIRE is defined %}
+							<div class="cours-kpi">
+								<div class="cours-kpi__label">Nucléaire</div>
+								<div class="cours-kpi__value">{{ mixObj.NUCLEAIRE }}%</div>
+							</div>
+						{% endif %}
+					</div>
+				{% else %}
+					<p class="empty-state">Configurez ENTSOE_API_KEY dans votre .env pour activer les données temps réel</p>
+				{% endif %}
+			</div>
+		</div>
 
-    <!-- ── TAB SOURCES ── -->
-    <div id="tab-sources" class="tab-panel">
-        <div class="card">
-            <div class="card__header">
-                <span class="card__title">Sources d'énergie</span>
-                <button class="btn btn-primary" data-modal-open="modal-source-add">Ajouter</button>
-            </div>
-            <table>
-                <thead>
-                    <tr><th>Source</th><th>Type</th><th>Coût prod.</th><th>Mix actuel</th><th>Stock</th><th>Statut</th><th>Actions</th></tr>
-                </thead>
-                <tbody>
-                    {% for s in sources %}
-                    <tr>
-                        <td>{{ s.nom }}</td>
-                        <td><span class="badge badge-blue">{{ s.type }}</span></td>
-                        <td>{{ s.coutProduction }} €/MWh</td>
-                        <td>
-                            {% if mixObj and attribute(mixObj, s.type) is defined %}
-                                <span class="badge {% if attribute(mixObj, s.type) >= 20 %}badge-green{% elseif attribute(mixObj, s.type) >= 10 %}badge-blue{% else %}badge-red{% endif %}">{{ attribute(mixObj, s.type) }}%</span>
-                            {% else %}<span class="badge badge-muted">—</span>{% endif %}
-                        </td>
-                        <td>{{ s.stock.quantite ?? 0 }} MWh</td>
-                        <td>{% if s.actif %}<span class="badge badge-green">ACTIF</span>{% else %}<span class="badge badge-muted">INACTIF</span>{% endif %}</td>
-                        <td>
-                            <button class="btn btn-outline"
-                                data-modal-open="modal-source-edit"
-                                data-form="form-source-edit"
-                                data-action="/energie/sources/{{ s.id }}/edit"
-                                data-fields='{"edit-s-nom":"{{ s.nom }}","edit-s-cout":"{{ s.coutProduction }}","edit-s-couleur":"{{ s.couleur }}"}'>
-                                Modifier
-                            </button>
-                            {% if userRole == 'SUPER_ADMIN' %}
-                            <button class="btn btn-danger"
-                                data-modal-open="modal-source-delete"
-                                data-form="form-source-delete"
-                                data-action="/energie/sources/{{ s.id }}/delete"
-                                data-confirm-text="Supprimer {{ s.nom }} ?"
-                                data-confirm-target="delete-source-text">
-                                Supprimer
-                            </button>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="7" class="empty-state">Aucune source configurée</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+		<!-- ── TAB SOURCES ── -->
+		<div id="tab-sources" class="tab-panel">
+			<div class="card">
+				<div class="card__header">
+					<span class="card__title">Sources d'énergie</span>
+					<button class="btn btn-primary" data-modal-open="modal-source-add">Ajouter</button>
+				</div>
+				<table>
+					<thead>
+						<tr>
+							<th>Source</th>
+							<th>Type</th>
+							<th>Coût prod.</th>
+							<th>Mix actuel</th>
+							<th>Stock</th>
+							<th>Statut</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for s in sources %}
+							<tr>
+								<td>{{ s.nom }}</td>
+								<td>
+									<span class="badge badge-blue">{{ s.type }}</span>
+								</td>
+								<td>{{ s.coutProduction }}
+									€/MWh</td>
+								<td>
+									{% if mixObj and attribute(mixObj, s.type) is defined %}
+										<span class="badge {% if attribute(mixObj, s.type) >= 20 %}badge-green{% elseif attribute(mixObj, s.type) >= 10 %}badge-blue{% else %}badge-red{% endif %}">{{ attribute(mixObj, s.type) }}%</span>
+									{% else %}
+										<span class="badge badge-muted">—</span>
+									{% endif %}
+								</td>
+								<td>{{ s.stock.quantite ?? 0 }}
+									MWh</td>
+								<td>
+									{% if s.actif %}
+										<span class="badge badge-green">ACTIF</span>
+									{% else %}
+										<span class="badge badge-muted">INACTIF</span>
+									{% endif %}
+								</td>
+								<td>
+									<button class="btn btn-outline" data-modal-open="modal-source-edit" data-form="form-source-edit" data-action="/energie/sources/{{ s.id }}/edit" data-fields='{"edit-s-nom":"{{ s.nom }}","edit-s-cout":"{{ s.coutProduction }}","edit-s-couleur":"{{ s.couleur }}"}'>
+										Modifier
+									</button>
+									{% if userRole == 'SUPER_ADMIN' %}
+										<button class="btn btn-danger" data-modal-open="modal-source-delete" data-form="form-source-delete" data-action="/energie/sources/{{ s.id }}/delete" data-confirm-text="Supprimer {{ s.nom }} ?" data-confirm-target="delete-source-text">
+											Supprimer
+										</button>
+									{% endif %}
+								</td>
+							</tr>
+						{% else %}
+							<tr>
+								<td colspan="7" class="empty-state">Aucune source configurée</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
 
-    <!-- ── TAB SEUILS ── -->
-    <div id="tab-config" class="tab-panel">
-        <div class="card">
-            <div class="card__header">
-                <span class="card__title">Configuration des seuils</span>
-                <button class="btn btn-primary" data-modal-open="modal-seuil-add">Configurer</button>
-            </div>
-            <table>
-                <thead>
-                    <tr><th>Source</th><th>Seuil déclenchement</th><th>Seuil arrêt</th><th>Auto</th><th>Statut</th><th>Actions</th></tr>
-                </thead>
-                <tbody>
-                    {% for s in seuils %}
-                    <tr>
-                        <td>{{ s.source.nom }}</td>
-                        <td><span class="taux-pill taux-pill--achat">{{ s.seuilDeclenchement }}%</span></td>
-                        <td><span class="taux-pill taux-pill--vente">{{ s.seuilArret }}%</span></td>
-                        <td>
-                            <label class="toggle">
-                                <input type="checkbox" {% if s.declenchementAuto %}checked{% endif %} disabled>
-                                <span class="toggle__track"></span><span class="toggle__thumb"></span>
-                            </label>
-                        </td>
-                        <td>{% if s.statut == 'ACTIF' %}<span class="badge badge-green">ACTIF</span>{% else %}<span class="badge badge-muted">INACTIF</span>{% endif %}</td>
-                        <td>
-                            <button class="btn btn-danger"
-                                data-modal-open="modal-seuil-delete"
-                                data-form="form-seuil-delete"
-                                data-action="/energie/seuils/{{ s.id }}/delete"
-                                data-confirm-text="Supprimer le seuil de {{ s.source.nom }} ?"
-                                data-confirm-target="delete-seuil-text">
-                                Supprimer
-                            </button>
-                        </td>
-                    </tr>
-                    {% else %}
-                    <tr><td colspan="6" class="empty-state">Aucun seuil configuré</td></tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+		<!-- ── TAB SEUILS ── -->
+		<div id="tab-config" class="tab-panel">
+			<div class="card">
+				<div class="card__header">
+					<span class="card__title">Configuration des seuils</span>
+					<button class="btn btn-primary" data-modal-open="modal-seuil-add">Configurer</button>
+				</div>
+				<table>
+					<thead>
+						<tr>
+							<th>Source</th>
+							<th>Seuil déclenchement</th>
+							<th>Seuil arrêt</th>
+							<th>Auto</th>
+							<th>Statut</th>
+							<th>Actions</th>
+						</tr>
+					</thead>
+					<tbody>
+						{% for s in seuils %}
+							<tr>
+								<td>{{ s.source.nom }}</td>
+								<td>
+									<span class="taux-pill taux-pill--achat">{{ s.seuilDeclenchement }}%</span>
+								</td>
+								<td>
+									<span class="taux-pill taux-pill--vente">{{ s.seuilArret }}%</span>
+								</td>
+								<td>
+									<label class="toggle">
+										<input type="checkbox" {% if s.declenchementAuto %} checked {% endif %} disabled>
+										<span class="toggle__track"></span>
+										<span class="toggle__thumb"></span>
+									</label>
+								</td>
+								<td>
+									{% if s.statut == 'ACTIF' %}
+										<span class="badge badge-green">ACTIF</span>
+									{% else %}
+										<span class="badge badge-muted">INACTIF</span>
+									{% endif %}
+								</td>
+								<td>
+									<button class="btn btn-danger" data-modal-open="modal-seuil-delete" data-form="form-seuil-delete" data-action="/energie/seuils/{{ s.id }}/delete" data-confirm-text="Supprimer le seuil de {{ s.source.nom }} ?" data-confirm-target="delete-seuil-text">
+										Supprimer
+									</button>
+								</td>
+							</tr>
+						{% else %}
+							<tr>
+								<td colspan="6" class="empty-state">Aucun seuil configuré</td>
+							</tr>
+						{% endfor %}
+					</tbody>
+				</table>
+			</div>
+		</div>
 
-</div>
+	</div>
 
-<!-- Modal Ajout source -->
-<div id="modal-source-add" class="modal-backdrop"><div class="modal">
-    <h3 class="modal__title">Ajouter une source d'énergie</h3>
-    <form method="POST" action="/energie/sources/add">
-        <div class="form-group"><label class="form-label">Nom *</label><input class="form-input" type="text" name="nom" required></div>
-        <div class="form-group"><label class="form-label">Type *</label>
-            <select class="form-select" name="type" required>
-                <option value="">Sélectionner...</option>
-                <option value="EOLIEN">Éolien</option><option value="SOLAIRE">Solaire</option>
-                <option value="HYDRAULIQUE">Hydraulique</option><option value="HYDROGENE">Hydrogène</option>
-                <option value="RESEAU">Réseau</option>
-            </select>
-        </div>
-        <div class="form-group"><label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" name="coutProduction" placeholder="45.00"></div>
-        <div class="form-group"><label class="form-label">Couleur</label><input class="form-input" type="color" name="couleur" value="#4F8AFF"></div>
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-full">Ajouter</button>
-            <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-source-add">Annuler</button>
-        </div>
-    </form>
-</div></div>
+	<!-- Modal Ajout source -->
+	<div id="modal-source-add" class="modal-backdrop">
+		<div class="modal">
+			<h3 class="modal__title">Ajouter une source d'énergie</h3>
+			<form method="POST" action="/energie/sources/add">
+				<div class="form-group">
+					<label class="form-label">Nom *</label><input class="form-input" type="text" name="nom" required></div>
+				<div class="form-group">
+					<label class="form-label">Type *</label>
+					<select class="form-select" name="type" required>
+						<option value="">Sélectionner...</option>
+						<option value="EOLIEN">Éolien</option>
+						<option value="SOLAIRE">Solaire</option>
+						<option value="HYDRAULIQUE">Hydraulique</option>
+						<option value="HYDROGENE">Hydrogène</option>
+						<option value="RESEAU">Réseau</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" name="coutProduction" placeholder="45.00"></div>
+				<div class="form-group">
+					<label class="form-label">Couleur</label><input class="form-input" type="color" name="couleur" value="#4F8AFF"></div>
+				<div class="form-actions">
+					<button type="submit" class="btn btn-primary btn-full">Ajouter</button>
+					<button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-source-add">Annuler</button>
+				</div>
+			</form>
+		</div>
+	</div>
 
-<!-- Modal Édition source -->
-<div id="modal-source-edit" class="modal-backdrop"><div class="modal">
-    <h3 class="modal__title">Modifier la source</h3>
-    <form id="form-source-edit" method="POST" action="">
-        <div class="form-group"><label class="form-label">Nom *</label><input class="form-input" type="text" id="edit-s-nom" name="nom" required></div>
-        <div class="form-group"><label class="form-label">Type *</label>
-            <select class="form-select" name="type" required>
-                <option value="EOLIEN">Éolien</option><option value="SOLAIRE">Solaire</option>
-                <option value="HYDRAULIQUE">Hydraulique</option><option value="HYDROGENE">Hydrogène</option>
-                <option value="RESEAU">Réseau</option>
-            </select>
-        </div>
-        <div class="form-group"><label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" id="edit-s-cout" name="coutProduction"></div>
-        <div class="form-group"><label class="form-label">Couleur</label><input class="form-input" type="color" id="edit-s-couleur" name="couleur"></div>
-        <div class="form-group"><label class="form-label">Actif</label><label class="toggle"><input type="checkbox" name="actif" checked><span class="toggle__track"></span><span class="toggle__thumb"></span></label></div>
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-full">Modifier</button>
-            <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-source-edit">Annuler</button>
-        </div>
-    </form>
-</div></div>
+	<!-- Modal Édition source -->
+	<div id="modal-source-edit" class="modal-backdrop">
+		<div class="modal">
+			<h3 class="modal__title">Modifier la source</h3>
+			<form id="form-source-edit" method="POST" action="">
+				<div class="form-group">
+					<label class="form-label">Nom *</label><input class="form-input" type="text" id="edit-s-nom" name="nom" required></div>
+				<div class="form-group">
+					<label class="form-label">Type *</label>
+					<select class="form-select" name="type" required>
+						<option value="EOLIEN">Éolien</option>
+						<option value="SOLAIRE">Solaire</option>
+						<option value="HYDRAULIQUE">Hydraulique</option>
+						<option value="HYDROGENE">Hydrogène</option>
+						<option value="RESEAU">Réseau</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" id="edit-s-cout" name="coutProduction"></div>
+				<div class="form-group">
+					<label class="form-label">Couleur</label><input class="form-input" type="color" id="edit-s-couleur" name="couleur"></div>
+				<div class="form-group">
+					<label class="form-label">Actif</label>
+					<label class="toggle"><input type="checkbox" name="actif" checked><span class="toggle__track"></span>
+						<span class="toggle__thumb"></span>
+					</label>
+				</div>
+				<div class="form-actions">
+					<button type="submit" class="btn btn-primary btn-full">Modifier</button>
+					<button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-source-edit">Annuler</button>
+				</div>
+			</form>
+		</div>
+	</div>
 
-<!-- Modal Suppression source -->
-<div id="modal-source-delete" class="modal-backdrop"><div class="modal">
-    <h3 class="modal__title">Supprimer la source</h3>
-    <p id="delete-source-text" class="modal__confirm-text"></p>
-    <form id="form-source-delete" method="POST" action="">
-        <div class="form-actions">
-            <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
-            <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-source-delete">Annuler</button>
-        </div>
-    </form>
-</div></div>
+	<!-- Modal Suppression source -->
+	<div id="modal-source-delete" class="modal-backdrop">
+		<div class="modal">
+			<h3 class="modal__title">Supprimer la source</h3>
+			<p id="delete-source-text" class="modal__confirm-text"></p>
+			<form id="form-source-delete" method="POST" action="">
+				<div class="form-actions">
+					<button type="submit" class="btn btn-danger btn-full">Supprimer</button>
+					<button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-source-delete">Annuler</button>
+				</div>
+			</form>
+		</div>
+	</div>
 
-<!-- Modal Seuil -->
-<div id="modal-seuil-add" class="modal-backdrop"><div class="modal">
-    <h3 class="modal__title">Configurer un seuil</h3>
-    <form method="POST" action="/energie/seuils/save">
-        <div class="form-group"><label class="form-label">Source *</label>
-            <select class="form-select" name="sourceId" required>
-                <option value="">Sélectionner...</option>
-                {% for s in sources %}<option value="{{ s.id }}">{{ s.nom }} ({{ s.type }})</option>{% endfor %}
-            </select>
-        </div>
-        <div class="form-group"><label class="form-label">Seuil déclenchement (% mix national)</label>
-            <input class="form-input" type="number" step="1" name="seuilDeclenchement" placeholder="20" min="0" max="100">
-        </div>
-        <div class="form-group"><label class="form-label">Seuil arrêt + vente (% mix national)</label>
-            <input class="form-input" type="number" step="1" name="seuilArret" placeholder="10" min="0" max="100">
-        </div>
-        <div class="declenchement-block">
-            <div class="declenchement-block__header">
-                <span class="declenchement-block__title">Déclenchement automatique</span>
-                <label class="toggle"><input type="checkbox" name="declenchementAuto"><span class="toggle__track"></span><span class="toggle__thumb"></span></label>
-            </div>
-            <p class="declenchement-block__desc">Production et vente se déclenchent automatiquement chaque heure selon le mix ENTSO-E.</p>
-        </div>
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-full">Enregistrer</button>
-            <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-seuil-add">Annuler</button>
-        </div>
-    </form>
-</div></div>
+	<!-- Modal Seuil -->
+	<div id="modal-seuil-add" class="modal-backdrop">
+		<div class="modal">
+			<h3 class="modal__title">Configurer un seuil</h3>
+			<form method="POST" action="/energie/seuils/save">
+				<div class="form-group">
+					<label class="form-label">Source *</label>
+					<select class="form-select" name="sourceId" required>
+						<option value="">Sélectionner...</option>
+						{% for s in sources %}
+							<option value="{{ s.id }}">{{ s.nom }}
+								({{ s.type }})</option>
+						{% endfor %}
+					</select>
+				</div>
+				<div class="form-group">
+					<label class="form-label">Seuil déclenchement (% mix national)</label>
+					<input class="form-input" type="number" step="1" name="seuilDeclenchement" placeholder="20" min="0" max="100">
+				</div>
+				<div class="form-group">
+					<label class="form-label">Seuil arrêt + vente (% mix national)</label>
+					<input class="form-input" type="number" step="1" name="seuilArret" placeholder="10" min="0" max="100">
+				</div>
+				<div class="declenchement-block">
+					<div class="declenchement-block__header">
+						<span class="declenchement-block__title">Déclenchement automatique</span>
+						<label class="toggle"><input type="checkbox" name="declenchementAuto"><span class="toggle__track"></span>
+							<span class="toggle__thumb"></span>
+						</label>
+					</div>
+					<p class="declenchement-block__desc">Production et vente se déclenchent automatiquement chaque heure selon le mix ENTSO-E.</p>
+				</div>
+				<div class="form-actions">
+					<button type="submit" class="btn btn-primary btn-full">Enregistrer</button>
+					<button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-seuil-add">Annuler</button>
+				</div>
+			</form>
+		</div>
+	</div>
 
-<!-- Modal Suppression seuil -->
-<div id="modal-seuil-delete" class="modal-backdrop"><div class="modal">
-    <h3 class="modal__title">Supprimer le seuil</h3>
-    <p id="delete-seuil-text" class="modal__confirm-text"></p>
-    <form id="form-seuil-delete" method="POST" action="">
-        <div class="form-actions">
-            <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
-            <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-seuil-delete">Annuler</button>
-        </div>
-    </form>
-</div></div>
+	<!-- Modal Suppression seuil -->
+	<div id="modal-seuil-delete" class="modal-backdrop">
+		<div class="modal">
+			<h3 class="modal__title">Supprimer le seuil</h3>
+			<p id="delete-seuil-text" class="modal__confirm-text"></p>
+			<form id="form-seuil-delete" method="POST" action="">
+				<div class="form-actions">
+					<button type="submit" class="btn btn-danger btn-full">Supprimer</button>
+					<button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-seuil-delete">Annuler</button>
+				</div>
+			</form>
+		</div>
+	</div>
 
 {% endblock %}
 
 {% block script %}
-<script src="/script/energie.js"></script>
+	<script src="/script/energie.js"></script>
 {% endblock %}

@@ -7,7 +7,6 @@
 		<a href="/planification" class="nav-btn {% if navActive == 'planification' %}active{% endif %}">Planification</a>
 		<a href="/energie" class="nav-btn {% if navActive == 'energie' %}active{% endif %}">Énergie</a>
 		<a href="/stock" class="nav-btn {% if navActive == 'stock' %}active{% endif %}">Stock</a>
-		<a href="/fournisseurs" class="nav-btn {% if navActive == 'fournisseurs' %}active{% endif %}">Fournisseurs</a>
 		{% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
 			<a href="/ventes" class="nav-btn {% if navActive == 'ventes' %}active{% endif %}">Ventes</a>
 			<a href="/reporting" class="nav-btn {% if navActive == 'reporting' %}active{% endif %}">Reporting</a>
