@@ -147,7 +147,7 @@ tbody tr:hover td {
 
 .badge-blue {
   background: var(--blue-dim);
-  color: var(--blue);
+  color: var(--text);
   border: 1px solid var(--blue-bd);
 }
 
