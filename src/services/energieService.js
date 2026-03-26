@@ -59,7 +59,7 @@ async function fetchMixEnergetique() {
     if (!apiKey) { console.warn('[energieService] ENTSOE_API_KEY manquant'); return null; }
     try {
         const now = new Date();
-        const start = new Date(now.getTime() - 5 * 60 * 60 * 1000);
+        const start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
         const url = `${ENTSOE_BASE}?securityToken=${apiKey}&documentType=A75&processType=A16&in_Domain=${FRANCE_DOMAIN}&periodStart=${fmtDate(start)}&periodEnd=${fmtDate(now)}`;
         const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
         if (!res.ok) { console.warn(`[energieService] HTTP ${res.status}`); return null; }
