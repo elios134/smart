@@ -1,0 +1,260 @@
+/* ══════════════════════════════════════════════════════════════
+   SMART-YIELD — Responsive CSS
+   Breakpoints : < 768px (mobile), < 1024px (tablette)
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── TABLETTE (< 1024px) ──────────────────────────────────── */
+@media (max-width: 1024px) {
+
+    /* Stats grid : 3 → 2 colonnes */
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Besoins reporting : 3 → 2 colonnes */
+    .besoins-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    /* Alertes : 2 → 1 colonne */
+    .alertes-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Navbar — réduire les paddings */
+    .navbar {
+        padding: 0 14px;
+        gap: 6px;
+    }
+
+    .nav-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .navbar__logout {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+}
+
+/* ── MOBILE (< 768px) ─────────────────────────────────────── */
+@media (max-width: 768px) {
+
+    /* ── LAYOUT ── */
+    .main {
+        padding: 16px;
+    }
+
+    /* ── NAVBAR ── */
+    .navbar {
+        height: auto;
+        flex-wrap: wrap;
+        padding: 10px 14px;
+        gap: 8px;
+    }
+
+    .navbar__greeting {
+        font-size: 12px;
+        margin-right: 0;
+    }
+
+    .navbar__links {
+        flex: unset;
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        /* Scrollbar discrète */
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
+
+    .navbar__links::-webkit-scrollbar {
+        height: 3px;
+    }
+
+    .navbar__links::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
+    }
+
+    .nav-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+        flex-shrink: 0;
+    }
+
+    .navbar__logout {
+        padding: 5px 12px;
+        font-size: 11px;
+        margin-left: 0;
+    }
+
+    .nav-profil {
+        flex-shrink: 0;
+    }
+
+    /* ── STATS GRID ── */
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .stat-card {
+        padding: 20px 20px;
+    }
+
+    .stat-card__value {
+        font-size: 40px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+        padding: 16px 16px;
+    }
+
+    .card__header {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .card__title {
+        font-size: 18px;
+    }
+
+    /* ── TABLEAUX — scroll horizontal ── */
+    .card > table,
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+    }
+
+    th, td {
+        padding: 10px 10px;
+        font-size: 12px;
+    }
+
+    /* ── MODALS — plein écran sur mobile ── */
+    .modal {
+        width: 100%;
+        max-width: 100%;
+        max-height: 100vh;
+        border-radius: var(--radius) var(--radius) 0 0;
+        padding: 24px 20px;
+        margin: 0;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+    }
+
+    .modal-backdrop.open {
+        align-items: flex-end;
+    }
+
+    /* ── DETAIL GRID (vente-detail) ── */
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* ── BESOINS REPORTING ── */
+    .besoins-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* ── ALERTES ── */
+    .alertes-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* ── COURS KPIS ── */
+    .cours-kpis {
+        flex-wrap: wrap;
+    }
+
+    .cours-kpi {
+        flex: 1;
+        min-width: 80px;
+    }
+
+    /* ── ONGLETS ── */
+    .page-tabs {
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--border) transparent;
+    }
+
+    .page-tabs::-webkit-scrollbar {
+        height: 3px;
+    }
+
+    .page-tabs::-webkit-scrollbar-thumb {
+        background: var(--border);
+        border-radius: 2px;
+    }
+
+    /* ── FORM GRID 2 COLONNES → 1 ── */
+    .modal-grid-2,
+    [style*="grid-template-columns: 1fr 1fr"] {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* ── FACTURE TOTAUX ── */
+    .facture-totaux {
+        padding: 16px 16px;
+        align-items: stretch;
+    }
+
+    .facture-ligne {
+        justify-content: space-between;
+        gap: 16px;
+    }
+
+    /* ── TOTAL ESTIMÉ ── */
+    .total-estime {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    /* ── PERIOD BAR REPORTING ── */
+    .period-bar {
+        flex-direction: column;
+        gap: 10px;
+        align-items: flex-start;
+    }
+
+    /* ── CHART ── */
+    .chart-wrap {
+        height: 180px;
+    }
+
+    /* ── LOGIN CARD ── */
+    .login-card {
+        padding: 32px 24px;
+        width: 100%;
+        border-radius: var(--radius);
+    }
+
+    .login-card__title {
+        font-size: 28px;
+    }
+
+    /* ── STAT CARD VALEUR PLUS PETITE ── */
+    .besoin-card__value {
+        font-size: 28px;
+    }
+
+    /* ── TOAST ── */
+    .toast {
+        min-width: unset;
+        width: calc(100vw - 40px);
+    }
+
+    /* ── SECTION LABEL ── */
+    .section-label {
+        font-size: 10px;
+    }
+}

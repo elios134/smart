@@ -67,12 +67,13 @@
                             {% elseif s.statut == 'TERMINEE' %}<span class="badge badge-blue">TERMINÉE</span>
                             {% else %}<span class="badge badge-red">ANNULÉE</span>{% endif %}
                         </td>
-                        <td>
+                        <td style="display:flex;gap:6px;flex-wrap:wrap;">
                             {% if s.statut == 'EN_ATTENTE' %}
                             <form method="POST" action="/planification/{{ s.id }}/lancer" style="display:inline;">
                                 <button type="submit" class="btn btn-primary">Lancer</button>
                             </form>
                             {% endif %}
+
                             {% if s.statut == 'EN_COURS' %}
                             <button class="btn btn-primary"
                                 data-modal-open="modal-terminer"
@@ -81,6 +82,18 @@
                                 Terminer
                             </button>
                             {% endif %}
+
+                            {% if s.statut == 'TERMINEE' and s.quantiteProduite > 0 %}
+                            <button class="btn btn-outline"
+                                data-modal-open="modal-creer-achat"
+                                data-achat-source-id="{{ s.source.id }}"
+                                data-achat-source-nom="{{ s.source.nom }}"
+                                data-achat-quantite="{{ s.quantiteProduite }}"
+                                data-achat-cout="{{ s.source.coutProduction }}">
+                                ↗ Créer achat
+                            </button>
+                            {% endif %}
+
                             {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
                             <button class="btn btn-danger"
                                 data-modal-open="modal-session-delete"
@@ -196,6 +209,38 @@
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary btn-full">Terminer & créditer le stock</button>
                 <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-terminer">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Créer achat depuis session terminée -->
+<div id="modal-creer-achat" class="modal-backdrop">
+    <div class="modal">
+        <h3 class="modal__title">Créer un achat depuis la session</h3>
+        <p class="modal__confirm-text">
+            Source : <strong id="achat-source-nom"></strong>
+        </p>
+        <form method="POST" action="/stock/achats/add">
+            <input type="hidden" id="achat-source-id" name="sourceId">
+            <div class="form-group">
+                <label class="form-label">Quantité (MWh) *</label>
+                <input class="form-input" type="number" step="0.01" id="achat-quantite-input" name="quantite" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Prix d'achat (€/MWh) *</label>
+                <input class="form-input" type="number" step="0.01" id="achat-cout-input" name="prixAchat" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Fournisseur</label>
+                <select class="form-select" name="tiersId">
+                    <option value="">Aucun</option>
+                    {% for s in sources %}{% endfor %}
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-full">Enregistrer l'achat</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-creer-achat">Annuler</button>
             </div>
         </form>
     </div>
