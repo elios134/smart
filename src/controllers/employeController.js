@@ -37,19 +37,9 @@ export const getLogoutEmploye = (req, res) => {
     req.session.destroy(() => res.redirect("/employes/login"));
 };
 
-// GET /employes/home
+// GET /employes/home → redirige vers /home (dashboard énergie unifié)
 export const getHomeEmploye = async (req, res) => {
-    try {
-        const produits = await prisma.produit.findMany({ include: { stock: true } });
-        res.render("pages/homeEmploye.twig", {
-            user: req.user,
-            produits,
-            flash: res.locals.flash
-        });
-    } catch (error) {
-        console.error(error);
-        res.redirect("/employes/login?error=Erreur serveur");
-    }
+    res.redirect("/home");
 };
 
 // POST /employes/profil
@@ -61,10 +51,10 @@ export const postUpdateProfilEmploye = async (req, res) => {
             data: { firstName, lastName, mail }
         });
         req.session.employe = { ...req.session.employe, firstName, lastName, mail };
-        res.redirect("/employes/home?success=Profil mis à jour");
+        res.redirect("/profil?success=Profil mis à jour");
     } catch (error) {
         console.error(error);
-        res.redirect("/employes/home?error=Erreur lors de la mise à jour");
+        res.redirect("/profil?error=Erreur lors de la mise à jour");
     }
 };
 
