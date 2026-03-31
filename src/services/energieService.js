@@ -8,6 +8,15 @@
 
 import prisma from '../../prisma/prismaClient.js';
 
+// ── Notifications en mémoire ─────────────────────────────────
+const _notifications = [];
+export function pushNotification(type, message) {
+    _notifications.unshift({ type, message, at: new Date().toISOString() });
+    if (_notifications.length > 50) _notifications.pop();
+}
+export function getNotifications() { return [..._notifications]; }
+export function clearNotifications() { _notifications.length = 0; }
+
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const ENTSOE_BASE = 'https://web-api.tp.entsoe.eu/api';
 const FRANCE_DOMAIN = '10YFR-RTE------C';
@@ -118,6 +127,7 @@ export async function verifierDeclenchements() {
                             statut: 'EN_COURS', declenchement: 'AUTO'
                         }
                     });
+                    pushNotification('production', `Production déclenchée automatiquement : ${source.nom} (mix ${source.type} : ${mixPct}% ≥ seuil ${seuil.seuilDeclenchement}%)`);
                     console.log(`[energieService] AUTO → Production déclenchée : ${source.nom}`);
                 }
             }
@@ -144,6 +154,7 @@ export async function verifierDeclenchements() {
                         data: { sourceId: source.id, quantite: stockActuel, prixVente: source.coutProduction, total: stockActuel * source.coutProduction }
                     });
                     await prisma.stockEnergie.update({ where: { sourceId: source.id }, data: { quantite: 0 } });
+                    pushNotification('vente', `Vente automatique : ${source.nom} — ${stockActuel} MWh à ${source.coutProduction} €/MWh (mix ${source.type} : ${mixPct}% < seuil arrêt ${seuil.seuilArret}%)`);
                     console.log(`[energieService] AUTO → Vente déclenchée : ${source.nom}`);
                 }
             }

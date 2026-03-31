@@ -20,6 +20,13 @@
 				{{ flash.error }}</div>
 		{% endif %}
 
+		<div class="page-tabs-bar">
+			<a class="page-tab active" data-tab="mix" href="#">Mix ENTSO-E</a>
+			<a class="page-tab" data-tab="sources" href="#">Sources</a>
+			<a class="page-tab" data-tab="config" href="#">Seuils</a>
+			<a class="page-tab" data-tab="prix" href="#">Prix historique</a>
+		</div>
+
 		{% if alertes %}
 			<div class="energie-alertes">
 				{% for a in alertes %}
@@ -214,6 +221,29 @@
 			</div>
 		</div>
 
+		<!-- ── TAB PRIX HISTORIQUE ── -->
+		<div id="tab-prix" class="tab-panel">
+			<div class="card">
+				<div class="card__header">
+					<span class="card__title">Cours historique des matières premières (30 derniers mois)</span>
+					<div style="display:flex;gap:8px;align-items:center;">
+						<select id="prix-select" class="form-select" style="width:auto;font-size:12px;">
+							<option value="WTI">Pétrole WTI</option>
+							<option value="BRENT">Pétrole Brent</option>
+							<option value="NATURAL_GAS">Gaz naturel</option>
+							<option value="COPPER">Cuivre</option>
+							<option value="ALUMINUM">Aluminium</option>
+						</select>
+						<span id="prix-unit" class="badge badge-muted" style="font-size:11px;">$/Bbl</span>
+					</div>
+				</div>
+				<div class="chart-wrap" style="position:relative;height:260px;margin-top:16px;">
+					<canvas id="chart-prix"></canvas>
+				</div>
+				<p id="prix-empty" class="empty-state" style="display:none;">Données non disponibles — configurez COMMODITY_API_KEY dans votre .env</p>
+			</div>
+		</div>
+
 	</div>
 
 	<!-- Modal Ajout source -->
@@ -352,5 +382,6 @@
 {% endblock %}
 
 {% block script %}
-	<script src="/script/energie.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="/script/energie.js"></script>
 {% endblock %}

@@ -24,12 +24,13 @@ export const COMMODITES = [
 
 // ── Cache ─────────────────────────────────────────────────────
 const cache = { data: null, fetchedAt: 0 };
+const histCache = {}; // { [apiName]: { entries: [], fetchedAt: 0 } }
 
 function isCacheValid() {
     return cache.data && (Date.now() - cache.fetchedAt) < CACHE_TTL_MS;
 }
 
-// ── Fetch un seul cours ──────────────────────────────────────
+// ── Fetch un seul cours + historique ────────────────────────
 async function fetchSinglePrice(apiName, apiKey) {
     try {
         const url = `https://www.alphavantage.co/query?function=${apiName}&interval=monthly&apikey=${apiKey}`;
@@ -57,6 +58,14 @@ async function fetchSinglePrice(apiName, apiKey) {
         const entries = json.data;
         if (!Array.isArray(entries) || entries.length === 0) return null;
 
+        // Stocker l'historique des 30 derniers mois
+        const hist = entries
+            .slice(0, 30)
+            .filter(e => e.value !== '.' && !isNaN(parseFloat(e.value)))
+            .map(e => ({ date: e.date, value: Math.round(parseFloat(e.value) * 100) / 100 }))
+            .reverse();
+        histCache[apiName] = { entries: hist, fetchedAt: Date.now() };
+
         const value = parseFloat(entries[0].value);
         if (isNaN(value)) return null;
 
@@ -66,6 +75,13 @@ async function fetchSinglePrice(apiName, apiKey) {
         console.warn(`[commoditiesService] ${apiName} erreur :`, err.message);
         return null;
     }
+}
+
+// ── Historique cours d'une matière ───────────────────────────
+export function getHistoriquePrix(symbole) {
+    const h = histCache[symbole];
+    if (!h) return null;
+    return h.entries;
 }
 
 // ── Fetch toutes les matières (séquentiel avec délai) ────────

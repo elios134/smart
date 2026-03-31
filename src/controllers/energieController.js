@@ -1,5 +1,6 @@
 import prisma from '../../prisma/prismaClient.js';
-import { getMixEnergetique } from '../services/energieService.js';
+import { getMixEnergetique, getNotifications, clearNotifications } from '../services/energieService.js';
+import { getCoursMatieres, COMMODITES, getHistoriquePrix } from '../services/commoditiesService.js';
 
 // GET /energie
 export async function getEnergie(req, res) {
@@ -68,4 +69,37 @@ export async function postDeleteSeuil(req, res) {
         await prisma.seuilEnergie.delete({ where: { id: parseInt(req.params.id) } });
         res.redirect('/energie?success=Seuil supprimé');
     } catch (e) { console.error(e); res.redirect('/energie?error=Erreur suppression seuil'); }
+}
+
+// GET /energie/prix-historique?symbole=WTI
+export async function apiPrixHistorique(req, res) {
+    const symbole = req.query.symbole || 'WTI';
+    const allowed = COMMODITES.map(c => c.apiName);
+    if (!allowed.includes(symbole)) return res.status(400).json({ error: 'Symbole invalide' });
+
+    // Si pas encore en cache, déclencher un fetch complet
+    let hist = getHistoriquePrix(symbole);
+    if (!hist) {
+        await getCoursMatieres(); // remplit histCache
+        hist = getHistoriquePrix(symbole);
+    }
+
+    if (!hist) return res.json({ labels: [], values: [], symbole });
+    res.json({
+        symbole,
+        labels: hist.map(e => e.date),
+        values: hist.map(e => e.value),
+        commodite: COMMODITES.find(c => c.apiName === symbole)
+    });
+}
+
+// GET /energie/notifications
+export function apiGetNotifications(req, res) {
+    res.json(getNotifications());
+}
+
+// POST /energie/notifications/clear
+export function apiClearNotifications(req, res) {
+    clearNotifications();
+    res.json({ ok: true });
 }

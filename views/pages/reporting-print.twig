@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>{{ title }}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 12px; color: #1a1a2e; background: #fff; padding: 32px; }
+  h1 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+  .meta { font-size: 11px; color: #666; margin-bottom: 28px; }
+  h2 { font-size: 14px; font-weight: 600; margin: 24px 0 10px; border-bottom: 1.5px solid #e0e0e0; padding-bottom: 6px; }
+  .kpis { display: flex; gap: 24px; margin-bottom: 28px; }
+  .kpi { flex: 1; background: #f5f7ff; border-radius: 8px; padding: 16px 20px; }
+  .kpi__label { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: #666; margin-bottom: 4px; }
+  .kpi__value { font-size: 24px; font-weight: 600; color: #1a1a2e; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  th { background: #f0f2ff; text-align: left; padding: 7px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: #555; }
+  td { padding: 7px 10px; border-bottom: 1px solid #eeeff3; font-size: 11px; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-weight: 600; }
+  .badge-green { background: #d4f5e9; color: #1a7a4a; }
+  .badge-blue  { background: #dde8ff; color: #2255cc; }
+  .bar-wrap { height: 5px; background: #e0e0e0; border-radius: 3px; width: 100px; }
+  .bar-fill { height: 5px; border-radius: 3px; }
+  .bar-green { background: #22c77a; }
+  .bar-yellow { background: #f5c518; }
+  .bar-red { background: #e53935; }
+  @media print {
+    body { padding: 16px; }
+    .no-print { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<button class="no-print" onclick="window.print()" style="margin-bottom:20px;padding:8px 18px;background:#4F8AFF;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;">Imprimer / Enregistrer en PDF</button>
+
+<h1>Smart-Yield — Reporting</h1>
+<div class="meta">Exporté le {{ dateExport }}</div>
+
+<div class="kpis">
+  <div class="kpi">
+    <div class="kpi__label">CA total ventes</div>
+    <div class="kpi__value">{{ totalCA|round }} €</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__label">Coûts de production</div>
+    <div class="kpi__value">{{ totalCouts|round }} €</div>
+  </div>
+  <div class="kpi">
+    <div class="kpi__label">Marge brute</div>
+    <div class="kpi__value">{{ (totalCA - totalCouts)|round }} €</div>
+  </div>
+</div>
+
+<h2>Ventes d'énergie ({{ ventes|length }})</h2>
+<table>
+  <thead><tr><th>Date</th><th>Source</th><th>Quantité (MWh)</th><th>Prix (€/MWh)</th><th>Total (€)</th></tr></thead>
+  <tbody>
+    {% for v in ventes %}
+    <tr>
+      <td>{{ v.createdAt|date('d/m/Y') }}</td>
+      <td>{{ v.source.nom ?? '—' }}</td>
+      <td>{{ v.quantite }}</td>
+      <td>{{ v.prixVente }}</td>
+      <td><strong>{{ v.total|round }} €</strong></td>
+    </tr>
+    {% else %}
+    <tr><td colspan="5" style="color:#999;text-align:center;">Aucune vente</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2>Stock par source d'énergie</h2>
+<table>
+  <thead><tr><th>Source</th><th>Stock (MWh)</th><th>Seuil déclenchement</th><th>Remplissage</th></tr></thead>
+  <tbody>
+    {% for b in besoins %}
+    <tr>
+      <td>{{ b.nom }}</td>
+      <td>{{ b.stock }} MWh</td>
+      <td>{% if b.seuilVal > 0 %}{{ b.seuilVal }}%{% else %}—{% endif %}</td>
+      <td>
+        {% if b.seuilVal > 0 %}
+        <div class="bar-wrap">
+          <div class="bar-fill {% if b.pct >= 60 %}bar-green{% elseif b.pct >= 30 %}bar-yellow{% else %}bar-red{% endif %}" style="width:{{ b.pct }}%;"></div>
+        </div>
+        {{ b.pct }}%
+        {% else %}—{% endif %}
+      </td>
+    </tr>
+    {% else %}
+    <tr><td colspan="4" style="color:#999;text-align:center;">Aucune source</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<script>
+  // Auto-print si paramètre ?auto=1
+  if (new URLSearchParams(location.search).get('auto') === '1') window.print();
+</script>
+</body>
+</html>
