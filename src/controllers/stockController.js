@@ -62,6 +62,26 @@ export async function postAddAchat(req, res) {
     }
 }
 
+// POST /stock/achats/:id/delete
+export async function postDeleteAchat(req, res) {
+    try {
+        const id = parseInt(req.params.id);
+        const achat = await prisma.achatEnergie.findUnique({ where: { id } });
+        if (!achat) return res.redirect('/stock?error=Achat introuvable');
+
+        // Retirer la quantité du stock
+        await prisma.stockEnergie.update({
+            where:  { sourceId: achat.sourceId },
+            data:   { quantite: { decrement: achat.quantite } }
+        });
+        await prisma.achatEnergie.delete({ where: { id } });
+        res.redirect('/stock?success=Achat supprimé — stock mis à jour');
+    } catch (error) {
+        console.error(error);
+        res.redirect('/stock?error=Erreur lors de la suppression');
+    }
+}
+
 // POST /stock/ajuster/:sourceId
 export async function postAjusterStock(req, res) {
     const { quantite, sens } = req.body;

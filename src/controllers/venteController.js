@@ -83,8 +83,18 @@ export async function postAddVente(req, res) {
 // POST /ventes/:id/delete
 export async function postDeleteVente(req, res) {
     try {
-        await prisma.venteEnergie.delete({ where: { id: parseInt(req.params.id) } });
-        res.redirect('/ventes?success=Vente supprimée');
+        const id = parseInt(req.params.id);
+        const vente = await prisma.venteEnergie.findUnique({ where: { id } });
+        if (!vente) return res.redirect('/ventes?error=Vente introuvable');
+
+        // Remettre la quantité vendue dans le stock
+        await prisma.stockEnergie.upsert({
+            where:  { sourceId: vente.sourceId },
+            update: { quantite: { increment: vente.quantite } },
+            create: { sourceId: vente.sourceId, quantite: vente.quantite }
+        });
+        await prisma.venteEnergie.delete({ where: { id } });
+        res.redirect('/ventes?success=Vente supprimée — stock restauré');
     } catch (error) {
         console.error(error);
         res.redirect('/ventes?error=Erreur lors de la suppression');

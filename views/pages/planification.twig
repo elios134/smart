@@ -235,7 +235,9 @@
                 <label class="form-label">Fournisseur</label>
                 <select class="form-select" name="tiersId">
                     <option value="">Aucun</option>
-                    {% for s in sources %}{% endfor %}
+                    {% for f in fournisseurs %}
+                    <option value="{{ f.id }}">{{ f.nom }}</option>
+                    {% endfor %}
                 </select>
             </div>
             <div class="form-actions">

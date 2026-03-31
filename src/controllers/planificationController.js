@@ -4,13 +4,14 @@ import { getMixEnergetique } from '../services/energieService.js';
 // GET /planification
 export async function getPlanification(req, res) {
     try {
-        const [sessions, sources, mix] = await Promise.all([
+        const [sessions, sources, mix, fournisseurs] = await Promise.all([
             prisma.sessionEnergie.findMany({
                 include: { source: true },
                 orderBy: { createdAt: 'desc' }
             }),
             prisma.sourceEnergie.findMany({ where: { actif: true }, orderBy: { nom: 'asc' } }),
-            getMixEnergetique()
+            getMixEnergetique(),
+            prisma.tiers.findMany({ where: { typeTiers: 'FOURNISSEUR' }, orderBy: { nom: 'asc' } })
         ]);
 
         const alertesAchat = sources.filter(s => mix && (mix[s.type] ?? 0) >= (s.seuil?.seuilDeclenchement ?? 100));
@@ -32,7 +33,7 @@ export async function getPlanification(req, res) {
             user:           req.session.user,
             navActive:      'planification',
             userRole:       req.userRole,
-            sessions, sources, mix, alertesAchat, alertesVente,
+            sessions, sources, fournisseurs, mix, alertesAchat, alertesVente,
             eventsCalendar: JSON.stringify(eventsCalendar)
         });
     } catch (error) {

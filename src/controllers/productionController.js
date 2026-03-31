@@ -1,32 +1,16 @@
 import prisma from "../../prisma/prismaClient.js";
-import { getCoursMatieres } from "../services/commoditiesService.js";
 
 // GET /production
 export async function getProduction(req, res) {
     try {
-        const [productions, coursMatieres, matieresDB] = await Promise.all([
-            prisma.production.findMany({
-                include: {
-                    produit:       true,
-                    machine:       true,
-                    consommations: { include: { matiere: true } }
-                },
-                orderBy: { createdAt: "desc" }
-            }),
-            getCoursMatieres(),
-            // matieresDB = pour le select de la modale ajout
-            prisma.matierePremiere.findMany({
-                include: { stockMP: true },
-                orderBy: { nom: "asc" }
-            })
-        ]);
-
-        const alertesAchat = matieresDB.filter(m =>
-            m.seuilAchat > 0 && (m.stockMP?.quantite ?? 0) <= m.seuilAchat
-        );
-        const alertesVente = matieresDB.filter(m =>
-            m.seuilVente > 0 && (m.stockMP?.quantite ?? 0) >= m.seuilVente
-        );
+        const productions = await prisma.production.findMany({
+            include: {
+                produit:       true,
+                machine:       true,
+                consommations: { include: { matiere: true } }
+            },
+            orderBy: { createdAt: "desc" }
+        });
 
         const eventsCalendar = productions.map(p => ({
             id:    p.id,
@@ -44,10 +28,6 @@ export async function getProduction(req, res) {
             navActive:      "production",
             userRole:       req.userRole,
             productions,
-            coursMatieres,   // tableau cours API → onglet Cours MP
-            matieres:        matieresDB, // matières DB → select modale
-            alertesAchat,
-            alertesVente,
             eventsCalendar:  JSON.stringify(eventsCalendar)
         });
     } catch (error) {

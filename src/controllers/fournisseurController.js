@@ -61,7 +61,11 @@ export async function postEditFournisseur(req, res) {
 // POST /fournisseurs/:id/delete
 export async function postDeleteFournisseur(req, res) {
     try {
-        await prisma.tiers.delete({ where: { id: parseInt(req.params.id) } });
+        const id = parseInt(req.params.id);
+        // Détacher les achats et ventes liés avant suppression (tiersId nullable)
+        await prisma.achatEnergie.updateMany({ where: { tiersId: id }, data: { tiersId: null } });
+        await prisma.venteEnergie.updateMany({ where: { tiersId: id }, data: { tiersId: null } });
+        await prisma.tiers.delete({ where: { id } });
         res.redirect('/fournisseurs?success=Supprimé');
     } catch (error) {
         console.error(error);

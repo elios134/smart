@@ -67,6 +67,7 @@
                 <tr>
                     <th>Source</th><th>Fournisseur</th><th>Quantité (MWh)</th>
                     <th>Prix achat (€/MWh)</th><th>Total (€)</th><th>Date</th>
+                    {% if userRole == 'SUPER_ADMIN' %}<th>Actions</th>{% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -78,9 +79,21 @@
                     <td>{{ a.prixAchat }} €</td>
                     <td>{{ a.total }} €</td>
                     <td>{{ a.createdAt|date('d/m/Y H:i') }}</td>
+                    {% if userRole == 'SUPER_ADMIN' %}
+                    <td>
+                        <button class="btn btn-danger"
+                            data-modal-open="modal-achat-delete"
+                            data-form="form-achat-delete"
+                            data-action="/stock/achats/{{ a.id }}/delete"
+                            data-confirm-text="Supprimer cet achat de {{ a.quantite }} MWh ({{ a.source.nom }}) ? Le stock sera réduit d'autant."
+                            data-confirm-target="delete-achat-text">
+                            Supprimer
+                        </button>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% else %}
-                <tr><td colspan="6" class="empty-state">Aucun achat enregistré</td></tr>
+                <tr><td colspan="7" class="empty-state">Aucun achat enregistré</td></tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -157,6 +170,20 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Modal Suppression achat -->
+<div id="modal-achat-delete" class="modal-backdrop">
+    <div class="modal">
+        <h3 class="modal__title">Supprimer l'achat</h3>
+        <p id="delete-achat-text" class="modal__confirm-text"></p>
+        <form id="form-achat-delete" method="POST" action="">
+            <div class="form-actions">
+                <button type="submit" class="btn btn-danger btn-full">Supprimer</button>
+                <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-achat-delete">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 {% endblock %}
 

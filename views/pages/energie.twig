@@ -24,7 +24,6 @@
 			<a class="page-tab active" data-tab="mix" href="#">Mix ENTSO-E</a>
 			<a class="page-tab" data-tab="sources" href="#">Sources</a>
 			<a class="page-tab" data-tab="config" href="#">Seuils</a>
-			<a class="page-tab" data-tab="prix" href="#">Prix historique</a>
 		</div>
 
 		{% if alertes %}
@@ -143,7 +142,7 @@
 									{% endif %}
 								</td>
 								<td>
-									<button class="btn btn-outline" data-modal-open="modal-source-edit" data-form="form-source-edit" data-action="/energie/sources/{{ s.id }}/edit" data-fields='{"edit-s-nom":"{{ s.nom }}","edit-s-cout":"{{ s.coutProduction }}","edit-s-couleur":"{{ s.couleur }}"}'>
+									<button class="btn btn-outline" data-modal-open="modal-source-edit" data-form="form-source-edit" data-action="/energie/sources/{{ s.id }}/edit" data-fields='{"edit-s-nom":"{{ s.nom }}","edit-s-cout":"{{ s.coutProduction }}","edit-s-couleur":"{{ s.couleur }}","edit-s-type":"{{ s.type }}"}' data-actif="{{ s.actif ? '1' : '0' }}">
 										Modifier
 									</button>
 									{% if userRole == 'SUPER_ADMIN' %}
@@ -221,28 +220,6 @@
 			</div>
 		</div>
 
-		<!-- ── TAB PRIX HISTORIQUE ── -->
-		<div id="tab-prix" class="tab-panel">
-			<div class="card">
-				<div class="card__header">
-					<span class="card__title">Cours historique des matières premières (30 derniers mois)</span>
-					<div style="display:flex;gap:8px;align-items:center;">
-						<select id="prix-select" class="form-select" style="width:auto;font-size:12px;">
-							<option value="WTI">Pétrole WTI</option>
-							<option value="BRENT">Pétrole Brent</option>
-							<option value="NATURAL_GAS">Gaz naturel</option>
-							<option value="COPPER">Cuivre</option>
-							<option value="ALUMINUM">Aluminium</option>
-						</select>
-						<span id="prix-unit" class="badge badge-muted" style="font-size:11px;">$/Bbl</span>
-					</div>
-				</div>
-				<div class="chart-wrap" style="position:relative;height:260px;margin-top:16px;">
-					<canvas id="chart-prix"></canvas>
-				</div>
-				<p id="prix-empty" class="empty-state" style="display:none;">Données non disponibles — configurez COMMODITY_API_KEY dans votre .env</p>
-			</div>
-		</div>
 
 	</div>
 
@@ -285,7 +262,7 @@
 					<label class="form-label">Nom *</label><input class="form-input" type="text" id="edit-s-nom" name="nom" required></div>
 				<div class="form-group">
 					<label class="form-label">Type *</label>
-					<select class="form-select" name="type" required>
+					<select class="form-select" id="edit-s-type" name="type" required>
 						<option value="EOLIEN">Éolien</option>
 						<option value="SOLAIRE">Solaire</option>
 						<option value="HYDRAULIQUE">Hydraulique</option>
@@ -299,7 +276,7 @@
 					<label class="form-label">Couleur</label><input class="form-input" type="color" id="edit-s-couleur" name="couleur"></div>
 				<div class="form-group">
 					<label class="form-label">Actif</label>
-					<label class="toggle"><input type="checkbox" name="actif" checked><span class="toggle__track"></span>
+					<label class="toggle"><input type="checkbox" id="edit-s-actif" name="actif"><span class="toggle__track"></span>
 						<span class="toggle__thumb"></span>
 					</label>
 				</div>
@@ -382,6 +359,5 @@
 {% endblock %}
 
 {% block script %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="/script/energie.js"></script>
 {% endblock %}
