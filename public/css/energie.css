@@ -1,11 +1,4 @@
 /* ── ÉNERGIE ── */
-.page-tabs-bar {
-    display: flex;
-    gap: 6px;
-    margin-bottom: 20px;
-}
-.tab-panel { display: none; }
-.tab-panel.active { display: block; }
 .chart-wrap { position: relative; height: 240px; }
 
 .energie-alertes {

@@ -24,6 +24,7 @@
 			<a class="page-tab active" data-tab="mix" href="#">Mix ENTSO-E</a>
 			<a class="page-tab" data-tab="sources" href="#">Sources</a>
 			<a class="page-tab" data-tab="config" href="#">Seuils</a>
+			<a class="page-tab" data-tab="prix" href="#">Prix énergie</a>
 		</div>
 
 		{% if alertes %}
@@ -221,6 +222,29 @@
 		</div>
 
 
+		<!-- ── TAB PRIX ÉNERGIE ── -->
+		<div id="tab-prix" class="tab-panel">
+			<div class="card">
+				<div class="card__header">
+					<span class="card__title">Évolution des prix énergie — 12 derniers mois</span>
+					<div class="chart-legend" style="margin-top:0;">
+						<div class="chart-legend__item">
+							<div class="chart-legend__dot" style="background:rgba(47,238,168,0.75);"></div>
+							<span>Prix vente moyen (€/MWh)</span>
+						</div>
+						<div class="chart-legend__item">
+							<div class="chart-legend__dot" style="background:rgba(79,138,255,0.75);"></div>
+							<span>Prix achat moyen (€/MWh)</span>
+						</div>
+					</div>
+				</div>
+				<div class="chart-wrap" style="height:260px;margin-top:8px;">
+					<canvas id="chart-prix-energie"></canvas>
+				</div>
+				<p id="prix-energie-empty" class="empty-state" style="display:none;">Aucune donnée de vente ou d'achat enregistrée pour le moment.</p>
+			</div>
+		</div>
+
 	</div>
 
 	<!-- Modal Ajout source -->
@@ -359,5 +383,6 @@
 {% endblock %}
 
 {% block script %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="/script/energie.js"></script>
 {% endblock %}

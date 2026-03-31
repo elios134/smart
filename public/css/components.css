@@ -294,6 +294,56 @@ tbody tr:hover td {
   }
 }
 
+/* ── CHART LÉGENDE — partagée ── */
+.chart-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+.chart-legend__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.chart-legend__dot {
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ── ONGLETS (page-tab) — utilisé sur plusieurs pages ── */
+.page-tabs,
+.page-tabs-bar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+
+.page-tab {
+  padding: 5px 16px;
+  border-radius: var(--radius-xs);
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all .15s;
+  display: inline-block;
+  white-space: nowrap;
+}
+
+.page-tab:hover { border-color: var(--blue-bd); color: var(--text); }
+.page-tab.active { background: var(--text-link); border-color: var(--text-link); color: #fff; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
 /* ── SECTION LABEL ── */
 .section-label {
   font-size: 11px;

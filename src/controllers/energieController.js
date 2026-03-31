@@ -70,6 +70,50 @@ export async function postDeleteSeuil(req, res) {
     } catch (e) { console.error(e); res.redirect('/energie?error=Erreur suppression seuil'); }
 }
 
+// GET /energie/prix-historique — prix moyens vente & achat sur 12 mois (DB locale)
+export async function apiPrixHistorique(req, res) {
+    try {
+        const depuis = new Date();
+        depuis.setMonth(depuis.getMonth() - 11);
+        depuis.setDate(1);
+        depuis.setHours(0, 0, 0, 0);
+
+        const [ventes, achats] = await Promise.all([
+            prisma.venteEnergie.findMany({ where: { createdAt: { gte: depuis } }, select: { prixVente: true, createdAt: true } }),
+            prisma.achatEnergie.findMany({ where: { createdAt: { gte: depuis } }, select: { prixAchat: true, createdAt: true } })
+        ]);
+
+        // Construire les 12 mois glissants
+        const mois = [];
+        for (let i = 11; i >= 0; i--) {
+            const d = new Date();
+            d.setMonth(d.getMonth() - i);
+            mois.push({ label: d.toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' }), y: d.getFullYear(), m: d.getMonth() });
+        }
+
+        function moyennePrix(rows, key) {
+            return mois.map(({ y, m }) => {
+                const filtres = rows.filter(r => {
+                    const d = new Date(r.createdAt);
+                    return d.getFullYear() === y && d.getMonth() === m;
+                });
+                if (!filtres.length) return null;
+                const sum = filtres.reduce((acc, r) => acc + (r[key] ?? 0), 0);
+                return Math.round((sum / filtres.length) * 100) / 100;
+            });
+        }
+
+        res.json({
+            labels:  mois.map(m => m.label),
+            ventes:  moyennePrix(ventes, 'prixVente'),
+            achats:  moyennePrix(achats, 'prixAchat')
+        });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Erreur' });
+    }
+}
+
 // GET /energie/notifications
 export function apiGetNotifications(req, res) {
     res.json(getNotifications());
