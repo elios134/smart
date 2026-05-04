@@ -42,19 +42,24 @@ export async function postAddAchat(req, res) {
         const qty   = parseFloat(quantite) || 0;
         const prix  = parseFloat(prixAchat) || 0;
         const total = Math.round(qty * prix * 100) / 100;
+        const parsedSourceId = parseInt(sourceId);
 
-        await prisma.achatEnergie.create({
-            data: {
-                sourceId: parseInt(sourceId),
-                tiersId:  tiersId ? parseInt(tiersId) : null,
-                quantite: qty, prixAchat: prix, total
-            }
-        });
-        await prisma.stockEnergie.upsert({
-            where:  { sourceId: parseInt(sourceId) },
-            update: { quantite: { increment: qty } },
-            create: { sourceId: parseInt(sourceId), quantite: qty }
-        });
+        if (isNaN(parsedSourceId)) return res.redirect('/stock?error=Source invalide');
+
+        await prisma.$transaction([
+            prisma.achatEnergie.create({
+                data: {
+                    sourceId: parsedSourceId,
+                    tiersId:  tiersId ? parseInt(tiersId) : null,
+                    quantite: qty, prixAchat: prix, total
+                }
+            }),
+            prisma.stockEnergie.upsert({
+                where:  { sourceId: parsedSourceId },
+                update: { quantite: { increment: qty } },
+                create: { sourceId: parsedSourceId, quantite: qty }
+            })
+        ]);
         res.redirect('/stock?success=Achat enregistré — stock mis à jour');
     } catch (error) {
         console.error(error);
@@ -66,15 +71,20 @@ export async function postAddAchat(req, res) {
 export async function postDeleteAchat(req, res) {
     try {
         const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.redirect('/stock?error=Identifiant d\'achat invalide');
+
         const achat = await prisma.achatEnergie.findUnique({ where: { id } });
         if (!achat) return res.redirect('/stock?error=Achat introuvable');
 
         // Retirer la quantité du stock
-        await prisma.stockEnergie.update({
-            where:  { sourceId: achat.sourceId },
-            data:   { quantite: { decrement: achat.quantite } }
-        });
-        await prisma.achatEnergie.delete({ where: { id } });
+        await prisma.$transaction([
+            prisma.stockEnergie.update({
+                where:  { sourceId: achat.sourceId },
+                data:   { quantite: { decrement: achat.quantite } }
+            }),
+            prisma.achatEnergie.delete({ where: { id } })
+        ]);
+
         res.redirect('/stock?success=Achat supprimé — stock mis à jour');
     } catch (error) {
         console.error(error);
@@ -87,6 +97,8 @@ export async function postAjusterStock(req, res) {
     const { quantite, sens } = req.body;
     try {
         const sourceId = parseInt(req.params.sourceId);
+        if (isNaN(sourceId)) return res.redirect('/stock?error=Source invalide');
+
         const qty = parseFloat(quantite) || 0;
         await prisma.stockEnergie.upsert({
             where:  { sourceId },

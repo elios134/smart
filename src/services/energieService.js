@@ -7,6 +7,14 @@
  */
 
 import prisma from '../../prisma/prismaClient.js';
+import { XMLParser } from 'fast-xml-parser';
+
+const xmlParser = new XMLParser({
+    ignoreAttributes: true,
+    // On force les éléments pouvant être multiples à être systématiquement des tableaux 
+    // Cela évite les bugs si l'API ne renvoie exceptionnellement qu'un seul élément
+    isArray: (name) => ['TimeSeries', 'Point'].includes(name)
+});
 
 // ── Notifications en mémoire ─────────────────────────────────
 const _notifications = [];
@@ -42,15 +50,23 @@ function fmtDate(d) {
 function parseGenerationXML(xml) {
     const mix = {};
     let total = 0;
-    const tsBlocks = xml.match(/<TimeSeries[\s\S]*?<\/TimeSeries>/g) || [];
-    for (const ts of tsBlocks) {
-        const psrMatch = ts.match(/<psrType>(B\d+)<\/psrType>/);
-        if (!psrMatch) continue;
-        const type = PSR_MAP[psrMatch[1]];
+
+    const parsed = xmlParser.parse(xml);
+    // ENTSO-E enveloppe ses données A75 dans GL_MarketDocument
+    const doc = parsed.GL_MarketDocument || parsed;
+    const timeSeries = doc.TimeSeries || [];
+
+    for (const ts of timeSeries) {
+        const psrType = ts.MktPSRType?.psrType;
+        if (!psrType) continue;
+        const type = PSR_MAP[psrType];
         if (!type) continue;
-        const qtMatches = [...ts.matchAll(/<quantity>([\d.]+)<\/quantity>/g)];
-        if (!qtMatches.length) continue;
-        const qty = parseFloat(qtMatches[qtMatches.length - 1][1]);
+        const period = ts.Period;
+        if (!period) continue;
+        const points = period.Point || [];
+        if (!points.length) continue;
+
+        const qty = parseFloat(points[points.length - 1].quantity);
         if (isNaN(qty) || qty < 0) continue;
         mix[type] = (mix[type] || 0) + qty;
         total += qty;
@@ -74,9 +90,12 @@ async function fetchMixEnergetique() {
         if (!res.ok) { console.warn(`[energieService] HTTP ${res.status}`); return null; }
         const xml = await res.text();
         if (xml.includes('<Reason>')) {
-            const codeMatch = xml.match(/<code>(.*?)<\/code>/);
-            const textMatch = xml.match(/<text>(.*?)<\/text>/);
-            console.warn('[energieService] Erreur ENTSO-E', codeMatch?.[1], ':', textMatch?.[1]);
+            const parsedError = xmlParser.parse(xml);
+            // ENTSO-E renvoie un Acknowledgement_MarketDocument lors des erreurs
+            const doc = parsedError.Acknowledgement_MarketDocument || parsedError;
+            // Il peut y avoir plusieurs raisons, on sécurise l'accès à la première
+            const reason = Array.isArray(doc.Reason) ? doc.Reason[0] : doc.Reason;
+            console.warn('[energieService] Erreur ENTSO-E', reason?.code, ':', reason?.text);
             return null;
         }
         return parseGenerationXML(xml);
@@ -137,25 +156,39 @@ export async function verifierDeclenchements() {
                 const sessions = await prisma.sessionEnergie.findMany({
                     where: { sourceId: source.id, statut: 'EN_COURS' }
                 });
+
+                const operationsDb = [];
+
                 for (const s of sessions) {
-                    await prisma.sessionEnergie.update({
+                    operationsDb.push(prisma.sessionEnergie.update({
                         where: { id: s.id },
                         data: { statut: 'TERMINEE', finReel: new Date() }
-                    });
-                    await prisma.stockEnergie.upsert({
+                    }));
+                    operationsDb.push(prisma.stockEnergie.upsert({
                         where: { sourceId: source.id },
                         update: { quantite: { increment: s.quantiteProduite } },
                         create: { sourceId: source.id, quantite: s.quantiteProduite }
-                    });
+                    }));
                 }
+
                 const stockActuel = source.stock?.quantite ?? 0;
+                let venteAjoutee = false;
+
                 if (stockActuel > 0) {
-                    await prisma.venteEnergie.create({
+                    operationsDb.push(prisma.venteEnergie.create({
                         data: { sourceId: source.id, quantite: stockActuel, prixVente: source.coutProduction, total: stockActuel * source.coutProduction }
-                    });
-                    await prisma.stockEnergie.update({ where: { sourceId: source.id }, data: { quantite: 0 } });
-                    pushNotification('vente', `Vente automatique : ${source.nom} — ${stockActuel} MWh à ${source.coutProduction} €/MWh (mix ${source.type} : ${mixPct}% < seuil arrêt ${seuil.seuilArret}%)`);
-                    console.log(`[energieService] AUTO → Vente déclenchée : ${source.nom}`);
+                    }));
+                    operationsDb.push(prisma.stockEnergie.update({ where: { sourceId: source.id }, data: { quantite: 0 } }));
+                    venteAjoutee = true;
+                }
+
+                // On exécute toutes les opérations d'un seul coup
+                if (operationsDb.length > 0) {
+                    await prisma.$transaction(operationsDb);
+                    if (venteAjoutee) {
+                        pushNotification('vente', `Vente automatique : ${source.nom} — ${stockActuel} MWh à ${source.coutProduction} €/MWh (mix ${source.type} : ${mixPct}% < seuil arrêt ${seuil.seuilArret}%)`);
+                        console.log(`[energieService] AUTO → Vente déclenchée : ${source.nom}`);
+                    }
                 }
             }
         }

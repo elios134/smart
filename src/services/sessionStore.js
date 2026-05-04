@@ -15,6 +15,10 @@ export class PrismaSessionStore extends session.Store {
         // Nettoyage automatique des sessions expirées (par défaut toutes les 15 min)
         const interval = options.cleanupInterval || 15 * 60 * 1000;
         this._cleanupTimer = setInterval(() => this.clearExpired(), interval);
+        
+        // Empêche le setInterval de bloquer la fermeture propre (graceful shutdown) de Node.js
+        if (this._cleanupTimer.unref) this._cleanupTimer.unref();
+
         // Premier nettoyage au démarrage
         this.clearExpired();
     }
@@ -28,7 +32,8 @@ export class PrismaSessionStore extends session.Store {
 
             // Session expirée → la supprimer et retourner null
             if (new Date() > row.expiresAt) {
-                await prisma.session.delete({ where: { sid } });
+                // deleteMany évite un crash Prisma (RecordNotFound) si 2 requêtes simultanées tentent de supprimer la même session
+                await prisma.session.deleteMany({ where: { sid } });
                 return callback(null, null);
             }
 
@@ -61,10 +66,9 @@ export class PrismaSessionStore extends session.Store {
     // ── Supprimer une session (logout) ────────────────────
     async destroy(sid, callback) {
         try {
-            await prisma.session.delete({ where: { sid } });
+            await prisma.session.deleteMany({ where: { sid } });
             callback?.(null);
         } catch (err) {
-            // Si la session n'existe pas, pas d'erreur
             callback?.(null);
         }
     }

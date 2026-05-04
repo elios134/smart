@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { sendResetPasswordEmail } from "../services/emailService.js";
 import { validatePassword } from "../services/passwordValidator.js";
+import { invalidateUserCache } from "../services/authMiddleware.js";
 
 // GET /login
 export async function getLogin(req, res) {
@@ -50,6 +51,9 @@ export async function postUpdateProfil(req, res) {
             where: { id: req.user.id },
             data: { firstName, lastName, mail, directorName: directorName || null, socialReason }
         });
+
+        // On invalide le cache pour que le middleware récupère les nouvelles infos à la prochaine page
+        invalidateUserCache(req.user.id);
 
         res.redirect("/profil?success=profil_updated");
     } catch (error) {

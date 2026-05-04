@@ -31,18 +31,79 @@
     line-height: 1.4;
 }
 
-.modal__title {
-    margin-bottom: 24px;
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--text);
-}
-
-.modal__confirm-text {
-    color: var(--muted);
-    margin-bottom: 24px;
-}
-
 .page-tabs {
     margin-bottom: 20px;
 }
+
+/* ── CARTES D'ALERTE ── */
+.alerte-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.alerte-card--vente {
+    border-color: var(--red-bd);
+    background: linear-gradient(90deg, var(--surface) 0%, rgba(255, 79, 107, 0.05) 100%);
+}
+.alerte-card__badge {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--red);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+.alerte-card__name {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+}
+.alerte-card__sub {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+/* ── ENTSO-E LIVE KPIs ── */
+.cours-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+.cours-header__title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.cours-header__meta { font-size: 12px; color: var(--muted); }
+
+.cours-kpis { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+.cours-kpi {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    flex: 1;
+    min-width: 120px;
+}
+.cours-kpi__label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+.cours-kpi__value { font-size: 24px; font-weight: 500; color: var(--text); }
+
+/* ── TAUX PILLS (Tableau des seuils) ── */
+.taux-pill {
+    display: inline-block; padding: 4px 10px; border-radius: var(--radius-xs);
+    font-size: 12px; font-weight: 600;
+}
+.taux-pill--achat { background: var(--blue-dim); color: rgba(79, 138, 255, 1); }
+.taux-pill--vente { background: var(--red-dim); color: var(--red); }
+
+/* ── DECLENCHEMENT BLOCK (Modal) ── */
+.declenchement-block {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px; margin-top: 16px; margin-bottom: 16px;
+}
+.declenchement-block__header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.declenchement-block__title { font-size: 13px; font-weight: 500; color: var(--text); }
+.declenchement-block__desc { font-size: 12px; color: var(--muted); line-height: 1.4; }

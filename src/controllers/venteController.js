@@ -34,8 +34,11 @@ export async function getVentes(req, res) {
 // GET /ventes/:id
 export async function getVenteDetail(req, res) {
     try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.redirect('/ventes?error=Identifiant de vente invalide');
+
         const vente = await prisma.venteEnergie.findUnique({
-            where:   { id: parseInt(req.params.id) },
+            where:   { id },
             include: { source: true, tiers: true }
         });
         if (!vente) return res.redirect('/ventes?error=Vente introuvable');
@@ -60,19 +63,24 @@ export async function postAddVente(req, res) {
         const qty   = parseFloat(quantite) || 0;
         const prix  = parseFloat(prixVente) || 0;
         const total = Math.round(qty * prix * 100) / 100;
+        const parsedSourceId = parseInt(sourceId);
 
-        const stock = await prisma.stockEnergie.findUnique({ where: { sourceId: parseInt(sourceId) } });
+        if (isNaN(parsedSourceId)) return res.redirect('/ventes?error=Source invalide');
+
+        const stock = await prisma.stockEnergie.findUnique({ where: { sourceId: parsedSourceId } });
         if (!stock || stock.quantite < qty) {
             return res.redirect('/ventes?error=Stock insuffisant pour cette vente');
         }
 
-        await prisma.venteEnergie.create({
-            data: { sourceId: parseInt(sourceId), tiersId: tiersId ? parseInt(tiersId) : null, quantite: qty, prixVente: prix, total }
-        });
-        await prisma.stockEnergie.update({
-            where: { sourceId: parseInt(sourceId) },
-            data:  { quantite: { decrement: qty } }
-        });
+        await prisma.$transaction([
+            prisma.venteEnergie.create({
+                data: { sourceId: parsedSourceId, tiersId: tiersId ? parseInt(tiersId) : null, quantite: qty, prixVente: prix, total }
+            }),
+            prisma.stockEnergie.update({
+                where: { sourceId: parsedSourceId },
+                data:  { quantite: { decrement: qty } }
+            })
+        ]);
         res.redirect('/ventes?success=Vente enregistrée — stock mis à jour');
     } catch (error) {
         console.error(error);
@@ -84,16 +92,20 @@ export async function postAddVente(req, res) {
 export async function postDeleteVente(req, res) {
     try {
         const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.redirect('/ventes?error=Identifiant de vente invalide');
+
         const vente = await prisma.venteEnergie.findUnique({ where: { id } });
         if (!vente) return res.redirect('/ventes?error=Vente introuvable');
 
         // Remettre la quantité vendue dans le stock
-        await prisma.stockEnergie.upsert({
-            where:  { sourceId: vente.sourceId },
-            update: { quantite: { increment: vente.quantite } },
-            create: { sourceId: vente.sourceId, quantite: vente.quantite }
-        });
-        await prisma.venteEnergie.delete({ where: { id } });
+        await prisma.$transaction([
+            prisma.stockEnergie.upsert({
+                where:  { sourceId: vente.sourceId },
+                update: { quantite: { increment: vente.quantite } },
+                create: { sourceId: vente.sourceId, quantite: vente.quantite }
+            }),
+            prisma.venteEnergie.delete({ where: { id } })
+        ]);
         res.redirect('/ventes?success=Vente supprimée — stock restauré');
     } catch (error) {
         console.error(error);

@@ -46,13 +46,20 @@ export async function getPlanification(req, res) {
 export async function postAddSession(req, res) {
     const { sourceId, titre, quantitePrevue, debutPrev, finPrev, notes } = req.body;
     try {
+        const dDebut = new Date(debutPrev);
+        const dFin = new Date(finPrev);
+
+        if (isNaN(dDebut.getTime()) || isNaN(dFin.getTime())) {
+            return res.redirect('/planification?error=Les dates de planification sont invalides');
+        }
+
         await prisma.sessionEnergie.create({
             data: {
                 sourceId:       parseInt(sourceId),
                 titre:          titre || 'Session énergie',
                 quantitePrevue: parseFloat(quantitePrevue) || 0,
-                debutPrev:      new Date(debutPrev),
-                finPrev:        new Date(finPrev),
+                debutPrev:      dDebut,
+                finPrev:        dFin,
                 notes:          notes || null,
                 statut:         'EN_ATTENTE'
             }
@@ -67,8 +74,11 @@ export async function postAddSession(req, res) {
 // POST /planification/:id/lancer
 export async function postLancerSession(req, res) {
     try {
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.redirect('/planification?error=Identifiant de session invalide');
+
         await prisma.sessionEnergie.update({
-            where: { id: parseInt(req.params.id) },
+            where: { id },
             data:  { statut: 'EN_COURS', debutReel: new Date() }
         });
         res.redirect('/planification?success=Session lancée');
@@ -82,18 +92,26 @@ export async function postLancerSession(req, res) {
 export async function postTerminerSession(req, res) {
     const { quantiteProduite, coutTotal } = req.body;
     try {
-        const session = await prisma.sessionEnergie.findUnique({ where: { id: parseInt(req.params.id) } });
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.redirect('/planification?error=Identifiant de session invalide');
+
+        const session = await prisma.sessionEnergie.findUnique({ where: { id } });
         if (!session) return res.redirect('/planification?error=Session introuvable');
+
         const qte = parseFloat(quantiteProduite) || 0;
-        await prisma.sessionEnergie.update({
-            where: { id: session.id },
-            data:  { statut: 'TERMINEE', finReel: new Date(), quantiteProduite: qte, coutTotal: parseFloat(coutTotal) || 0 }
-        });
-        await prisma.stockEnergie.upsert({
-            where:  { sourceId: session.sourceId },
-            update: { quantite: { increment: qte } },
-            create: { sourceId: session.sourceId, quantite: qte }
-        });
+
+        await prisma.$transaction([
+            prisma.sessionEnergie.update({
+                where: { id: session.id },
+                data:  { statut: 'TERMINEE', finReel: new Date(), quantiteProduite: qte, coutTotal: parseFloat(coutTotal) || 0 }
+            }),
+            prisma.stockEnergie.upsert({
+                where:  { sourceId: session.sourceId },
+                update: { quantite: { increment: qte } },
+                create: { sourceId: session.sourceId, quantite: qte }
+            })
+        ]);
+
         res.redirect('/planification?success=Session terminée — stock mis à jour');
     } catch (error) {
         console.error(error);
@@ -104,7 +122,10 @@ export async function postTerminerSession(req, res) {
 // POST /planification/:id/delete
 export async function postDeleteSession(req, res) {
     try {
-        await prisma.sessionEnergie.delete({ where: { id: parseInt(req.params.id) } });
+        const id = parseInt(req.params.id);
+        if (isNaN(id)) return res.redirect('/planification?error=Identifiant de session invalide');
+
+        await prisma.sessionEnergie.delete({ where: { id } });
         res.redirect('/planification?success=Session supprimée');
     } catch (error) {
         console.error(error);

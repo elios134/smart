@@ -33,10 +33,15 @@ export async function sendResetPasswordEmail(to, resetUrl) {
         <p style="color:#aaa;font-size:11px;">Smart-Yield — Application de gestion de production</p>
     </div>`;
 
-    await transporter.sendMail({
-        from: `"Smart-Yield" <${process.env.SMTP_USER}>`,
-        to,
-        subject: "Réinitialisation de votre mot de passe — Smart-Yield",
-        html,
-    });
+    try {
+        await transporter.sendMail({
+            from: `"Smart-Yield" <${process.env.SMTP_USER}>`,
+            to,
+            subject: "Réinitialisation de votre mot de passe — Smart-Yield",
+            html,
+        });
+        console.log(`[emailService] Email de réinitialisation envoyé à ${to}`);
+    } catch (error) {
+        console.error(`[emailService] Erreur lors de l'envoi de l'email à ${to}:`, error.message);
+    }
 }
