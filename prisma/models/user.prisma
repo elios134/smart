@@ -18,6 +18,7 @@ model User {
   employeur    User?   @relation("EmployeurEmployes", fields: [employeurId], references: [id])
   employes     User[]  @relation("EmployeurEmployes")
 
+  setupTokens SetupToken[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

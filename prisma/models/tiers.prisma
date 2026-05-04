@@ -1,18 +1,18 @@
 model Tiers {
-  id               Int        @id @default(autoincrement())
-  nom              String
-  typeTiers        TypeTiers  @default(FOURNISSEUR)
-  nomContact       String?
-  fonctionContact  String?
-  mail             String?
-  telephone        String?
-  delaiLivraison   Int?
-  notes            String?    @db.Text
-  createdAt        DateTime   @default(now())
-  updatedAt        DateTime   @updatedAt
+  id              Int       @id @default(autoincrement())
+  nom             String
+  typeTiers       TypeTiers @default(FOURNISSEUR)
+  nomContact      String?
+  fonctionContact String?
+  mail            String?
+  telephone       String?
+  delaiLivraison  Int?
+  notes           String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-  achats           AchatEnergie[]
-  ventes           VenteEnergie[]
+  achats AchatEnergie[]
+  ventes VenteEnergie[]
 
   @@map("tiers")
 }

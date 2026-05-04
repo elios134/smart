@@ -121,9 +121,9 @@ export async function postForgotPassword(req, res) {
         const token = crypto.randomBytes(32).toString("hex");
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1h
 
-        // Sauvegarder le token (réutilise le modèle SetupToken)
+        // Sauvegarder le token lié à l'utilisateur
         await prisma.setupToken.create({
-            data: { token, expiresAt },
+            data: { token, expiresAt, userId: user.id },
         });
 
         // Construire l'URL de reset
@@ -189,7 +189,7 @@ export async function postResetPasswordToken(req, res) {
             });
         }
 
-        const { mail, newPassword, confirmPassword } = req.body;
+        const { newPassword, confirmPassword } = req.body;
 
         if (newPassword !== confirmPassword) {
             return res.render("pages/resetPasswordToken.twig", {
@@ -208,11 +208,19 @@ export async function postResetPasswordToken(req, res) {
             });
         }
 
-        const user = await prisma.user.findUnique({ where: { mail } });
+        if (!setupToken.userId) {
+            return res.render("pages/resetPasswordToken.twig", {
+                title: "Réinitialiser le mot de passe",
+                error: "Ce lien est invalide ou incomplet.",
+                token: null,
+            });
+        }
+
+        const user = await prisma.user.findUnique({ where: { id: setupToken.userId } });
         if (!user) {
             return res.render("pages/resetPasswordToken.twig", {
                 title: "Réinitialiser le mot de passe",
-                error: "Adresse email introuvable.",
+                error: "Utilisateur introuvable.",
                 token,
             });
         }

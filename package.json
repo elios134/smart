@@ -50,8 +50,7 @@
       "src/**/*",
       "views/**/*",
       "public/**/*",
-      "prisma/**/*",
-      ".env"
+      "prisma/**/*"
     ],
     "win": {
       "target": "nsis",

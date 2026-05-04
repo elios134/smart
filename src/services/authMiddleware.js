@@ -105,9 +105,7 @@ export function requireRole(...roles) {
     }
 
     // Rôle insuffisant → rediriger avec message d'erreur
-    const redirectUrl = req.userRole === "OPERATEUR"
-      ? "/production?error=Accès non autorisé"
-      : "/home?error=Accès non autorisé";
+    const redirectUrl = "/home?error=Accès non autorisé";
 
     return res.redirect(redirectUrl);
   };

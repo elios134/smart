@@ -20,7 +20,8 @@ import { PrismaSessionStore } from './services/sessionStore.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
-const CINQ_ANS   = 5 * 365 * 24 * 60 * 60 * 1000;
+const VINGT_QUATRE_HEURES = 24 * 60 * 60 * 1000;
+const IS_PROD = process.env.NODE_ENV === 'production';
 
 if (!process.env.SESSION_SECRET) throw new Error('[app.js] SESSION_SECRET manquant dans .env');
 
@@ -30,7 +31,18 @@ app.set('views', path.join(__dirname, '../views'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
-app.use(session({ secret: process.env.SESSION_SECRET, store: new PrismaSessionStore(), resave: false, saveUninitialized: false, cookie: { maxAge: CINQ_ANS, httpOnly: true, secure: false } }));
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  store: new PrismaSessionStore(),
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: VINGT_QUATRE_HEURES,
+    httpOnly: true,
+    secure: IS_PROD,
+    sameSite: 'lax'
+  }
+}));
 app.use(flashMiddleware);
 
 app.use(setupRouter);

@@ -8,11 +8,11 @@ model SourceEnergie {
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
 
-  stock          StockEnergie?
-  sessions       SessionEnergie[]
-  achats         AchatEnergie[]
-  ventes         VenteEnergie[]
-  seuil          SeuilEnergie?
+  stock    StockEnergie?
+  sessions SessionEnergie[]
+  achats   AchatEnergie[]
+  ventes   VenteEnergie[]
+  seuil    SeuilEnergie?
 
   @@map("sources_energie")
 }
@@ -30,8 +30,8 @@ model StockEnergie {
   quantite  Float    @default(0)
   updatedAt DateTime @updatedAt
 
-  source    SourceEnergie @relation(fields: [sourceId], references: [id])
-  sourceId  Int           @unique
+  source   SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId Int           @unique
 
   @@map("stocks_energie")
 }
@@ -44,11 +44,11 @@ model AchatEnergie {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  source    SourceEnergie @relation(fields: [sourceId], references: [id])
-  sourceId  Int
+  source   SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId Int
 
-  tiers     Tiers?   @relation(fields: [tiersId], references: [id])
-  tiersId   Int?
+  tiers   Tiers? @relation(fields: [tiersId], references: [id])
+  tiersId Int?
 
   @@map("achats_energie")
 }
@@ -61,11 +61,11 @@ model VenteEnergie {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  source    SourceEnergie @relation(fields: [sourceId], references: [id])
-  sourceId  Int
+  source   SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId Int
 
-  tiers     Tiers?   @relation(fields: [tiersId], references: [id])
-  tiersId   Int?
+  tiers   Tiers? @relation(fields: [tiersId], references: [id])
+  tiersId Int?
 
   @@map("ventes_energie")
 }
@@ -79,8 +79,8 @@ model SeuilEnergie {
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 
-  source             SourceEnergie @relation(fields: [sourceId], references: [id])
-  sourceId           Int           @unique
+  source   SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId Int           @unique
 
   @@map("seuils_energie")
 }

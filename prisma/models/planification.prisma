@@ -14,8 +14,8 @@ model SessionEnergie {
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
 
-  source           SourceEnergie @relation(fields: [sourceId], references: [id])
-  sourceId         Int
+  source   SourceEnergie @relation(fields: [sourceId], references: [id])
+  sourceId Int
 
   @@map("sessions_energie")
 }
