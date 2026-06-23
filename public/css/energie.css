@@ -94,7 +94,7 @@
     display: inline-block; padding: 4px 10px; border-radius: var(--radius-xs);
     font-size: 12px; font-weight: 600;
 }
-.taux-pill--achat { background: var(--blue-dim); color: rgba(79, 138, 255, 1); }
+.taux-pill--achat { background: var(--blue-dim); color: var(--text-link); }
 .taux-pill--vente { background: var(--red-dim); color: var(--red); }
 
 /* ── DECLENCHEMENT BLOCK (Modal) ── */

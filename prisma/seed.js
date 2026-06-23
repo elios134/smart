@@ -29,7 +29,7 @@ async function main() {
 
     console.log("\n✅ Token de setup créé avec succès !");
     console.log("──────────────────────────────────────────────");
-    console.log(`🔗 URL d'accès : http://localhost:3000/setup/${setupToken.token}`);
+    console.log(`🔗 URL d'accès : http://localhost:${process.env.PORT || 3506}/setup/${setupToken.token}`);
     console.log(`⏳ Expire le  : ${expiresAt.toLocaleString("fr-FR")}`);
     console.log("──────────────────────────────────────────────\n");
 }

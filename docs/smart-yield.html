@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    color: #1a1a2e;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* ---------- PAGE DE COUVERTURE ---------- */
+  .cover {
+    position: relative;
+    width: 210mm;
+    height: 297mm;
+    background: linear-gradient(160deg, #f3f7fd 0%, #eef4f5 55%, #ecf3ee 100%);
+    overflow: hidden;
+    page-break-after: always;
+  }
+
+  .cover-bg {
+    position: absolute;
+    bottom: -30mm;
+    right: -20mm;
+    width: 200mm;
+    height: 200mm;
+    z-index: 1;
+    opacity: 0.5;
+  }
+
+  .cover-content { position: relative; z-index: 2; padding: 42mm 28mm 0 28mm; }
+
+  .logo {
+    font-size: 58pt;
+    font-weight: 800;
+    letter-spacing: 1px;
+    color: #15192a;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .logo .dot {
+    display: inline-block;
+    width: 38pt; height: 38pt;
+    background: linear-gradient(135deg, #4b83f2 0%, #2ee9a5 100%);
+    border-radius: 50%;
+    margin: 0 2pt;
+    vertical-align: middle;
+  }
+  .logo-sub {
+    text-align: center;
+    font-size: 16pt;
+    color: #44506e;
+    margin-top: 8mm;
+  }
+
+  .cover-title {
+    margin-top: 46mm;
+    text-align: center;
+  }
+  .cover-title h1 {
+    font-size: 26pt;
+    font-weight: 800;
+    line-height: 1.25;
+    color: #15192a;
+  }
+  .cover-author {
+    text-align: center;
+    margin-top: 8mm;
+    font-size: 15pt;
+    color: #2f3a52;
+    line-height: 1.5;
+  }
+  .cover-year {
+    text-align: center;
+    margin-top: 10mm;
+    font-size: 13pt;
+    color: #5a6480;
+  }
+
+  /* ---------- PAGE DE CONTENU (OPTIMISÉE) ---------- */
+  .content {
+    width: 210mm;
+    height: 297mm; /* Forcé à une page exacte */
+    background: #efeaf4;
+    padding: 12mm 18mm; /* Marges réduites pour gagner de l'espace */
+    overflow: hidden;
+  }
+  .content h2 {
+    font-size: 18pt; /* Légèrement réduit (de 21pt) */
+    font-weight: 800;
+    color: #1a1a2e;
+    margin-bottom: 2mm; 
+    margin-top: 4mm;
+  }
+  .content h2:first-child { margin-top: 0; }
+  
+  .content p { 
+    font-size: 9.5pt; /* Idem (de 10pt) */
+    line-height: 1.4;
+    color: #2a2a3e;
+    text-align: justify;
+    margin-bottom: 2.5mm;
+  }
+  .content .intro-note { margin-bottom: 2.5mm; }
+
+  .features {
+    column-count: 2;
+    column-gap: 10mm;
+    font-size: 8.8pt; /* Ajusté de 9.2pt à 8.8pt pour compacter la liste */
+    line-height: 1.3; 
+    color: #2a2a3e; 
+  }
+  .features ul { list-style: none; }
+  .features li { margin-bottom: 0.7mm; break-inside: avoid; }
+  .features .sub { margin-left: 4mm; margin-top: 0.5mm; margin-bottom: 0.5mm; }
+  .features li::before { content: "→ "; color: #2a2a3e; }
+  .features strong { font-weight: 700; }
+
+  .tech-wrapper {
+    margin-top: 4mm;
+    padding-top: 3mm;
+    border-top: 1px solid rgba(26, 26, 46, 0.1);
+  }
+  .tech { font-size: 10pt; color: #1a1a2e; }
+</style>
+</head>
+<body>
+
+  <div class="cover">
+    <svg class="cover-bg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="30"  y="120" width="34" height="55"  rx="6" fill="#aec6f5"/>
+      <rect x="78"  y="92"  width="34" height="83"  rx="6" fill="#a9e6cf"/>
+      <rect x="126" y="68"  width="34" height="107" rx="6" fill="#aec6f5"/>
+      <polyline points="47,138 95,110 143,86" fill="none" stroke="#9fb9f0" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="47"  cy="138" r="6" fill="#9fb9f0"/>
+      <circle cx="95"  cy="110" r="6" fill="#8fd9bd"/>
+      <circle cx="143" cy="86"  r="6" fill="#9fb9f0"/>
+      <polyline points="150,72 162,60 174,72" fill="none" stroke="#9fb9f0" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <div class="cover-content">
+      <div class="logo">SMART<span class="dot"></span>YIELD</div>
+      <div class="logo-sub">Application de pilotage de la production énergétique</div>
+
+      <div class="cover-title">
+        <h1>Projet réalisé dans le cadre<br>de la présentation au<br>Titre Professionnel DWWM</h1>
+      </div>
+      <div class="cover-author">
+        Présenté et réalisé par André BRIBANICK<br>
+        ÉCOLE Ri7 – Promotion Psi
+      </div>
+      <div class="cover-year">2025–2026</div>
+    </div>
+  </div>
+
+  <div class="content">
+    <h2>Introduction</h2>
+    <p>Lors de ma formation, j'ai réalisé de nombreux projets et j'ai toujours cherché à repousser mes limites techniques. Le véritable déclic pour ce projet est venu d'une discussion avec un ami qui me présentait son projet professionnel axé sur le secteur de l'énergie et de l'automatisation. En l'écoutant, j'ai été frappé par un constat : produire de l'énergie au bon moment et la vendre au meilleur prix relève d'un travail de surveillance permanent. Les opérateurs doivent suivre en continu l'état du réseau électrique, décider quand lancer une production, quand l'arrêter, quand écouler le stock... Un travail aussi stratégique que fastidieux, où la moindre minute d'inattention peut coûter cher.</p>
+
+    <p>Ne trouvant pas d'outil simple répondant à ce besoin, il m'a demandé si je pouvais lui développer une application desktop dédiée. N'ayant appris jusqu'alors que les langages du web, j'ai immédiatement vu cette demande comme un défi personnel et une opportunité en or d'apprendre de nouvelles compétences. J'ai donc décidé de concevoir moi-même cette solution.</p>
+    
+    <h2>Objectifs</h2>
+    <p>L'application est donc une solution de <strong>pilotage et de gestion de la production énergétique</strong>. Son objectif est de faciliter le travail des exploitants, opérateurs et gestionnaires d'unités de production qui jonglent au quotidien avec plusieurs sources d'énergie, des stocks, des ventes et des fournisseurs. Pour ce faire, l'application propose plusieurs fonctionnalités allant de la supervision en direct des sources d'énergie jusqu'à la <strong>décision automatique de produire ou de vendre</strong>, grâce à des seuils paramétrables comparés en continu au mix électrique français réel. L'idée est aussi de rendre les équipes plus sereines et réactives en automatisant les décisions répétitives, tout en gardant un suivi complet (reporting, notifications, facturation) accessible depuis n'importe quel poste, sans surveillance manuelle permanente.</p>
+
+    <h2>Fonctionnalités de l'application</h2>
+    <p class="intro-note">Les fonctionnalités suivantes ont été développées pour le MVP (Minimum Viable Product). D'autres fonctionnalités présentées dans le dossier projet pourront être développées ultérieurement.</p>
+
+    <div class="features">
+      <ul>
+        <li>Créer un compte et configurer l'unité (setup initial)</li>
+        <li>Se connecter et se déconnecter (espace admin et espace employé)</li>
+        <li>Gérer les utilisateurs et leurs rôles (Super Admin, Admin, Opérateur)</li>
+        <li>Ajouter, modifier et supprimer des employés</li>
+        <li>Changer son mot de passe (avec mot de passe oublié / réinitialisation)</li>
+        <li>Ajouter et gérer plusieurs sources d'énergie (éolien, solaire, hydraulique, nucléaire…)</li>
+        <li>Suivre le stock d'énergie produit (en MWh)</li>
+        <li>Définir des seuils de déclenchement et d'arrêt par source</li>
+        <li><strong>Piloter la production automatiquement</strong> :
+          <ul class="sub">
+            <li>Récupérer le mix électrique français en temps réel (API ENTSO-E)</li>
+            <li>Lancer la production quand une source est abondante</li>
+            <li>Clôturer et vendre le stock quand elle se raréfie</li>
+          </ul>
+        </li>
+        <li>Gérer les ventes et générer les factures (totaux HT / TTC)</li>
+        <li>Gérer les fournisseurs et les délais d'approvisionnement</li>
+        <li>Planifier les sessions de production</li>
+        <li>Recevoir des notifications persistées à chaque action automatique</li>
+        <li>Visualiser un tableau de bord (KPIs) :
+          <ul class="sub">
+            <li>MWh produits aujourd'hui</li>
+            <li>MWh stockés</li>
+            <li>Chiffre d'affaires des ventes</li>
+          </ul>
+        </li>
+        <li>Consulter le reporting et les graphiques (production, consommation, seuils de stock)</li>
+        <li>Exporter / imprimer les rapports</li>
+      </ul>
+    </div>
+
+    <div class="tech-wrapper">
+      <h2>Technologies</h2>
+      <p class="tech"><strong>Node.js, Express, Prisma, MySQL, Twig, Electron, Chart.js / ApexCharts, API ENTSO-E.</strong></p>
+    </div>
+  </div>
+
+</body>
+</html>

@@ -20,7 +20,7 @@
             <button class="btn btn-primary" data-modal-open="modal-achat-add">Enregistrer un achat</button>
             {% endif %}
         </div>
-        <table>
+        <table class="table--sm-hide-2-4">
             <thead>
                 <tr>
                     <th>Source</th><th>Type</th><th>Stock (MWh)</th>
@@ -62,7 +62,7 @@
             <span class="card__title">Historique des achats</span>
             <a href="/planification" class="card__link">Voir les sessions →</a>
         </div>
-        <table>
+        <table class="table--sm-hide-2-4-6">
             <thead>
                 <tr>
                     <th>Source</th><th>Fournisseur</th><th>Quantité (MWh)</th>
@@ -127,11 +127,11 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Quantité (MWh) *</label>
-                <input class="form-input" type="number" step="0.01" id="achat-quantite" name="quantite" placeholder="100" required>
+                <input class="form-input" type="number" step="0.01" min="0"id="achat-quantite" name="quantite" placeholder="100" required>
             </div>
             <div class="form-group">
                 <label class="form-label">Prix d'achat (€/MWh) *</label>
-                <input class="form-input" type="number" step="0.01" id="achat-prix" name="prixAchat" placeholder="45" required>
+                <input class="form-input" type="number" step="0.01" min="0"id="achat-prix" name="prixAchat" placeholder="45" required>
             </div>
             <div class="total-estime">
                 <span>Total estimé</span>
@@ -160,7 +160,7 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Quantité (MWh) *</label>
-                <input class="form-input" type="number" step="0.01" name="quantite" placeholder="50" required>
+                <input class="form-input" type="number" step="0.01" min="0"name="quantite" placeholder="50" required>
             </div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary btn-full">Confirmer</button>

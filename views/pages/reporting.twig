@@ -36,11 +36,11 @@
             </div>
             <div class="chart-legend">
                 <div class="chart-legend__item">
-                    <div class="chart-legend__dot" style="background:rgba(47,238,168,0.75);"></div>
+                    <div class="chart-legend__dot" style="background:linear-gradient(180deg, rgba(79,138,255,0.92), rgba(79,138,255,0.15));"></div>
                     <span>CA Ventes</span>
                 </div>
                 <div class="chart-legend__item">
-                    <div class="chart-legend__dot" style="background:rgba(79,138,255,0.55);"></div>
+                    <div class="chart-legend__dot chart-legend__dot--line-success" style="background:#2FEEA8;"></div>
                     <span>Coûts production</span>
                 </div>
             </div>
@@ -60,8 +60,8 @@
                 <div class="besoin-card__stock-row">Seuil déclenchement : <strong>{{ b.seuilVal }}%</strong></div>
                 <div class="besoin-card__bar">
                     <div class="besoin-card__bar-fill
-                        {% if b.pct >= 60 %}besoin-card__bar-fill--green
-                        {% elseif b.pct >= 30 %}besoin-card__bar-fill--yellow
+                        {% if b.pct >= 50 %}besoin-card__bar-fill--green
+                        {% elseif b.pct >= 20 %}besoin-card__bar-fill--yellow
                         {% else %}besoin-card__bar-fill--red{% endif %}"
                         style="width:{{ b.pct }}%;">
                     </div>

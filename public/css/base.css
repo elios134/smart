@@ -1,4 +1,4 @@
-/* ── RESET & VARIABLES ── */
+/* ── RESET & VARIABLES — aligné design.md (tokens sémantiques + compat) ── */
 *,
 *::before,
 *::after {
@@ -8,39 +8,62 @@
 }
 
 :root {
-  --bg: #0D0F18;
-  --surface: #161B2E;
-  --surface2: #1C2237;
-  --border: #252D45;
-  --text: #E2E6F0;
-  --text-link:rgba(79, 138, 255, 1);
-  --muted: #5A6380;
-  --blue: rgba(79, 138, 255, 0.1);
-  --blue-border: rgba(79, 138, 255, 0.2);
-  --blue-dim: rgba(79, 138, 255, .10);
-  --blue-bd: rgba(79, 138, 255, 0.2);
-  --red: #FF4F6B;
-  --red-dim: rgba(255, 79, 107, .10);
-  --red-bd: rgba(255, 79, 107, .28);
-  --green: #2FEEA8;
-  --green-dim: rgba(47, 238, 168, .10);
+  /* §1 design.md — noms sémantiques */
+  --color-surface-lowest: #0C0E15;
+  --color-surface: #161B2E;
+  --color-surface-elevated: #1C2237;
+  --color-surface-bright: #373941;
+  --color-outline: #252D45;
+  --color-primary: #4F8AFF;
+  --color-success: #2FEEA8;
+  --color-error: #FF4F6B;
+  --color-on-surface: #E2E6F0;
+  --color-on-surface-variant: #5A6380;
+  --color-warning: #FFB34F;
+
+  /* Alias historiques (même rendu, tout le CSS existant reste valide) */
+  --bg: var(--color-surface-lowest);
+  --surface: var(--color-surface);
+  --surface2: var(--color-surface-elevated);
+  --border: var(--color-outline);
+  --text: var(--color-on-surface);
+  --muted: var(--color-on-surface-variant);
+  --text-link: var(--color-primary);
+  --red: var(--color-error);
+  --green: var(--color-success);
+
+  --blue: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --blue-border: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  --blue-dim: color-mix(in srgb, var(--color-primary) 10%, transparent);
+  --blue-bd: color-mix(in srgb, var(--color-primary) 20%, transparent);
+  --red-dim: color-mix(in srgb, var(--color-error) 10%, transparent);
+  --red-bd: rgba(255, 79, 107, 0.28);
+  --green-dim: color-mix(in srgb, var(--color-success) 10%, transparent);
+
   --radius: 14px;
   --radius-sm: 10px;
   --radius-xs: 24px;
+
+  /* Focus / glow §2 design.md */
+  --focus-ring: 0 0 0 2px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 html,
 body {
   background: var(--bg);
   color: var(--text);
-  font-family: 'DM Sans', 'Segoe UI', sans-serif;
+  font-family: 'Manrope', 'DM Sans', 'Segoe UI', sans-serif;
   font-size: 14px;
+  line-height: 1.5;
   min-height: 100vh;
 }
 
-/* ── LAYOUT ── */
+/* ── LAYOUT — grille 8px, conteneur max §4 design.md ── */
 .main {
-  padding: 28px 28px;
+  width: 100%;
+  max-width: 1440px;
+  margin-inline: auto;
+  padding: 32px 32px;
 }
 
 /* ── EMPTY STATE ── */
@@ -49,4 +72,33 @@ body {
   padding: 48px 0;
   color: var(--muted);
   font-size: 13px;
+}
+
+/* ── ACCESSIBILITÉ — anneau de focus clavier (token --focus-ring) ── */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible,
+.nav-btn:focus-visible,
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: var(--radius-sm);
+}
+
+/* Lien d'évitement (skip-link) : visible uniquement au focus clavier */
+.skip-link {
+  position: absolute;
+  left: -999px;
+  top: 8px;
+  z-index: 1000;
+  background: var(--color-primary);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+}
+.skip-link:focus {
+  left: 8px;
 }

@@ -41,7 +41,7 @@
                 <span class="card__title">Toutes les sessions</span>
                 <button class="btn btn-primary" data-modal-open="modal-session-add">Planifier</button>
             </div>
-            <table>
+            <table class="table--sm-hide-1-4-5-6-7">
                 <thead>
                     <tr>
                         <th>Titre</th><th>Source</th><th>MWh prévus</th><th>MWh produits</th>
@@ -185,7 +185,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="form-group"><label class="form-label">Quantité prévue (MWh)</label><input class="form-input" type="number" step="0.01" name="quantitePrevue" placeholder="100"></div>
+            <div class="form-group"><label class="form-label">Quantité prévue (MWh)</label><input class="form-input" type="number" step="0.01" min="0"name="quantitePrevue" placeholder="100"></div>
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
                 <div class="form-group"><label class="form-label">Début prévu *</label><input class="form-input" type="datetime-local" name="debutPrev" required></div>
                 <div class="form-group"><label class="form-label">Fin prévue *</label><input class="form-input" type="datetime-local" name="finPrev" required></div>
@@ -204,8 +204,8 @@
     <div class="modal">
         <h3 class="modal__title">Clôturer la session</h3>
         <form id="form-terminer" method="POST" action="">
-            <div class="form-group"><label class="form-label">MWh produits réellement *</label><input class="form-input" type="number" step="0.01" name="quantiteProduite" placeholder="95" required></div>
-            <div class="form-group"><label class="form-label">Coût total (€)</label><input class="form-input" type="number" step="0.01" name="coutTotal" placeholder="4200"></div>
+            <div class="form-group"><label class="form-label">MWh produits réellement *</label><input class="form-input" type="number" step="0.01" min="0"name="quantiteProduite" placeholder="95" required></div>
+            <div class="form-group"><label class="form-label">Coût total (€)</label><input class="form-input" type="number" step="0.01" min="0"name="coutTotal" placeholder="4200"></div>
             <div class="form-actions">
                 <button type="submit" class="btn btn-primary btn-full">Terminer & créditer le stock</button>
                 <button type="button" class="btn btn-ghost btn-full" data-modal-close="modal-terminer">Annuler</button>
@@ -225,11 +225,11 @@
             <input type="hidden" id="achat-source-id" name="sourceId">
             <div class="form-group">
                 <label class="form-label">Quantité (MWh) *</label>
-                <input class="form-input" type="number" step="0.01" id="achat-quantite-input" name="quantite" required>
+                <input class="form-input" type="number" step="0.01" min="0"id="achat-quantite-input" name="quantite" required>
             </div>
             <div class="form-group">
                 <label class="form-label">Prix d'achat (€/MWh) *</label>
-                <input class="form-input" type="number" step="0.01" id="achat-cout-input" name="prixAchat" required>
+                <input class="form-input" type="number" step="0.01" min="0"id="achat-cout-input" name="prixAchat" required>
             </div>
             <div class="form-group">
                 <label class="form-label">Fournisseur</label>

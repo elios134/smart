@@ -17,6 +17,25 @@
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    var lastTrigger = null; // pour restaurer le focus à la fermeture
+
+    function openModal(modal) {
+        // Accessibilité : annoncer la modale aux lecteurs d'écran
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.removeAttribute('aria-hidden');
+        modal.classList.add('open');
+        // Déplacer le focus dans la modale (1er champ ou bouton)
+        var focusable = modal.querySelector('input, select, textarea, button, [href]');
+        if (focusable) focusable.focus();
+    }
+
+    function closeModal(modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+        if (lastTrigger) { lastTrigger.focus(); lastTrigger = null; }
+    }
+
     // ── Ouvrir ─────────────────────────────────────────────────────
     document.addEventListener('click', function (e) {
         var btn = e.target.closest('[data-modal-open]');
@@ -24,6 +43,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var modal = document.getElementById(btn.dataset.modalOpen);
         if (!modal) return;
+        lastTrigger = btn;
 
         // Remplir les champs du formulaire
         if (btn.dataset.fields) {
@@ -50,7 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (target) target.textContent = btn.dataset.confirmText;
         }
 
-        modal.classList.add('open');
+        openModal(modal);
     });
 
     // ── Fermer via bouton ──────────────────────────────────────────
@@ -61,26 +81,24 @@ document.addEventListener('DOMContentLoaded', function () {
         var id = btn.getAttribute('data-modal-close');
         if (id) {
             var modal = document.getElementById(id);
-            if (modal) modal.classList.remove('open');
+            if (modal) closeModal(modal);
         } else {
             var parent = btn.closest('.modal-backdrop');
-            if (parent) parent.classList.remove('open');
+            if (parent) closeModal(parent);
         }
     });
 
     // ── Fermer au clic sur le backdrop ────────────────────────────
     document.addEventListener('click', function (e) {
         if (e.target.classList.contains('modal-backdrop')) {
-            e.target.classList.remove('open');
+            closeModal(e.target);
         }
     });
 
     // ── Fermer avec Escape ────────────────────────────────────────
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
-            document.querySelectorAll('.modal-backdrop.open').forEach(function (m) {
-                m.classList.remove('open');
-            });
+            document.querySelectorAll('.modal-backdrop.open').forEach(closeModal);
         }
     });
 

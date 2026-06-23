@@ -30,7 +30,7 @@
         fetch('/energie/notifications')
             .then(function (r) { return r.json(); })
             .then(renderNotifications)
-            .catch(function () {});
+            .catch(function (err) { console.warn('[notifications] chargement impossible :', err); });
     }
 
     bell.addEventListener('click', function (e) {
@@ -47,8 +47,9 @@
     });
 
     clearBtn.addEventListener('click', function () {
-        fetch('/energie/notifications/clear', { method: 'POST' })
-            .then(function () { renderNotifications([]); });
+        window.SmartYield.fetch('/energie/notifications/clear', { method: 'POST' })
+            .then(function () { renderNotifications([]); })
+            .catch(function (err) { console.warn('[notifications] effacement impossible :', err); });
     });
 
     // Polling toutes les 5 minutes pour le badge

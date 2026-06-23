@@ -3,15 +3,23 @@
 	<head>
 		<meta charset="UTF-8">
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="csrf-token" content="{{ csrfToken }}">
 		<title>{{ title }}</title>
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 		<link rel="stylesheet" href="/css/base.css">
 		<link rel="stylesheet" href="/css/components.css">
 		<link rel="stylesheet" href="/css/navbar.css">
 		{% block style %}{% endblock %}
+		<link rel="stylesheet" href="/css/responsive.css">
 	</head>
 	<body>
+		<a href="#main-content" class="skip-link">Aller au contenu</a>
 		{% block header %}{% endblock %}
-		{% block main %}{% endblock %}
+		<main id="main-content">
+			{% block main %}{% endblock %}
+		</main>
 		<script src="/script/app.js"></script>
 		<script src="/script/modals.js"></script>
 		{% block script %}{% endblock %}

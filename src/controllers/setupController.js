@@ -1,13 +1,21 @@
 import prisma from "../../prisma/prismaClient.js";
 import { validatePassword } from "../services/passwordValidator.js";
+import { isEmail } from "../services/validators.js";
+
+/** Renvoie le token de setup s'il est valide (non utilisé, non expiré), sinon null. */
+async function getValidSetupToken(token) {
+    const setupToken = await prisma.setupToken.findUnique({ where: { token } });
+    if (!setupToken || setupToken.used || setupToken.expiresAt < new Date()) return null;
+    return setupToken;
+}
 
 // GET /setup/:token
 export async function getSetup(req, res) {
     try {
         const { token } = req.params;
-        const setupToken = await prisma.setupToken.findUnique({ where: { token } });
+        const setupToken = await getValidSetupToken(token);
 
-        if (!setupToken || setupToken.used || setupToken.expiresAt < new Date()) {
+        if (!setupToken) {
             return res.render("pages/setup.twig", { title: "Création du compte", error: "Lien invalide ou expiré.", token: null });
         }
 
@@ -22,13 +30,17 @@ export async function getSetup(req, res) {
 export async function postSetup(req, res) {
     const { token } = req.params;
     try {
-        const setupToken = await prisma.setupToken.findUnique({ where: { token } });
+        const setupToken = await getValidSetupToken(token);
 
-        if (!setupToken || setupToken.used || setupToken.expiresAt < new Date()) {
+        if (!setupToken) {
             return res.render("pages/setup.twig", { title: "Création du compte", error: "Lien invalide ou expiré.", token: null });
         }
 
         const { mail, password, confirmPassword, firstName, lastName, socialReason, siret, directorName } = req.body;
+
+        if (!isEmail(mail)) {
+            return res.render("pages/setup.twig", { title: "Création du compte", error: "Adresse email invalide.", token });
+        }
 
         if (password !== confirmPassword) {
             return res.render("pages/setup.twig", { title: "Création du compte", error: "Les mots de passe ne correspondent pas.", token });

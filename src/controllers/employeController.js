@@ -1,5 +1,8 @@
 import prisma from "../../prisma/prismaClient.js";
+import bcrypt from "bcryptjs";
 import { validatePassword } from "../services/passwordValidator.js";
+import { invalidateUserCache } from "../services/authMiddleware.js";
+import { isEmail, isOneOf, ROLES } from "../services/validators.js";
 
 // GET /employes/login
 export const getLoginEmploye = (req, res) => {
@@ -12,19 +15,20 @@ export const getLoginEmploye = (req, res) => {
 export const postLoginEmploye = async (req, res) => {
     const { mail, password } = req.body;
     try {
-        const bcrypt = await import("bcryptjs");
         const employe = await prisma.user.findUnique({ where: { mail } });
 
         if (!employe || employe.role === "SUPER_ADMIN") {
             return res.redirect("/employes/login?error=Identifiants incorrects");
         }
 
-        const valid = await bcrypt.default.compare(password, employe.password);
+        const valid = await bcrypt.compare(password, employe.password);
         if (!valid) {
             return res.redirect("/employes/login?error=Identifiants incorrects");
         }
 
-        req.session.employe = { id: employe.id, mail: employe.mail, role: employe.role, firstName: employe.firstName, lastName: employe.lastName };
+        // On ne stocke que l'id : les infos fraîches sont rechargées depuis la DB
+        // par authMiddleware (évite une session obsolète après modification du profil).
+        req.session.employe = employe.id;
         res.redirect("/home");
     } catch (error) {
         console.error(error);
@@ -46,11 +50,14 @@ export const getHomeEmploye = async (req, res) => {
 export const postUpdateProfilEmploye = async (req, res) => {
     const { firstName, lastName, mail } = req.body;
     try {
+        if (mail && !isEmail(mail)) return res.redirect("/profil?error=Adresse email invalide");
+
         await prisma.user.update({
-            where: { id: req.session.employe.id },
+            where: { id: req.user.id },
             data: { firstName, lastName, mail }
         });
-        req.session.employe = { ...req.session.employe, firstName, lastName, mail };
+        // Invalide le cache pour que les nouvelles infos soient rechargées
+        invalidateUserCache(req.user.id);
         res.redirect("/profil?success=Profil mis à jour");
     } catch (error) {
         console.error(error);
@@ -62,13 +69,17 @@ export const postUpdateProfilEmploye = async (req, res) => {
 export const postAddEmploye = async (req, res) => {
     const { firstName, lastName, mail, password, role } = req.body;
     try {
+        if (!isEmail(mail)) return res.redirect("/home?error=" + encodeURIComponent("Adresse email invalide"));
+
         const pwdCheck = validatePassword(password);
         if (!pwdCheck.valid) {
             return res.redirect("/home?error=" + encodeURIComponent(pwdCheck.message));
         }
 
+        const roleFinal = isOneOf(role, ["ADMIN", "OPERATEUR"]) ? role : "OPERATEUR";
+
         await prisma.user.create({
-            data: { firstName, lastName, mail, password, role: role || "OPERATEUR" }
+            data: { firstName, lastName, mail, password, role: roleFinal }
         });
         res.redirect("/home?success=Employé ajouté");
     } catch (error) {
@@ -81,10 +92,18 @@ export const postAddEmploye = async (req, res) => {
 export const postUpdateEmploye = async (req, res) => {
     const { firstName, lastName, mail, role } = req.body;
     try {
+        const id = parseInt(req.params.id, 10);
+        if (Number.isNaN(id)) return res.redirect("/home?error=Identifiant invalide");
+        if (mail && !isEmail(mail)) return res.redirect("/home?error=" + encodeURIComponent("Adresse email invalide"));
+        // On ne permet pas d'élever un employé au rang de SUPER_ADMIN via ce formulaire
+        const roleFinal = isOneOf(role, ["ADMIN", "OPERATEUR"]) ? role : undefined;
+
         await prisma.user.update({
-            where: { id: parseInt(req.params.id) },
-            data: { firstName, lastName, mail, role }
+            where: { id },
+            data: { firstName, lastName, mail, ...(roleFinal ? { role: roleFinal } : {}) }
         });
+        // Le rôle a pu changer → on invalide le cache pour appliquer immédiatement
+        invalidateUserCache(id);
         res.redirect("/home?success=Employé modifié");
     } catch (error) {
         console.error(error);
@@ -95,7 +114,11 @@ export const postUpdateEmploye = async (req, res) => {
 // POST /employes/:id/delete
 export const postDeleteEmploye = async (req, res) => {
     try {
-        await prisma.user.delete({ where: { id: parseInt(req.params.id) } });
+        const id = parseInt(req.params.id, 10);
+        if (Number.isNaN(id)) return res.redirect("/home?error=Identifiant invalide");
+
+        await prisma.user.delete({ where: { id } });
+        invalidateUserCache(id);
         res.redirect("/home?success=Employé supprimé");
     } catch (error) {
         console.error(error);

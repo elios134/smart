@@ -21,13 +21,7 @@
     font-size: 13px;
 }
 
-/* Titre des modales */
-.modal__title {
-    margin-bottom: 24px;
-    font-size: 18px;
-    font-weight: 500;
-    color: var(--text);
-}
+/* .modal__title : style unifié défini dans components.css (déduplication) */
 
 /* Texte de confirmation suppression */
 .modal__confirm-text {

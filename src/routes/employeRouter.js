@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { authMiddleware, requireRole } from "../services/authMiddleware.js";
+import { rateLimiter } from "../middleware/rateLimiter.js";
 import {
     getLoginEmploye, postLoginEmploye, getLogoutEmploye, getHomeEmploye,
     postAddEmploye, postUpdateEmploye, postDeleteEmploye, postUpdateProfilEmploye
@@ -7,9 +8,11 @@ import {
 
 const router = Router();
 
+const loginLimiter = rateLimiter({ key: "login-employe", max: 10, windowMs: 15 * 60 * 1000, message: "Trop de tentatives de connexion. Réessayez dans 15 minutes." });
+
 // Public
 router.get("/login", getLoginEmploye);
-router.post("/login", postLoginEmploye);
+router.post("/login", loginLimiter, postLoginEmploye);
 router.get("/logout", getLogoutEmploye);
 
 // Espace employé (ADMIN + OPERATEUR)

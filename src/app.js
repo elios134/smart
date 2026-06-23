@@ -17,6 +17,8 @@ import session from 'express-session';
 import twig from 'twig';
 import { flashMiddleware }    from './middleware/flashMiddleware.js';
 import { PrismaSessionStore } from './services/sessionStore.js';
+import { securityHeaders }    from './middleware/securityHeaders.js';
+import { csrfToken, csrfProtection } from './middleware/csrf.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname  = path.dirname(__filename);
@@ -26,8 +28,14 @@ const IS_PROD = process.env.NODE_ENV === 'production';
 if (!process.env.SESSION_SECRET) throw new Error('[app.js] SESSION_SECRET manquant dans .env');
 
 const app = express();
+// Derrière un reverse-proxy (VPS) : nécessaire pour que req.protocol/secure et req.ip soient corrects
+app.set('trust proxy', 1);
 app.set('view engine', 'twig');
 app.set('views', path.join(__dirname, '../views'));
+
+// En-têtes de sécurité (CSP, nosniff, anti-clickjacking) sur toutes les réponses
+app.use(securityHeaders);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, '../public')));
@@ -43,6 +51,9 @@ app.use(session({
     sameSite: 'lax'
   }
 }));
+// CSRF : génère le jeton (exposé aux vues) puis le valide sur les requêtes mutantes
+app.use(csrfToken);
+app.use(csrfProtection);
 app.use(flashMiddleware);
 
 app.use(setupRouter);

@@ -1,4 +1,19 @@
 import prisma from '../../prisma/prismaClient.js';
+import { toInt, isOneOf, TYPES_TIERS } from '../services/validators.js';
+
+// Normalise les champs d'un tiers (factorisé entre add et edit)
+function buildTiersData(body) {
+    return {
+        nom:             (body.nom || '').trim(),
+        typeTiers:       isOneOf(body.typeTiers, TYPES_TIERS) ? body.typeTiers : 'FOURNISSEUR',
+        nomContact:      body.nomContact || null,
+        fonctionContact: body.fonctionContact || null,
+        mail:            body.mail || null,
+        telephone:       body.telephone || null,
+        delaiLivraison:  body.delaiLivraison ? toInt(body.delaiLivraison) : null,
+        notes:           body.notes || null
+    };
+}
 
 // GET /fournisseurs
 export async function getFournisseurs(req, res) {
@@ -19,17 +34,11 @@ export async function getFournisseurs(req, res) {
 
 // POST /fournisseurs/add
 export async function postAddFournisseur(req, res) {
-    const { nom, typeTiers, nomContact, fonctionContact, mail, telephone, delaiLivraison, notes } = req.body;
     try {
-        await prisma.tiers.create({
-            data: {
-                nom, typeTiers: typeTiers || 'FOURNISSEUR',
-                nomContact: nomContact || null, fonctionContact: fonctionContact || null,
-                mail: mail || null, telephone: telephone || null,
-                delaiLivraison: delaiLivraison ? parseInt(delaiLivraison) : null,
-                notes: notes || null
-            }
-        });
+        const data = buildTiersData(req.body);
+        if (!data.nom) return res.redirect('/fournisseurs?error=Le nom est requis');
+
+        await prisma.tiers.create({ data });
         res.redirect('/fournisseurs?success=Ajouté avec succès');
     } catch (error) {
         console.error(error);
@@ -39,18 +48,14 @@ export async function postAddFournisseur(req, res) {
 
 // POST /fournisseurs/:id/edit
 export async function postEditFournisseur(req, res) {
-    const { nom, typeTiers, nomContact, fonctionContact, mail, telephone, delaiLivraison, notes } = req.body;
     try {
-        await prisma.tiers.update({
-            where: { id: parseInt(req.params.id) },
-            data: {
-                nom, typeTiers: typeTiers || 'FOURNISSEUR',
-                nomContact: nomContact || null, fonctionContact: fonctionContact || null,
-                mail: mail || null, telephone: telephone || null,
-                delaiLivraison: delaiLivraison ? parseInt(delaiLivraison) : null,
-                notes: notes || null
-            }
-        });
+        const id = toInt(req.params.id);
+        if (id === null) return res.redirect('/fournisseurs?error=Identifiant invalide');
+
+        const data = buildTiersData(req.body);
+        if (!data.nom) return res.redirect('/fournisseurs?error=Le nom est requis');
+
+        await prisma.tiers.update({ where: { id }, data });
         res.redirect('/fournisseurs?success=Modifié avec succès');
     } catch (error) {
         console.error(error);
@@ -61,7 +66,8 @@ export async function postEditFournisseur(req, res) {
 // POST /fournisseurs/:id/delete
 export async function postDeleteFournisseur(req, res) {
     try {
-        const id = parseInt(req.params.id);
+        const id = toInt(req.params.id);
+        if (id === null) return res.redirect('/fournisseurs?error=Identifiant invalide');
         // Détacher les achats et ventes liés avant suppression (tiersId nullable)
         await prisma.achatEnergie.updateMany({ where: { tiersId: id }, data: { tiersId: null } });
         await prisma.venteEnergie.updateMany({ where: { tiersId: id }, data: { tiersId: null } });

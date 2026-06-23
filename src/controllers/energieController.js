@@ -1,5 +1,17 @@
 import prisma from '../../prisma/prismaClient.js';
 import { getMixEnergetique, getNotifications, clearNotifications } from '../services/energieService.js';
+import { toPositiveFloat, toInt, isOneOf, TYPES_SOURCE, STATUTS_ACTIF } from '../services/validators.js';
+
+// Normalise les champs communs d'une source (factorisé entre add et edit)
+function buildSourceData(body) {
+    const cout = toPositiveFloat(body.coutProduction);
+    return {
+        nom: (body.nom || '').trim(),
+        type: body.type,
+        coutProduction: cout === null ? 0 : cout,
+        couleur: body.couleur || '#4F8AFF'
+    };
+}
 
 // GET /energie
 export async function getEnergie(req, res) {
@@ -19,18 +31,27 @@ export async function getEnergie(req, res) {
 
 // POST /energie/sources/add
 export async function postAddSource(req, res) {
-    const { nom, type, coutProduction, couleur } = req.body;
     try {
-        await prisma.sourceEnergie.create({ data: { nom, type, coutProduction: parseFloat(coutProduction) || 0, couleur: couleur || '#4F8AFF' } });
+        const data = buildSourceData(req.body);
+        if (!data.nom) return res.redirect('/energie?error=Le nom de la source est requis');
+        if (!isOneOf(data.type, TYPES_SOURCE)) return res.redirect('/energie?error=Type de source invalide');
+
+        await prisma.sourceEnergie.create({ data });
         res.redirect('/energie?success=Source ajoutée');
     } catch (e) { console.error(e); res.redirect('/energie?error=Erreur ajout source'); }
 }
 
 // POST /energie/sources/:id/edit
 export async function postEditSource(req, res) {
-    const { nom, type, coutProduction, couleur, actif } = req.body;
     try {
-        await prisma.sourceEnergie.update({ where: { id: parseInt(req.params.id) }, data: { nom, type, coutProduction: parseFloat(coutProduction) || 0, couleur: couleur || '#4F8AFF', actif: actif === 'on' } });
+        const id = toInt(req.params.id);
+        if (id === null) return res.redirect('/energie?error=Identifiant invalide');
+
+        const data = buildSourceData(req.body);
+        if (!data.nom) return res.redirect('/energie?error=Le nom de la source est requis');
+        if (!isOneOf(data.type, TYPES_SOURCE)) return res.redirect('/energie?error=Type de source invalide');
+
+        await prisma.sourceEnergie.update({ where: { id }, data: { ...data, actif: req.body.actif === 'on' } });
         res.redirect('/energie?success=Source modifiée');
     } catch (e) { console.error(e); res.redirect('/energie?error=Erreur modification source'); }
 }
@@ -53,11 +74,22 @@ export async function postDeleteSource(req, res) {
 export async function postSaveSeuil(req, res) {
     const { sourceId, seuilDeclenchement, seuilArret, declenchementAuto, statut } = req.body;
     try {
-        await prisma.seuilEnergie.upsert({
-            where:  { sourceId: parseInt(sourceId) },
-            update: { seuilDeclenchement: parseFloat(seuilDeclenchement) || 20, seuilArret: parseFloat(seuilArret) || 10, declenchementAuto: declenchementAuto === 'on', statut: statut || 'ACTIF' },
-            create: { sourceId: parseInt(sourceId), seuilDeclenchement: parseFloat(seuilDeclenchement) || 20, seuilArret: parseFloat(seuilArret) || 10, declenchementAuto: declenchementAuto === 'on', statut: statut || 'ACTIF' }
-        });
+        const id = toInt(sourceId);
+        if (id === null) return res.redirect('/energie?error=Source invalide');
+
+        const sDecl = toPositiveFloat(seuilDeclenchement);
+        const sArret = toPositiveFloat(seuilArret);
+        const data = {
+            seuilDeclenchement: sDecl === null ? 20 : sDecl,
+            seuilArret:         sArret === null ? 10 : sArret,
+            declenchementAuto:  declenchementAuto === 'on',
+            statut:             isOneOf(statut, STATUTS_ACTIF) ? statut : 'ACTIF'
+        };
+        if (data.seuilArret > data.seuilDeclenchement) {
+            return res.redirect('/energie?error=Le seuil d\'arrêt doit être inférieur au seuil de déclenchement');
+        }
+
+        await prisma.seuilEnergie.upsert({ where: { sourceId: id }, update: data, create: { sourceId: id, ...data } });
         res.redirect('/energie?success=Seuil configuré');
     } catch (e) { console.error(e); res.redirect('/energie?error=Erreur configuration seuil'); }
 }
@@ -115,12 +147,12 @@ export async function apiPrixHistorique(req, res) {
 }
 
 // GET /energie/notifications
-export function apiGetNotifications(req, res) {
-    res.json(getNotifications());
+export async function apiGetNotifications(req, res) {
+    res.json(await getNotifications());
 }
 
 // POST /energie/notifications/clear
-export function apiClearNotifications(req, res) {
-    clearNotifications();
+export async function apiClearNotifications(req, res) {
+    await clearNotifications();
     res.json({ ok: true });
 }

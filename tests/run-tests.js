@@ -16,6 +16,9 @@ import assert from "node:assert/strict";
 import supertest from "supertest";
 import app from "../src/app.js";
 
+// Désactive CSRF + rate-limiting pendant les tests fonctionnels (lu à chaque requête)
+process.env.NODE_ENV = "test";
+
 const PASSWORD = "Test1234!";
 
 // ── Helpers ───────────────────────────────────────────────────

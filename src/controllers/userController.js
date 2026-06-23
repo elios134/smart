@@ -4,6 +4,14 @@ import crypto from "crypto";
 import { sendResetPasswordEmail } from "../services/emailService.js";
 import { validatePassword } from "../services/passwordValidator.js";
 import { invalidateUserCache } from "../services/authMiddleware.js";
+import { isEmail } from "../services/validators.js";
+
+/** Charge un token de réinitialisation valide (non utilisé, non expiré) ou null. */
+async function getValidResetToken(token) {
+    const setupToken = await prisma.setupToken.findUnique({ where: { token } });
+    if (!setupToken || setupToken.used || setupToken.expiresAt < new Date()) return null;
+    return setupToken;
+}
 
 // GET /login
 export async function getLogin(req, res) {
@@ -46,6 +54,8 @@ export async function getProfil(req, res) {
 export async function postUpdateProfil(req, res) {
     try {
         const { firstName, lastName, mail, directorName, socialReason } = req.body;
+
+        if (mail && !isEmail(mail)) return res.redirect("/profil?error=" + encodeURIComponent("Adresse email invalide"));
 
         await prisma.user.update({
             where: { id: req.user.id },
@@ -126,12 +136,16 @@ export async function postForgotPassword(req, res) {
             data: { token, expiresAt, userId: user.id },
         });
 
-        // Construire l'URL de reset
-        const baseUrl = process.env.APP_URL || "http://localhost:3000";
-        const resetUrl = `${baseUrl}/reset-password/${token}`;
+        // URL du lien : APP_URL si défini, sinon la même origine que la requête (correct en dev sur :3506)
+        const baseUrl = (process.env.APP_URL || "").trim() || `${req.protocol}://${req.get("host")}`;
+        const resetUrl = `${baseUrl.replace(/\/$/, "")}/reset-password/${token}`;
 
         // Envoyer l'email
         await sendResetPasswordEmail(mail, resetUrl);
+
+        if (process.env.NODE_ENV !== "production") {
+            console.warn("[dev] Lien réinitialisation copiable si la boîte mail ne reçoit rien :\n  ", resetUrl);
+        }
 
         res.render("pages/forgotPassword.twig", {
             title: "Mot de passe oublié",
@@ -150,9 +164,9 @@ export async function postForgotPassword(req, res) {
 export async function getResetPasswordToken(req, res) {
     try {
         const { token } = req.params;
-        const setupToken = await prisma.setupToken.findUnique({ where: { token } });
+        const setupToken = await getValidResetToken(token);
 
-        if (!setupToken || setupToken.used || setupToken.expiresAt < new Date()) {
+        if (!setupToken) {
             return res.render("pages/resetPasswordToken.twig", {
                 title: "Réinitialiser le mot de passe",
                 error: "Ce lien est invalide ou a expiré.",
@@ -179,9 +193,9 @@ export async function getResetPasswordToken(req, res) {
 export async function postResetPasswordToken(req, res) {
     const { token } = req.params;
     try {
-        const setupToken = await prisma.setupToken.findUnique({ where: { token } });
+        const setupToken = await getValidResetToken(token);
 
-        if (!setupToken || setupToken.used || setupToken.expiresAt < new Date()) {
+        if (!setupToken) {
             return res.render("pages/resetPasswordToken.twig", {
                 title: "Réinitialiser le mot de passe",
                 error: "Ce lien est invalide ou a expiré.",

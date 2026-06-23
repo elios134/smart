@@ -1,4 +1,5 @@
 import prisma from '../../prisma/prismaClient.js';
+import { toInt, toPositiveFloat } from '../services/validators.js';
 
 // GET /ventes
 export async function getVentes(req, res) {
@@ -60,12 +61,14 @@ export async function getVenteDetail(req, res) {
 export async function postAddVente(req, res) {
     const { sourceId, tiersId, quantite, prixVente } = req.body;
     try {
-        const qty   = parseFloat(quantite) || 0;
-        const prix  = parseFloat(prixVente) || 0;
-        const total = Math.round(qty * prix * 100) / 100;
-        const parsedSourceId = parseInt(sourceId);
+        const parsedSourceId = toInt(sourceId);
+        if (parsedSourceId === null) return res.redirect('/ventes?error=Source invalide');
 
-        if (isNaN(parsedSourceId)) return res.redirect('/ventes?error=Source invalide');
+        const qty  = toPositiveFloat(quantite);
+        const prix = toPositiveFloat(prixVente);
+        if (qty === null || qty <= 0) return res.redirect('/ventes?error=La quantité doit être un nombre positif');
+        if (prix === null) return res.redirect('/ventes?error=Le prix de vente est invalide');
+        const total = Math.round(qty * prix * 100) / 100;
 
         const stock = await prisma.stockEnergie.findUnique({ where: { sourceId: parsedSourceId } });
         if (!stock || stock.quantite < qty) {

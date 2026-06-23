@@ -105,7 +105,7 @@
 					<span class="card__title">Sources d'énergie</span>
 					<button class="btn btn-primary" data-modal-open="modal-source-add">Ajouter</button>
 				</div>
-				<table>
+				<table class="table--sm-hide-2-3-4">
 					<thead>
 						<tr>
 							<th>Source</th>
@@ -170,7 +170,7 @@
 					<span class="card__title">Configuration des seuils</span>
 					<button class="btn btn-primary" data-modal-open="modal-seuil-add">Configurer</button>
 				</div>
-				<table>
+				<table class="table--sm-hide-3-4">
 					<thead>
 						<tr>
 							<th>Source</th>
@@ -229,11 +229,11 @@
 					<span class="card__title">Évolution des prix énergie — 12 derniers mois</span>
 					<div class="chart-legend" style="margin-top:0;">
 						<div class="chart-legend__item">
-							<div class="chart-legend__dot" style="background:rgba(47,238,168,0.75);"></div>
+							<div class="chart-legend__dot chart-legend__dot--line-success" style="background:#2FEEA8;"></div>
 							<span>Prix vente moyen (€/MWh)</span>
 						</div>
 						<div class="chart-legend__item">
-							<div class="chart-legend__dot" style="background:rgba(79,138,255,0.75);"></div>
+							<div class="chart-legend__dot" style="background:linear-gradient(180deg, rgba(79,138,255,0.9), rgba(79,138,255,0.12));"></div>
 							<span>Prix achat moyen (€/MWh)</span>
 						</div>
 					</div>
@@ -266,7 +266,7 @@
 					</select>
 				</div>
 				<div class="form-group">
-					<label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" name="coutProduction" placeholder="45.00"></div>
+					<label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" min="0" name="coutProduction" placeholder="45.00"></div>
 				<div class="form-group">
 					<label class="form-label">Couleur</label><input class="form-input" type="color" name="couleur" value="#4F8AFF"></div>
 				<div class="form-actions">
@@ -295,7 +295,7 @@
 					</select>
 				</div>
 				<div class="form-group">
-					<label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" id="edit-s-cout" name="coutProduction"></div>
+					<label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" min="0" id="edit-s-cout" name="coutProduction"></div>
 				<div class="form-group">
 					<label class="form-label">Couleur</label><input class="form-input" type="color" id="edit-s-couleur" name="couleur"></div>
 				<div class="form-group">

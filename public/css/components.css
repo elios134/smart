@@ -2,8 +2,8 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px 28px;
-  margin-bottom: 20px;
+  padding: 24px;
+  margin-bottom: 24px;
 }
 
 .card__header {
@@ -14,10 +14,10 @@
 }
 
 .card__title {
-  font-size: 22px;
-  font-weight: 400;
+  font-size: 24px;
+  font-weight: 600;
   color: var(--text);
-  letter-spacing: -.01em;
+  letter-spacing: -0.02em;
 }
 
 .card__link {
@@ -42,17 +42,17 @@ thead tr {
 }
 
 th {
-  padding: 10px 12px;
+  padding: 12px;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: .1em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--muted);
   text-align: left;
 }
 
 td {
-  padding: 14px 12px;
+  padding: 12px;
   font-size: 13px;
   color: var(--text);
   border-bottom: 1px solid rgba(37, 45, 69, .6);
@@ -63,48 +63,52 @@ tbody tr:last-child td {
 }
 
 tbody tr:hover td {
-  background: rgba(79, 138, 255, .02);
+  background: var(--surface2);
 }
 
-/* ── BUTTONS — pills arrondis comme maquette ── */
+/* ── BUTTONS — §2 design.md (200ms, active scale 0.98) ── */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  padding: 7px 20px;
+  gap: 8px;
+  padding: 8px 20px;
   border-radius: var(--radius-xs);
-  border: 1.5px solid transparent;
+  border: 1px solid transparent;
   font-family: inherit;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
-  transition: background .15s, color .15s, border-color .15s;
+  transition: background 200ms ease, color 200ms ease, border-color 200ms ease, transform 200ms ease;
   white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.98);
 }
 
 .btn-primary {
   background: var(--blue);
-  color: rgba(79, 138, 255, 1);
+  color: var(--text-link);
   border-color: var(--blue-bd);
 }
 
 .btn-primary:hover {
-  background: rgba(79, 138, 255, 1);
-  border-color: rgba(107, 159, 255, 1);
+  background: var(--text-link);
+  border-color: color-mix(in srgb, var(--color-primary) 85%, #ffffff);
   color: #fff;
 }
 
 .btn-outline {
   background: var(--blue);
-  color: rgba(79, 138, 255, 1);
+  color: var(--text-link);
   border-color: var(--blue-bd);
 }
 
 .btn-outline:hover {
-  background: rgba(79, 138, 255, 1);
-  border-color: rgba(107, 159, 255, 1);
+  background: var(--text-link);
+  border-color: color-mix(in srgb, var(--color-primary) 85%, #ffffff);
   color: #fff;
 }
 
@@ -141,7 +145,7 @@ tbody tr:hover td {
   border-radius: var(--radius-xs);
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: .07em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
@@ -197,11 +201,11 @@ tbody tr:hover td {
 }
 
 .modal__title {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 600;
   margin-bottom: 20px;
   color: var(--text);
-  letter-spacing: -.01em;
+  letter-spacing: -0.02em;
 }
 
 .modal__confirm-text {
@@ -218,7 +222,7 @@ tbody tr:hover td {
   display: block;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .09em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 8px;
@@ -227,15 +231,15 @@ tbody tr:hover td {
 .form-input,
 .form-select {
   width: 100%;
-  padding: 11px 16px;
+  padding: 12px 16px;
   background: var(--bg);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   border-radius: var(--radius-xs);
   color: var(--text);
   font-family: inherit;
   font-size: 14px;
   outline: none;
-  transition: border-color .15s;
+  transition: border-color 200ms ease, box-shadow 200ms ease;
 }
 
 .form-input::placeholder {
@@ -244,7 +248,8 @@ tbody tr:hover td {
 
 .form-input:focus,
 .form-select:focus {
-  border-color: var(--blue);
+  border-color: var(--text-link);
+  box-shadow: var(--focus-ring);
 }
 
 .form-select {
@@ -317,7 +322,7 @@ tbody tr:hover td {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 11px;
+  font-size: 10px;
   color: var(--muted);
 }
 .chart-legend__dot {
@@ -325,19 +330,24 @@ tbody tr:hover td {
   border-radius: 2px;
   flex-shrink: 0;
 }
+.chart-legend__dot--line-success {
+  width: 14px;
+  height: 3px;
+  border-radius: 1px;
+}
 
 /* ── ONGLETS (page-tab) — utilisé sur plusieurs pages ── */
 .page-tabs,
 .page-tabs-bar {
   display: flex;
-  gap: 6px;
-  margin-bottom: 20px;
+  gap: 8px;
+  margin-bottom: 24px;
 }
 
 .page-tab {
-  padding: 5px 16px;
+  padding: 6px 16px;
   border-radius: var(--radius-xs);
-  border: 1.5px solid var(--border);
+  border: 1px solid var(--border);
   background: transparent;
   color: var(--muted);
   font-family: inherit;
@@ -346,7 +356,7 @@ tbody tr:hover td {
   letter-spacing: .05em;
   cursor: pointer;
   text-decoration: none;
-  transition: all .15s;
+  transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
   display: inline-block;
   white-space: nowrap;
 }
@@ -361,13 +371,13 @@ tbody tr:hover td {
 .section-label {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .12em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--muted);
   margin-bottom: 16px;
   display: inline-block;
   padding-bottom: 8px;
-  border-bottom: 1.5px solid var(--border);
+  border-bottom: 1px solid var(--border);
   text-decoration: none;
   cursor: pointer;
 }
@@ -467,7 +477,7 @@ tbody tr:hover td {
   width: 14px;
   left: 3px;
   bottom: 3px;
-  background-color: white;
+  background-color: var(--color-on-surface);
   transition: .2s;
   border-radius: 50%;
 }

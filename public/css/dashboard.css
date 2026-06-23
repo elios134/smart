@@ -3,14 +3,14 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 32px 28px;
+  padding: 32px 24px;
 }
 
 /* Grande valeur chiffrée — très grosse, fine */
@@ -27,7 +27,7 @@
 .stat-card__label {
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .1em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
   color: var(--muted);
 }

@@ -35,34 +35,46 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 if (prixChart) prixChart.destroy();
+                var GRID = '#252D45';
                 prixChart = new Chart(canvas, {
                     type: 'line',
                     data: {
                         labels: data.labels,
                         datasets: [
                             {
-                                label: 'Prix vente (€/MWh)',
-                                data: data.ventes,
-                                borderColor: 'rgba(47,238,168,0.85)',
-                                backgroundColor: 'rgba(47,238,168,0.10)',
-                                borderWidth: 2,
-                                pointRadius: 4,
-                                pointHoverRadius: 6,
-                                fill: true,
-                                tension: 0.3,
-                                spanGaps: true
-                            },
-                            {
                                 label: 'Prix achat (€/MWh)',
                                 data: data.achats,
-                                borderColor: 'rgba(79,138,255,0.85)',
-                                backgroundColor: 'rgba(79,138,255,0.10)',
+                                borderColor: '#4F8AFF',
+                                backgroundColor: function (context) {
+                                    var chart = context.chart;
+                                    var area = chart.chartArea;
+                                    if (!area) return 'rgba(79, 138, 255, 0.12)';
+                                    var g = chart.ctx.createLinearGradient(0, area.top, 0, area.bottom);
+                                    g.addColorStop(0, 'rgba(79, 138, 255, 0.32)');
+                                    g.addColorStop(1, 'rgba(79, 138, 255, 0.02)');
+                                    return g;
+                                },
                                 borderWidth: 2,
                                 pointRadius: 4,
                                 pointHoverRadius: 6,
                                 fill: true,
                                 tension: 0.3,
-                                spanGaps: true
+                                spanGaps: true,
+                                order: 1
+                            },
+                            {
+                                label: 'Prix vente (€/MWh)',
+                                data: data.ventes,
+                                borderColor: '#2FEEA8',
+                                backgroundColor: 'transparent',
+                                borderWidth: 2,
+                                borderDash: [6, 4],
+                                pointRadius: 4,
+                                pointHoverRadius: 6,
+                                fill: false,
+                                tension: 0.3,
+                                spanGaps: true,
+                                order: 2
                             }
                         ]
                     },
@@ -71,10 +83,15 @@ document.addEventListener('DOMContentLoaded', function () {
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                            x: { ticks: { color: '#5A6380', font: { size: 10 } }, grid: { color: 'rgba(37,45,69,.5)' } },
+                            x: {
+                                ticks: { color: '#5A6380', font: { size: 10 } },
+                                grid: { display: false },
+                                border: { display: false }
+                            },
                             y: {
                                 ticks: { color: '#5A6380', font: { size: 10 }, callback: function (v) { return v + ' €'; } },
-                                grid: { color: 'rgba(37,45,69,.5)' }
+                                grid: { color: GRID },
+                                border: { display: false }
                             }
                         }
                     }

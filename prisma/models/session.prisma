@@ -3,5 +3,7 @@ model Session {
   data      String   @db.Text
   expiresAt DateTime
 
+  // Accélère le nettoyage périodique des sessions expirées (clearExpired)
+  @@index([expiresAt])
   @@map("sessions")
 }

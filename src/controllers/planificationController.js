@@ -1,5 +1,6 @@
 import prisma from '../../prisma/prismaClient.js';
 import { getMixEnergetique } from '../services/energieService.js';
+import { toInt, toPositiveFloat } from '../services/validators.js';
 
 // GET /planification
 export async function getPlanification(req, res) {
@@ -46,18 +47,26 @@ export async function getPlanification(req, res) {
 export async function postAddSession(req, res) {
     const { sourceId, titre, quantitePrevue, debutPrev, finPrev, notes } = req.body;
     try {
+        const parsedSourceId = toInt(sourceId);
+        if (parsedSourceId === null) return res.redirect('/planification?error=Source invalide');
+
         const dDebut = new Date(debutPrev);
         const dFin = new Date(finPrev);
 
         if (isNaN(dDebut.getTime()) || isNaN(dFin.getTime())) {
             return res.redirect('/planification?error=Les dates de planification sont invalides');
         }
+        if (dFin <= dDebut) {
+            return res.redirect('/planification?error=La date de fin doit être postérieure au début');
+        }
+
+        const qte = toPositiveFloat(quantitePrevue);
 
         await prisma.sessionEnergie.create({
             data: {
-                sourceId:       parseInt(sourceId),
+                sourceId:       parsedSourceId,
                 titre:          titre || 'Session énergie',
-                quantitePrevue: parseFloat(quantitePrevue) || 0,
+                quantitePrevue: qte === null ? 0 : qte,
                 debutPrev:      dDebut,
                 finPrev:        dFin,
                 notes:          notes || null,
@@ -74,8 +83,14 @@ export async function postAddSession(req, res) {
 // POST /planification/:id/lancer
 export async function postLancerSession(req, res) {
     try {
-        const id = parseInt(req.params.id);
-        if (isNaN(id)) return res.redirect('/planification?error=Identifiant de session invalide');
+        const id = toInt(req.params.id);
+        if (id === null) return res.redirect('/planification?error=Identifiant de session invalide');
+
+        const session = await prisma.sessionEnergie.findUnique({ where: { id } });
+        if (!session) return res.redirect('/planification?error=Session introuvable');
+        if (session.statut !== 'EN_ATTENTE') {
+            return res.redirect('/planification?error=Seule une session en attente peut être lancée');
+        }
 
         await prisma.sessionEnergie.update({
             where: { id },
@@ -97,8 +112,12 @@ export async function postTerminerSession(req, res) {
 
         const session = await prisma.sessionEnergie.findUnique({ where: { id } });
         if (!session) return res.redirect('/planification?error=Session introuvable');
+        if (session.statut === 'TERMINEE' || session.statut === 'ANNULEE') {
+            return res.redirect('/planification?error=Cette session est déjà clôturée');
+        }
 
-        const qte = parseFloat(quantiteProduite) || 0;
+        const qteRaw = toPositiveFloat(quantiteProduite);
+        const qte = qteRaw === null ? 0 : qteRaw;
 
         await prisma.$transaction([
             prisma.sessionEnergie.update({

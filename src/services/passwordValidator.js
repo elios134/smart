@@ -1,5 +1,3 @@
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z0-9]).{8,}$/;
-
 const PASSWORD_RULES = "Min. 8 caractères, 1 majuscule, 1 minuscule, 1 chiffre, 1 caractère spécial";
 
 /**
@@ -26,4 +24,4 @@ export function validatePassword(password) {
     return { valid: true, message: null };
 }
 
-export { PASSWORD_REGEX, PASSWORD_RULES };
+export { PASSWORD_RULES };

@@ -37,7 +37,7 @@
             <span class="card__title">Historique des ventes</span>
             <button class="btn btn-primary" data-modal-open="modal-vente-add">Nouvelle vente +</button>
         </div>
-        <table>
+        <table class="table--sm-hide-2-4-6">
             <thead>
                 <tr>
                     <th>Source</th><th>Client</th><th>Quantité (MWh)</th>
@@ -102,11 +102,11 @@
             </div>
             <div class="form-group">
                 <label class="form-label">Quantité (MWh) *</label>
-                <input class="form-input" type="number" step="0.01" id="vente-quantite" name="quantite" placeholder="50" required>
+                <input class="form-input" type="number" step="0.01" min="0"id="vente-quantite" name="quantite" placeholder="50" required>
             </div>
             <div class="form-group">
                 <label class="form-label">Prix de vente (€/MWh) *</label>
-                <input class="form-input" type="number" step="0.01" id="vente-prix" name="prixVente" placeholder="80" required>
+                <input class="form-input" type="number" step="0.01" min="0"id="vente-prix" name="prixVente" placeholder="80" required>
             </div>
             <div class="total-estime">
                 <span>Total estimé</span>

@@ -86,7 +86,7 @@
   transition: width .4s;
 }
 .besoin-card__bar-fill--green { background: var(--green); }
-.besoin-card__bar-fill--yellow { background: #F5C518; }
+.besoin-card__bar-fill--yellow { background: var(--color-warning); }
 .besoin-card__bar-fill--red { background: var(--red); }
 
 /* ── CONFIG SEUILS — TITRE HORS CARD ── */
@@ -158,7 +158,7 @@
   top: 4px; left: 4px;
   width: 14px; height: 14px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--color-on-surface);
   pointer-events: none;
   transition: transform .2s;
 }

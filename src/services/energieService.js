@@ -16,14 +16,45 @@ const xmlParser = new XMLParser({
     isArray: (name) => ['TimeSeries', 'Point'].includes(name)
 });
 
-// ── Notifications en mémoire ─────────────────────────────────
-const _notifications = [];
-export function pushNotification(type, message) {
-    _notifications.unshift({ type, message, at: new Date().toISOString() });
-    if (_notifications.length > 50) _notifications.pop();
+// ── Notifications ────────────────────────────────────────────
+// Persistées en base (table `notifications`) pour survivre aux redémarrages.
+// Repli automatique en mémoire tant que la migration n'a pas été appliquée.
+const MAX_NOTIFS = 50;
+const _notifications = []; // fallback mémoire
+
+export async function pushNotification(type, message) {
+    const at = new Date();
+    try {
+        await prisma.notification.create({ data: { type, message } });
+        // Conserver au plus MAX_NOTIFS notifications (purge des plus anciennes)
+        const surplus = await prisma.notification.findMany({
+            orderBy: { createdAt: 'desc' }, select: { id: true }, skip: MAX_NOTIFS
+        });
+        if (surplus.length) {
+            await prisma.notification.deleteMany({ where: { id: { in: surplus.map(n => n.id) } } });
+        }
+    } catch {
+        _notifications.unshift({ type, message, at: at.toISOString() });
+        if (_notifications.length > MAX_NOTIFS) _notifications.pop();
+    }
 }
-export function getNotifications() { return [..._notifications]; }
-export function clearNotifications() { _notifications.length = 0; }
+
+export async function getNotifications() {
+    try {
+        const rows = await prisma.notification.findMany({ orderBy: { createdAt: 'desc' }, take: MAX_NOTIFS });
+        return rows.map(r => ({ type: r.type, message: r.message, at: r.createdAt.toISOString() }));
+    } catch {
+        return [..._notifications];
+    }
+}
+
+export async function clearNotifications() {
+    try {
+        await prisma.notification.deleteMany({});
+    } catch {
+        _notifications.length = 0;
+    }
+}
 
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const ENTSOE_BASE = 'https://web-api.tp.entsoe.eu/api';
@@ -146,7 +177,7 @@ export async function verifierDeclenchements() {
                             statut: 'EN_COURS', declenchement: 'AUTO'
                         }
                     });
-                    pushNotification('production', `Production déclenchée automatiquement : ${source.nom} (mix ${source.type} : ${mixPct}% ≥ seuil ${seuil.seuilDeclenchement}%)`);
+                    await pushNotification('production', `Production déclenchée automatiquement : ${source.nom} (mix ${source.type} : ${mixPct}% ≥ seuil ${seuil.seuilDeclenchement}%)`);
                     console.log(`[energieService] AUTO → Production déclenchée : ${source.nom}`);
                 }
             }
@@ -186,7 +217,7 @@ export async function verifierDeclenchements() {
                 if (operationsDb.length > 0) {
                     await prisma.$transaction(operationsDb);
                     if (venteAjoutee) {
-                        pushNotification('vente', `Vente automatique : ${source.nom} — ${stockActuel} MWh à ${source.coutProduction} €/MWh (mix ${source.type} : ${mixPct}% < seuil arrêt ${seuil.seuilArret}%)`);
+                        await pushNotification('vente', `Vente automatique : ${source.nom} — ${stockActuel} MWh à ${source.coutProduction} €/MWh (mix ${source.type} : ${mixPct}% < seuil arrêt ${seuil.seuilArret}%)`);
                         console.log(`[energieService] AUTO → Vente déclenchée : ${source.nom}`);
                     }
                 }

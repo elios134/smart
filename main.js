@@ -6,7 +6,30 @@ import path from "path"
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
-const SERVER_URL ="http://51.91.146.83:3506";
+/** Serveur distant par défaut quand l’app est installée (build). */
+const DEFAULT_PACKAGED_SERVER = "http://51.91.146.83:3506"
+
+/**
+ * URL de l’API / du rendu Twig :
+ * - variable d’environnement SERVER_URL si définie ;
+ * - sinon, en dev (`electron .` non packagé) : http://127.0.0.1:PORT (PORT depuis .env, défaut 3506) ;
+ * - sinon (app packagée) : VPS ci-dessus.
+ * Lancer en parallèle : `npm run server` (ou `npm run dev:server`).
+ */
+function getServerBaseUrl() {
+    const fromEnv = process.env.SERVER_URL?.trim()
+    if (fromEnv) return fromEnv.replace(/\/$/, "")
+
+    const port = process.env.PORT || "3506"
+    if (app.isPackaged) return DEFAULT_PACKAGED_SERVER.replace(/\/$/, "")
+
+    return `http://127.0.0.1:${port}`
+}
+
+const SERVER_URL = getServerBaseUrl()
+if (!app.isPackaged) {
+    console.log(`[Smart-Yield] Chargement depuis ${SERVER_URL} (définir SERVER_URL dans .env pour forcer une autre URL)`)
+}
 
 let mainWindow
 
@@ -27,7 +50,6 @@ async function createWindow() {
         icon: path.join(__dirname, "public/icon.ico")
     })
 
-    // Charger l'app depuis le VPS
     mainWindow.loadURL(`${SERVER_URL}/login`)
 
     // Ouvrir les liens externes dans le navigateur par défaut

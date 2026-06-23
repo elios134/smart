@@ -118,7 +118,7 @@
     }
 
     .card__title {
-        font-size: 18px;
+        font-size: 22px;
     }
 
     /* ── TABLEAUX — scroll horizontal ── */
@@ -239,7 +239,7 @@
     }
 
     .login-card__title {
-        font-size: 28px;
+        font-size: 32px;
     }
 
     /* ── STAT CARD VALEUR PLUS PETITE ── */
@@ -255,6 +255,74 @@
 
     /* ── SECTION LABEL ── */
     .section-label {
-        font-size: 10px;
+        font-size: 11px;
+        letter-spacing: 0.05em;
+    }
+
+    /* ── TABLEAUX §4 design.md — masquer colonnes secondaires (scroll horizontal conservé) ── */
+    .table--sm-hide-2 > thead > tr > th:nth-child(2),
+    .table--sm-hide-2 > tbody > tr > td:nth-child(2) {
+        display: none !important;
+    }
+
+    .table--sm-hide-2-4 > thead > tr > th:nth-child(2),
+    .table--sm-hide-2-4 > tbody > tr > td:nth-child(2),
+    .table--sm-hide-2-4 > thead > tr > th:nth-child(4),
+    .table--sm-hide-2-4 > tbody > tr > td:nth-child(4) {
+        display: none !important;
+    }
+
+    .table--sm-hide-2-3-4 > thead > tr > th:nth-child(2),
+    .table--sm-hide-2-3-4 > tbody > tr > td:nth-child(2),
+    .table--sm-hide-2-3-4 > thead > tr > th:nth-child(3),
+    .table--sm-hide-2-3-4 > tbody > tr > td:nth-child(3),
+    .table--sm-hide-2-3-4 > thead > tr > th:nth-child(4),
+    .table--sm-hide-2-3-4 > tbody > tr > td:nth-child(4) {
+        display: none !important;
+    }
+
+    .table--sm-hide-2-4-6 > thead > tr > th:nth-child(2),
+    .table--sm-hide-2-4-6 > tbody > tr > td:nth-child(2),
+    .table--sm-hide-2-4-6 > thead > tr > th:nth-child(4),
+    .table--sm-hide-2-4-6 > tbody > tr > td:nth-child(4),
+    .table--sm-hide-2-4-6 > thead > tr > th:nth-child(6),
+    .table--sm-hide-2-4-6 > tbody > tr > td:nth-child(6) {
+        display: none !important;
+    }
+
+    .table--sm-hide-3 > thead > tr > th:nth-child(3),
+    .table--sm-hide-3 > tbody > tr > td:nth-child(3) {
+        display: none !important;
+    }
+
+    .table--sm-hide-3-4 > thead > tr > th:nth-child(3),
+    .table--sm-hide-3-4 > tbody > tr > td:nth-child(3),
+    .table--sm-hide-3-4 > thead > tr > th:nth-child(4),
+    .table--sm-hide-3-4 > tbody > tr > td:nth-child(4) {
+        display: none !important;
+    }
+
+    .table--sm-hide-3-4-5-6 > thead > tr > th:nth-child(3),
+    .table--sm-hide-3-4-5-6 > tbody > tr > td:nth-child(3),
+    .table--sm-hide-3-4-5-6 > thead > tr > th:nth-child(4),
+    .table--sm-hide-3-4-5-6 > tbody > tr > td:nth-child(4),
+    .table--sm-hide-3-4-5-6 > thead > tr > th:nth-child(5),
+    .table--sm-hide-3-4-5-6 > tbody > tr > td:nth-child(5),
+    .table--sm-hide-3-4-5-6 > thead > tr > th:nth-child(6),
+    .table--sm-hide-3-4-5-6 > tbody > tr > td:nth-child(6) {
+        display: none !important;
+    }
+
+    .table--sm-hide-1-4-5-6-7 > thead > tr > th:nth-child(1),
+    .table--sm-hide-1-4-5-6-7 > tbody > tr > td:nth-child(1),
+    .table--sm-hide-1-4-5-6-7 > thead > tr > th:nth-child(4),
+    .table--sm-hide-1-4-5-6-7 > tbody > tr > td:nth-child(4),
+    .table--sm-hide-1-4-5-6-7 > thead > tr > th:nth-child(5),
+    .table--sm-hide-1-4-5-6-7 > tbody > tr > td:nth-child(5),
+    .table--sm-hide-1-4-5-6-7 > thead > tr > th:nth-child(6),
+    .table--sm-hide-1-4-5-6-7 > tbody > tr > td:nth-child(6),
+    .table--sm-hide-1-4-5-6-7 > thead > tr > th:nth-child(7),
+    .table--sm-hide-1-4-5-6-7 > tbody > tr > td:nth-child(7) {
+        display: none !important;
     }
 }
