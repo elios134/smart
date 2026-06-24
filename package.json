@@ -17,9 +17,9 @@
     "prisma:migrate": "prisma migrate dev",
     "db:seed": "node prisma/seed.js",
     "test:seed": "node tests/seed-test.js",
-    "test:run": "node --test tests/run-tests.js",
+    "test:run": "node --test --test-force-exit tests/run-tests.js",
     "test:clean": "node tests/cleanup-test.js",
-    "test": "node tests/seed-test.js && node --test tests/run-tests.js && node tests/cleanup-test.js"
+    "test": "node tests/seed-test.js && node --test --test-force-exit tests/run-tests.js && node tests/cleanup-test.js"
   },
   "prisma": {
     "seed": "node prisma/seed.js"

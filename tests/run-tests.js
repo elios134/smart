@@ -451,9 +451,14 @@ describe("10. PROFIL", () => {
         expectOk(await agent.get("/profil"));
     });
 
-    it("10.4 — Page reset password accessible sans session", async () => {
-        const res = await supertest(app).get("/reset-password");
+    it("10.4 — Page mot de passe oublié accessible sans session", async () => {
+        const res = await supertest(app).get("/forgot-password");
         expectOk(res);
+    });
+
+    it("10.5 — Changement de mot de passe (connecté) refusé sans session", async () => {
+        const res = await supertest(app).get("/reset-password");
+        expectRedirect(res, "/login");
     });
 });
 
