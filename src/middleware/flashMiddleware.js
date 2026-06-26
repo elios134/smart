@@ -4,6 +4,8 @@
 // ─────────────────────────────────────────────────────────────
 
 export function flashMiddleware(req, res, next) {
+    // Les messages voyagent dans l'URL avec des "_" à la place des espaces
+    // (ex: ?success=Fournisseur_ajoute) ; on les reconvertit en espaces ici.
     const success = req.query.success
         ? String(req.query.success).replace(/_/g, ' ')
         : null;
@@ -12,6 +14,7 @@ export function flashMiddleware(req, res, next) {
         ? String(req.query.error).replace(/_/g, ' ')
         : null;
 
+    // res.locals est automatiquement accessible dans tous les templates Twig.
     res.locals.flash = { success, error };
     next();
 }

@@ -1,8 +1,19 @@
-// Ce fichier sert de pont sécurisé entre Electron et le contenu web
-// Pour l'instant il peut rester vide, il est déclaré dans main.js
-// Tu pourras y ajouter des fonctionnalités natives plus tard si besoin
+// ============================================================================
+// preload.js — Pont sécurisé entre Electron et la page web
+// ----------------------------------------------------------------------------
+// Ce script est exécuté par Electron AVANT le chargement de la page web, dans
+// un contexte isolé qui a accès à Node.js. Son rôle est d'exposer, de façon
+// contrôlée, quelques fonctions « natives » à la page (le front-end), sans lui
+// donner un accès complet à Node.js. C'est plus sûr.
+// Il est branché via l'option `preload` dans main.js.
+// Pour l'instant il reste quasi vide : on l'enrichira au besoin.
+// ============================================================================
+
+// contextBridge : expose une API au front-end ; ipcRenderer : envoie/reçoit des
+// messages vers le process principal (main.js)
 const { contextBridge, ipcRenderer } = require('electron');
 
+// Petit repère dans la console quand la page est prête (vérifie que le preload tourne)
 window.addEventListener("DOMContentLoaded", () => {
     console.log("Preload chargé")
 })

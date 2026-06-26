@@ -1,11 +1,25 @@
+/**
+ * Contrôleur de la page d'accueil (tableau de bord).
+ * Rôle : rassembler les principaux indicateurs (KPIs) de l'application
+ * — énergie produite/stockée, chiffre d'affaires du jour, sessions en cours —
+ * puis afficher la vue du tableau de bord.
+ */
 import prisma from '../../prisma/prismaClient.js';
 
 // GET /home
+// Affiche le tableau de bord : calcule les KPIs du jour à partir des données
+// en base puis rend la vue `home.twig`. Ne reçoit pas de paramètre particulier,
+// utilise simplement la session de l'utilisateur connecté.
 export async function getHome(req, res) {
     try {
+        // On fixe l'heure à minuit pour comparer uniquement la date du jour
+        // (et ainsi ne garder que ce qui s'est passé aujourd'hui).
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
+        // Promise.all lance les 4 requêtes en parallèle (plus rapide qu'une à une) :
+        // les sources d'énergie (avec leur stock et seuil), le nombre de sessions
+        // en cours, les ventes du jour et la liste des employés.
         const [sources, sessionsEnCours, ventesAujourdhui, employes] = await Promise.all([
             prisma.sourceEnergie.findMany({
                 include: { stock: true, seuil: true },
@@ -19,16 +33,21 @@ export async function getHome(req, res) {
             })
         ]);
 
+        // Total d'énergie en stock (somme des quantités de chaque source).
         const mwhStockes    = sources.reduce((acc, s) => acc + (s.stock?.quantite ?? 0), 0);
+        // Chiffre d'affaires du jour (somme des montants des ventes d'aujourd'hui).
         const caAujourdhui  = ventesAujourdhui.reduce((acc, v) => acc + v.total, 0);
 
+        // Sessions de production terminées aujourd'hui, pour calculer l'énergie produite.
         const sessionsDuJour = await prisma.sessionEnergie.findMany({
             where: { statut: 'TERMINEE', finReel: { gte: today } }
         });
         const mwhProduits = sessionsDuJour.reduce((acc, s) => acc + (s.quantiteProduite ?? 0), 0);
 
+        // Alertes : sources dont le seuil de stock est en statut "ACTIF" (stock bas).
         const alertes = sources.filter(s => s.seuil?.statut === 'ACTIF');
 
+        // On envoie les KPIs (arrondis à 2 décimales) et les listes à la vue.
         res.render('pages/home.twig', {
             title:    'Tableau de bord',
             user:     req.session.user,
@@ -43,6 +62,8 @@ export async function getHome(req, res) {
             sources, alertes, employes
         });
     } catch (error) {
+        // En cas d'erreur, on affiche quand même le tableau de bord avec des
+        // valeurs vides plutôt que de planter, pour ne pas bloquer l'utilisateur.
         console.error(error);
         res.render('pages/home.twig', {
             title: 'Tableau de bord', user: req.session.user,

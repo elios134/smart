@@ -1,7 +1,14 @@
+/**
+ * Contrôleur des "tiers" (fournisseurs et clients).
+ * Rôle : gérer le CRUD (lister, ajouter, modifier, supprimer) des partenaires
+ * commerciaux stockés dans la table `tiers`.
+ */
 import prisma from '../../prisma/prismaClient.js';
 import { toInt, isOneOf, TYPES_TIERS } from '../services/validators.js';
 
 // Normalise les champs d'un tiers (factorisé entre add et edit)
+// Reçoit le corps du formulaire (req.body) et renvoie un objet propre :
+// champs nettoyés (trim), valeurs par défaut et conversions (ex. délai en entier).
 function buildTiersData(body) {
     return {
         nom:             (body.nom || '').trim(),
@@ -16,6 +23,7 @@ function buildTiersData(body) {
 }
 
 // GET /fournisseurs
+// Récupère tous les tiers (triés par nom) et affiche la page de gestion.
 export async function getFournisseurs(req, res) {
     try {
         const fournisseurs = await prisma.tiers.findMany({ orderBy: { nom: 'asc' } });
@@ -33,6 +41,8 @@ export async function getFournisseurs(req, res) {
 }
 
 // POST /fournisseurs/add
+// Crée un nouveau tiers à partir des données du formulaire.
+// Le nom est obligatoire : sans lui on redirige avec un message d'erreur.
 export async function postAddFournisseur(req, res) {
     try {
         const data = buildTiersData(req.body);
@@ -47,6 +57,8 @@ export async function postAddFournisseur(req, res) {
 }
 
 // POST /fournisseurs/:id/edit
+// Met à jour un tiers existant identifié par son id (dans l'URL).
+// On vérifie que l'id est un entier valide et que le nom est rempli.
 export async function postEditFournisseur(req, res) {
     try {
         const id = toInt(req.params.id);
@@ -64,6 +76,8 @@ export async function postEditFournisseur(req, res) {
 }
 
 // POST /fournisseurs/:id/delete
+// Supprime un tiers. Avant de l'effacer, on "détache" ses achats et ventes
+// pour ne pas perdre ces opérations ni provoquer une erreur de clé étrangère.
 export async function postDeleteFournisseur(req, res) {
     try {
         const id = toInt(req.params.id);

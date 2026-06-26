@@ -1,22 +1,32 @@
+// ── Modèle de données ÉNERGIE ─────────────────────────────────
+// Ce fichier décrit, pour Prisma, les TABLES de la base liées à l'énergie et
+// les RELATIONS entre elles. Chaque `model` = une table ; chaque `enum` = une
+// liste de valeurs autorisées. @@map("...") donne le vrai nom de la table en base.
+// ──────────────────────────────────────────────────────────────
+
+// SourceEnergie = une installation/source de production (un parc éolien, etc.).
+// C'est la table "centrale" : presque toutes les autres pointent vers elle.
 model SourceEnergie {
-  id             Int        @id @default(autoincrement())
-  nom            String
-  type           TypeSource
-  coutProduction Float      @default(0)
-  couleur        String     @default("#4F8AFF")
-  actif          Boolean    @default(true)
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  id             Int        @id @default(autoincrement()) // Identifiant unique auto-incrémenté.
+  nom            String                                   // Nom affiché de la source.
+  type           TypeSource                               // Type d'énergie (voir enum ci-dessous).
+  coutProduction Float      @default(0)                   // Coût de production en €/MWh.
+  couleur        String     @default("#4F8AFF")           // Couleur d'affichage dans l'interface.
+  actif          Boolean    @default(true)                // Source active ou mise en pause.
+  createdAt      DateTime   @default(now())               // Date de création (auto).
+  updatedAt      DateTime   @updatedAt                    // Date de dernière modif (auto).
 
-  stock    StockEnergie?
-  sessions SessionEnergie[]
-  achats   AchatEnergie[]
-  ventes   VenteEnergie[]
-  seuil    SeuilEnergie?
+  // ── Relations (les "liens" vers les autres tables) ──
+  stock    StockEnergie?    // Stock courant (0 ou 1 par source) — ? = optionnel.
+  sessions SessionEnergie[] // Sessions de production (plusieurs) — [] = liste.
+  achats   AchatEnergie[]   // Achats d'énergie liés à cette source.
+  ventes   VenteEnergie[]   // Ventes d'énergie liées à cette source.
+  seuil    SeuilEnergie?    // Configuration de seuils (0 ou 1 par source).
 
-  @@map("sources_energie")
+  @@map("sources_energie") // Nom réel de la table dans la base de données.
 }
 
+// Les types d'énergie possibles pour une source (valeurs imposées).
 enum TypeSource {
   EOLIEN
   SOLAIRE
@@ -25,66 +35,78 @@ enum TypeSource {
   RESEAU
 }
 
+// StockEnergie = la quantité d'énergie actuellement stockée pour une source.
 model StockEnergie {
   id        Int      @id @default(autoincrement())
-  quantite  Float    @default(0)
+  quantite  Float    @default(0)  // Quantité en stock (en MWh).
   updatedAt DateTime @updatedAt
 
+  // Lien vers la source. @unique sur sourceId = une seule ligne de stock par source.
   source   SourceEnergie @relation(fields: [sourceId], references: [id])
   sourceId Int           @unique
 
   @@map("stocks_energie")
 }
 
+// AchatEnergie = un achat d'énergie (on achète à un fournisseur / au réseau).
 model AchatEnergie {
   id        Int      @id @default(autoincrement())
-  quantite  Float
-  prixAchat Float
-  total     Float
+  quantite  Float                  // Quantité achetée (MWh).
+  prixAchat Float                  // Prix unitaire d'achat (€/MWh).
+  total     Float                  // Montant total = quantite × prixAchat.
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Source concernée par l'achat (obligatoire).
   source   SourceEnergie @relation(fields: [sourceId], references: [id])
   sourceId Int
 
+  // Tiers (fournisseur) éventuel — optionnel (? = peut être vide).
   tiers   Tiers? @relation(fields: [tiersId], references: [id])
   tiersId Int?
 
   @@map("achats_energie")
 }
 
+// VenteEnergie = une vente d'énergie (on vend notre production/stock).
 model VenteEnergie {
   id        Int      @id @default(autoincrement())
-  quantite  Float
-  prixVente Float
-  total     Float
+  quantite  Float                  // Quantité vendue (MWh).
+  prixVente Float                  // Prix unitaire de vente (€/MWh).
+  total     Float                  // Montant total = quantite × prixVente.
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Source d'où provient l'énergie vendue (obligatoire).
   source   SourceEnergie @relation(fields: [sourceId], references: [id])
   sourceId Int
 
+  // Tiers (client) éventuel — optionnel.
   tiers   Tiers? @relation(fields: [tiersId], references: [id])
   tiersId Int?
 
   @@map("ventes_energie")
 }
 
+// SeuilEnergie = la configuration d'automatisation d'une source : à partir de quel
+// pourcentage du mix on déclenche/arrête la production. Utilisé par verifierDeclenchements().
 model SeuilEnergie {
   id                 Int         @id @default(autoincrement())
-  seuilDeclenchement Float       @default(20)
-  seuilArret         Float       @default(10)
-  declenchementAuto  Boolean     @default(false)
-  statut             StatutActif @default(ACTIF)
+  seuilDeclenchement Float       @default(20)    // Au-dessus de ce % du mix → on démarre la production.
+  seuilArret         Float       @default(10)    // En dessous de ce % du mix → on arrête et on vend.
+  declenchementAuto  Boolean     @default(false) // Automatisation activée ou non.
+  statut             StatutActif @default(ACTIF) // Seuil pris en compte (ACTIF) ou ignoré (INACTIF).
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
 
+  // Un seul seuil par source (@unique sur sourceId).
   source   SourceEnergie @relation(fields: [sourceId], references: [id])
   sourceId Int           @unique
 
   @@map("seuils_energie")
 }
 
+// Statut générique actif/inactif réutilisé par les seuils.
 enum StatutActif {
   ACTIF
   INACTIF

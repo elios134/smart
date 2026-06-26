@@ -8,6 +8,7 @@ import crypto from "crypto";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
+// Renvoie le secret CSRF de la session, en le générant la première fois.
 function ensureSecret(req) {
   if (!req.session) return null;
   if (!req.session.csrfSecret) {
@@ -25,6 +26,8 @@ export function csrfToken(req, res, next) {
   next();
 }
 
+// Compare deux jetons à temps constant (timingSafeEqual) : empêche de
+// deviner le secret en mesurant le temps de réponse des comparaisons.
 function safeEqual(a, b) {
   const ba = Buffer.from(String(a));
   const bb = Buffer.from(String(b));

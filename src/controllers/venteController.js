@@ -1,7 +1,15 @@
+/**
+ * Contrôleur des ventes d'énergie.
+ * Rôle : lister les ventes et leurs indicateurs, afficher le détail d'une vente,
+ * enregistrer une nouvelle vente (en diminuant le stock) et supprimer une vente
+ * (en restaurant le stock).
+ */
 import prisma from '../../prisma/prismaClient.js';
 import { toInt, toPositiveFloat } from '../services/validators.js';
 
 // GET /ventes
+// Affiche la page des ventes : la liste des ventes, les sources actives (pour
+// vendre), les clients, et des KPIs (chiffre d'affaires, nombre, panier moyen).
 export async function getVentes(req, res) {
     try {
         const [ventes, sources, clients] = await Promise.all([
@@ -33,6 +41,8 @@ export async function getVentes(req, res) {
 }
 
 // GET /ventes/:id
+// Affiche le détail d'une vente précise (identifiée par son id dans l'URL).
+// Redirige avec un message si l'id est invalide ou la vente introuvable.
 export async function getVenteDetail(req, res) {
     try {
         const id = parseInt(req.params.id);
@@ -58,6 +68,8 @@ export async function getVenteDetail(req, res) {
 }
 
 // POST /ventes/add
+// Enregistre une nouvelle vente et diminue le stock d'autant.
+// On valide les données, puis on vérifie qu'il y a assez de stock avant de vendre.
 export async function postAddVente(req, res) {
     const { sourceId, tiersId, quantite, prixVente } = req.body;
     try {
@@ -70,11 +82,13 @@ export async function postAddVente(req, res) {
         if (prix === null) return res.redirect('/ventes?error=Le prix de vente est invalide');
         const total = Math.round(qty * prix * 100) / 100;
 
+        // Contrôle clé : on refuse la vente si le stock disponible est insuffisant.
         const stock = await prisma.stockEnergie.findUnique({ where: { sourceId: parsedSourceId } });
         if (!stock || stock.quantite < qty) {
             return res.redirect('/ventes?error=Stock insuffisant pour cette vente');
         }
 
+        // Transaction : créer la vente ET décrémenter le stock ensemble (atomique).
         await prisma.$transaction([
             prisma.venteEnergie.create({
                 data: { sourceId: parsedSourceId, tiersId: tiersId ? parseInt(tiersId) : null, quantite: qty, prixVente: prix, total }
@@ -92,6 +106,8 @@ export async function postAddVente(req, res) {
 }
 
 // POST /ventes/:id/delete
+// Supprime une vente et remet la quantité vendue dans le stock (annulation),
+// afin que le stock reflète la réalité après suppression.
 export async function postDeleteVente(req, res) {
     try {
         const id = parseInt(req.params.id);
@@ -100,7 +116,7 @@ export async function postDeleteVente(req, res) {
         const vente = await prisma.venteEnergie.findUnique({ where: { id } });
         if (!vente) return res.redirect('/ventes?error=Vente introuvable');
 
-        // Remettre la quantité vendue dans le stock
+        // Remettre la quantité vendue dans le stock (en transaction avec la suppression).
         await prisma.$transaction([
             prisma.stockEnergie.upsert({
                 where:  { sourceId: vente.sourceId },

@@ -7,9 +7,16 @@ import prisma from "../../prisma/prismaClient.js";
  * Stocke les sessions express en MariaDB via Prisma.
  * Survit aux redémarrages du serveur (PM2, reboot VPS).
  * Zéro dépendance supplémentaire.
+ *
+ * express-session attend un "Store" qui sait lire (get), écrire (set) et
+ * supprimer (destroy) les sessions. On implémente ces méthodes ici en base.
  */
 export class PrismaSessionStore extends session.Store {
 
+    /**
+     * @param {object} options — { cleanupInterval } : fréquence (ms) du nettoyage auto des sessions expirées.
+     * Lance un minuteur de nettoyage récurrent et un premier nettoyage immédiat.
+     */
     constructor(options = {}) {
         super();
         // Nettoyage automatique des sessions expirées (par défaut toutes les 15 min)
@@ -24,6 +31,8 @@ export class PrismaSessionStore extends session.Store {
     }
 
     // ── Lire une session ──────────────────────────────────
+    // Appelée par express à chaque requête : retourne les données de session via callback(err, data).
+    // Renvoie null si la session n'existe pas ou est expirée (auquel cas elle est supprimée).
     async get(sid, callback) {
         try {
             const row = await prisma.session.findUnique({ where: { sid } });
@@ -45,6 +54,7 @@ export class PrismaSessionStore extends session.Store {
     }
 
     // ── Écrire / mettre à jour une session ────────────────
+    // Crée ou met à jour (upsert) la session et calcule sa date d'expiration à partir du cookie.
     async set(sid, sessionData, callback) {
         try {
             const maxAge = sessionData.cookie?.maxAge || 7 * 24 * 60 * 60 * 1000;
@@ -64,6 +74,7 @@ export class PrismaSessionStore extends session.Store {
     }
 
     // ── Supprimer une session (logout) ────────────────────
+    // Appelée lors de la déconnexion : retire la session de la base.
     async destroy(sid, callback) {
         try {
             await prisma.session.deleteMany({ where: { sid } });
@@ -74,6 +85,7 @@ export class PrismaSessionStore extends session.Store {
     }
 
     // ── Nettoyer les sessions expirées ────────────────────
+    // Supprime en une requête toutes les sessions dont la date d'expiration est dépassée.
     async clearExpired() {
         try {
             const result = await prisma.session.deleteMany({
@@ -88,6 +100,7 @@ export class PrismaSessionStore extends session.Store {
     }
 
     // ── Arrêter le nettoyage (si besoin) ──────────────────
+    // Stoppe le minuteur récurrent (utile pour un arrêt propre ou dans les tests).
     stopCleanup() {
         if (this._cleanupTimer) {
             clearInterval(this._cleanupTimer);

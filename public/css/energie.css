@@ -1,6 +1,11 @@
-/* ── ÉNERGIE ── */
+/* ── ÉNERGIE ──
+   Styles spécifiques à la page Énergie. Les `var(--...)` sont des variables de
+   couleur/taille définies globalement (thème), réutilisées partout pour rester cohérent. */
+
+/* Conteneur du graphique : position:relative + hauteur fixe pour que le <canvas> Chart.js s'y adapte. */
 .chart-wrap { position: relative; height: 240px; }
 
+/* Liste verticale des cartes d'alerte, empilées avec un espacement régulier. */
 .energie-alertes {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -35,7 +40,8 @@
     margin-bottom: 20px;
 }
 
-/* ── CARTES D'ALERTE ── */
+/* ── CARTES D'ALERTE ──
+   Encadré "il faut vendre" affiché en haut de page. --vente ajoute la teinte rouge. */
 .alerte-card {
     background: var(--surface);
     border: 1px solid var(--border);
@@ -76,7 +82,8 @@
     color: var(--muted);
 }
 
-/* ── ENTSO-E LIVE KPIs ── */
+/* ── ENTSO-E LIVE KPIs ──
+   En-tête + encarts chiffrés du mix temps réel (onglet "Mix ENTSO-E"). */
 .cours-header {
     display: flex;
     justify-content: space-between;
@@ -97,7 +104,8 @@
 .cours-kpi__label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
 .cours-kpi__value { font-size: 24px; font-weight: 500; color: var(--text); }
 
-/* ── TAUX PILLS (Tableau des seuils) ── */
+/* ── TAUX PILLS (Tableau des seuils) ──
+   Petites pastilles colorées : bleu pour le seuil de déclenchement, rouge pour l'arrêt. */
 .taux-pill {
     display: inline-block; padding: 4px 10px; border-radius: var(--radius-xs);
     font-size: 12px; font-weight: 600;
@@ -105,7 +113,8 @@
 .taux-pill--achat { background: var(--blue-dim); color: var(--text-link); }
 .taux-pill--vente { background: var(--red-dim); color: var(--red); }
 
-/* ── DECLENCHEMENT BLOCK (Modal) ── */
+/* ── DECLENCHEMENT BLOCK (Modal) ──
+   Encadré "Déclenchement automatique" avec son interrupteur, dans la modale des seuils. */
 .declenchement-block {
     background: var(--bg);
     border: 1px solid var(--border);

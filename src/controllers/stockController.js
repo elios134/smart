@@ -1,7 +1,14 @@
+/**
+ * Contrôleur du stock d'énergie.
+ * Rôle : afficher l'état des stocks, enregistrer/supprimer des achats (qui
+ * augmentent le stock) et ajuster manuellement les quantités en stock.
+ */
 import prisma from '../../prisma/prismaClient.js';
 import { toInt, toPositiveFloat } from '../services/validators.js';
 
 // GET /stock
+// Affiche la page du stock : liste des sources avec leur quantité, les 50 derniers
+// achats et les fournisseurs (pour le formulaire d'achat). Calcule aussi le stock total.
 export async function getStock(req, res) {
     try {
         const [sources, achats] = await Promise.all([
@@ -37,6 +44,8 @@ export async function getStock(req, res) {
 }
 
 // POST /stock/achats/add
+// Enregistre un achat d'énergie et augmente le stock en conséquence.
+// On valide la source, la quantité et le prix (positifs) avant d'écrire en base.
 export async function postAddAchat(req, res) {
     const { sourceId, tiersId, quantite, prixAchat } = req.body;
     try {
@@ -49,6 +58,9 @@ export async function postAddAchat(req, res) {
         if (prix === null) return res.redirect('/stock?error=Le prix d\'achat est invalide');
         const total = Math.round(qty * prix * 100) / 100;
 
+        // Transaction : on crée l'achat ET on met à jour le stock dans une seule
+        // opération atomique (tout réussit, ou tout est annulé). upsert crée la
+        // ligne de stock si elle n'existe pas encore, sinon incrémente la quantité.
         await prisma.$transaction([
             prisma.achatEnergie.create({
                 data: {
@@ -71,6 +83,8 @@ export async function postAddAchat(req, res) {
 }
 
 // POST /stock/achats/:id/delete
+// Supprime un achat et retire du stock la quantité qui avait été ajoutée,
+// pour garder le stock cohérent.
 export async function postDeleteAchat(req, res) {
     try {
         const id = parseInt(req.params.id);
@@ -79,7 +93,7 @@ export async function postDeleteAchat(req, res) {
         const achat = await prisma.achatEnergie.findUnique({ where: { id } });
         if (!achat) return res.redirect('/stock?error=Achat introuvable');
 
-        // Retirer la quantité du stock
+        // Retirer la quantité du stock (en transaction avec la suppression).
         await prisma.$transaction([
             prisma.stockEnergie.update({
                 where:  { sourceId: achat.sourceId },
@@ -96,6 +110,8 @@ export async function postDeleteAchat(req, res) {
 }
 
 // POST /stock/ajuster/:sourceId
+// Ajuste manuellement le stock d'une source : on ajoute ou retire la quantité
+// selon le champ `sens` ('retirer' = décrément, sinon incrément).
 export async function postAjusterStock(req, res) {
     const { quantite, sens } = req.body;
     try {

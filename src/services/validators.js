@@ -4,6 +4,8 @@
 // pour ne plus dépendre de `parseFloat(x) || 0` silencieux dans les controllers.
 // ──────────────────────────────────────────────────────────────
 
+// Listes des valeurs autorisées (enums) réutilisées dans les schémas de validation
+// et dans les formulaires, pour garantir qu'on n'accepte que des valeurs connues.
 export const TYPES_SOURCE = ["EOLIEN", "SOLAIRE", "HYDRAULIQUE", "HYDROGENE", "RESEAU"];
 export const TYPES_TIERS = ["FOURNISSEUR", "CLIENT"];
 export const STATUTS_ACTIF = ["ACTIF", "INACTIF"];
@@ -38,7 +40,12 @@ export function nonEmpty(value) {
 
 /**
  * Valide un jeu de champs selon un schéma simple.
- * @returns {{ ok: boolean, errors: string[], data: object }}
+ * Pour chaque champ décrit dans le schéma, on contrôle qu'il est présent (si requis)
+ * et conforme à son type (int, float, enum, email…), puis on stocke la valeur nettoyée.
+ * @param {object} body — les données reçues (ex: req.body)
+ * @param {object} schema — description des champs : { champ: { type, required, label, min, values, default } }
+ * @returns {{ ok: boolean, errors: string[], data: object }} ok=true si aucune erreur ;
+ *          errors liste les messages ; data contient les valeurs validées et converties
  */
 export function validate(body, schema) {
   const errors = [];

@@ -1,16 +1,26 @@
-{% extends "layouts/base.twig" %}
+{# ── Page Énergie (vue Twig) ──────────────────────────────────
+   Twig est un "moteur de templates" : il mélange du HTML avec des balises
+   spéciales remplies côté serveur par le contrôleur energieController.js.
+     {{ ... }} = afficher une valeur     {% ... %} = logique (if, for…)
+     {# ... #} = commentaire (invisible dans la page finale)
+   La page est organisée en 4 onglets (Mix / Sources / Seuils / Prix), gérés
+   par public/script/energie.js via les attributs data-tab.
+   ────────────────────────────────────────────────────────── #}
+{% extends "layouts/base.twig" %} {# Réutilise la mise en page commune (squelette HTML). #}
 
 {% block style %}
-	<link rel="stylesheet" href="/css/energie.css">
+	<link rel="stylesheet" href="/css/energie.css"> {# Styles propres à la page énergie. #}
 {% endblock %}
 
 {% block header %}
-	{% include "partials/_navbar.twig" %}
+	{% include "partials/_navbar.twig" %} {# Barre de navigation commune. #}
 {% endblock %}
 
 {% block main %}
 	<div class="main">
 
+		{# Messages "flash" : bandeau vert (succès) ou rouge (erreur) après une action.
+		   Leur contenu vient des paramètres ?success=... / ?error=... de l'URL. #}
 		{% if flash.success %}
 			<div class="toast toast-success">✓
 				{{ flash.success }}</div>
@@ -20,6 +30,7 @@
 				{{ flash.error }}</div>
 		{% endif %}
 
+		{# En-tête de page : titre + pastille "temps réel" affichée si le mix est disponible. #}
 		<div class="page-header">
 			<h1 class="page-header__title">Pilotage énergétique</h1>
 			{% if mixObj %}
@@ -27,6 +38,8 @@
 			{% endif %}
 		</div>
 
+		{# Barre des onglets. data-tab relie chaque onglet à son panneau (id="tab-...").
+		   Le changement d'onglet est géré par energie.js. #}
 		<div class="page-tabs-bar">
 			<a class="page-tab active" data-tab="mix" href="#">Mix ENTSO-E</a>
 			<a class="page-tab" data-tab="sources" href="#">Sources</a>
@@ -34,6 +47,8 @@
 			<a class="page-tab" data-tab="prix" href="#">Prix énergie</a>
 		</div>
 
+		{# Cartes d'alerte : affichées seulement si le contrôleur a détecté des sources
+		   dont la part dans le mix est passée sous le seuil d'arrêt (→ il faut vendre). #}
 		{% if alertes %}
 			<div class="energie-alertes">
 				{% for a in alertes %}
@@ -52,17 +67,19 @@
 			</div>
 		{% endif %}
 
-		<!-- ── TAB MIX ── -->
+		{# ── TAB MIX : mix énergétique national en temps réel (données ENTSO-E) ── #}
 		<div id="tab-mix" class="tab-panel active">
 			<div class="card">
 				<div class="card__header">
 					<span class="card__title">Mix Production National — France</span>
+					{# Badge "LIVE" si l'API a répondu (mixObj non nul), sinon badge "non configurée". #}
 					{% if mixObj %}
 						<span class="badge badge-green">LIVE ENTSO-E</span>
 					{% else %}
 						<span class="badge badge-muted">API non configurée</span>
 					{% endif %}
 				</div>
+				{# Si on a des données : on affiche le total réseau, l'heure, puis un KPI par énergie. #}
 				{% if mixObj %}
 					<div class="cours-header">
 						<div>
@@ -73,6 +90,7 @@
 								{{ mixObj._fetchedAt }}</div>
 						</div>
 					</div>
+					{# Un encart par type d'énergie, affiché uniquement si présent dans le mix. #}
 					<div class="cours-kpis">
 						{% if mixObj.EOLIEN is defined %}
 							<div class="cours-kpi">
@@ -105,11 +123,12 @@
 			</div>
 		</div>
 
-		<!-- ── TAB SOURCES ── -->
+		{# ── TAB SOURCES : tableau des sources d'énergie + actions (ajout/modif/suppr) ── #}
 		<div id="tab-sources" class="tab-panel">
 			<div class="card">
 				<div class="card__header">
 					<span class="card__title">Sources d'énergie</span>
+					{# data-modal-open ouvre la fenêtre (modale) correspondante, définie plus bas. #}
 					<button class="btn btn-primary" data-modal-open="modal-source-add">Ajouter</button>
 				</div>
 				<table class="table--sm-hide-2-3-4">
@@ -125,6 +144,7 @@
 						</tr>
 					</thead>
 					<tbody>
+						{# Une ligne par source. {% else %} (plus bas) gère le cas "liste vide". #}
 						{% for s in sources %}
 							<tr>
 								<td>{{ s.nom }}</td>
@@ -134,6 +154,8 @@
 								<td>{{ s.coutProduction }}
 									€/MWh</td>
 								<td>
+									{# Part actuelle de cette énergie dans le mix, avec couleur selon le niveau :
+									   vert ≥ 20 %, bleu ≥ 10 %, rouge sinon. "—" si donnée indisponible. #}
 									{% if mixObj and attribute(mixObj, s.type) is defined %}
 										<span class="badge {% if attribute(mixObj, s.type) >= 20 %}badge-green{% elseif attribute(mixObj, s.type) >= 10 %}badge-blue{% else %}badge-red{% endif %}">{{ attribute(mixObj, s.type) }}%</span>
 									{% else %}
@@ -150,9 +172,13 @@
 									{% endif %}
 								</td>
 								<td>
+									{# Bouton "Modifier" : data-action = URL du formulaire, data-fields = valeurs
+									   pré-remplies dans la modale (JSON lu par le script générique des modales),
+									   data-actif = état de la case Actif (lu par energie.js). #}
 									<button class="btn btn-outline" data-modal-open="modal-source-edit" data-form="form-source-edit" data-action="/energie/sources/{{ s.id }}/edit" data-fields='{"edit-s-nom":"{{ s.nom }}","edit-s-cout":"{{ s.coutProduction }}","edit-s-couleur":"{{ s.couleur }}","edit-s-type":"{{ s.type }}"}' data-actif="{{ s.actif ? '1' : '0' }}">
 										Modifier
 									</button>
+									{# Suppression réservée au SUPER_ADMIN (double sécurité avec le routeur). #}
 									{% if userRole == 'SUPER_ADMIN' %}
 										<button class="btn btn-danger" data-modal-open="modal-source-delete" data-form="form-source-delete" data-action="/energie/sources/{{ s.id }}/delete" data-confirm-text="Supprimer {{ s.nom }} ?" data-confirm-target="delete-source-text">
 											Supprimer
@@ -170,7 +196,7 @@
 			</div>
 		</div>
 
-		<!-- ── TAB SEUILS ── -->
+		{# ── TAB SEUILS : configuration de l'automatisation (déclenchement/arrêt) ── #}
 		<div id="tab-config" class="tab-panel">
 			<div class="card">
 				<div class="card__header">
@@ -199,6 +225,8 @@
 									<span class="taux-pill taux-pill--vente">{{ s.seuilArret }}%</span>
 								</td>
 								<td>
+									{# Interrupteur "Auto" en lecture seule (disabled) : il REFLÈTE l'état
+									   enregistré, il ne sert pas à le modifier ici (ça se fait dans la modale). #}
 									<label class="toggle">
 										<input type="checkbox" {% if s.declenchementAuto %} checked {% endif %} disabled>
 										<span class="toggle__track"></span>
@@ -229,7 +257,10 @@
 		</div>
 
 
-		<!-- ── TAB PRIX ÉNERGIE ── -->
+		{# ── TAB PRIX : graphique d'évolution des prix sur 12 mois ──
+		   Le <canvas> est rempli par Chart.js dans energie.js, qui récupère les
+		   données via fetch('/energie/prix-historique'). Le <p> "empty" s'affiche
+		   s'il n'y a aucune donnée. #}
 		<div id="tab-prix" class="tab-panel">
 			<div class="card">
 				<div class="card__header">
@@ -253,6 +284,10 @@
 		</div>
 
 	</div>
+
+	{# ── MODALES ──────────────────────────────────────────────
+	   Fenêtres cachées par défaut, affichées via les boutons data-modal-open.
+	   Chaque modale contient un formulaire qui POST vers une route du routeur. #}
 
 	<!-- Modal Ajout source -->
 	<div id="modal-source-add" class="modal-backdrop">
@@ -285,6 +320,7 @@
 	</div>
 
 	<!-- Modal Édition source -->
+	{# action="" est rempli dynamiquement par data-action du bouton "Modifier" cliqué. #}
 	<div id="modal-source-edit" class="modal-backdrop">
 		<div class="modal">
 			<h3 class="modal__title">Modifier la source</h3>
@@ -356,6 +392,7 @@
 					<label class="form-label">Seuil arrêt + vente (% mix national)</label>
 					<input class="form-input" type="number" step="1" name="seuilArret" placeholder="10" min="0" max="100">
 				</div>
+				{# Interrupteur réel (modifiable) qui active l'automatisation horaire pour cette source. #}
 				<div class="declenchement-block">
 					<div class="declenchement-block__header">
 						<span class="declenchement-block__title">Déclenchement automatique</span>
@@ -390,6 +427,7 @@
 {% endblock %}
 
 {% block script %}
+{# Chart.js (librairie de graphiques, chargée depuis un CDN) puis notre script de page. #}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="/script/energie.js"></script>
 {% endblock %}

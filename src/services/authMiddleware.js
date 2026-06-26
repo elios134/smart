@@ -1,3 +1,11 @@
+// ── authMiddleware.js ─────────────────────────────────────────
+// Middlewares d'authentification et d'autorisation.
+// authMiddleware  : vérifie qu'un utilisateur est connecté (via la session) et
+//                   charge ses infos pour les rendre disponibles dans req/res.locals.
+// requireRole     : restreint une route à certains rôles.
+// Un cache mémoire évite d'interroger la base à chaque requête.
+// ──────────────────────────────────────────────────────────────
+
 import prisma from "../../prisma/prismaClient.js";
 
 // --- CACHE EN MÉMOIRE ---
@@ -5,11 +13,21 @@ import prisma from "../../prisma/prismaClient.js";
 const userCache = new Map();
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes (en millisecondes)
 
-// Permet d'invalider le cache manuellement (ex: lors d'une mise à jour de profil)
+/**
+ * Supprime un utilisateur du cache mémoire.
+ * À appeler après modification de son profil/rôle pour forcer un rechargement depuis la base.
+ * @param {number|string} userId — identifiant de l'utilisateur à invalider
+ */
 export function invalidateUserCache(userId) {
   userCache.delete(parseInt(userId, 10));
 }
 
+/**
+ * Middleware Express qui protège les routes nécessitant d'être connecté.
+ * Récupère l'utilisateur depuis la session (SUPER_ADMIN ou employé), charge ses
+ * données (cache puis base), puis les injecte dans req.user / res.locals.
+ * Redirige vers /login si aucun utilisateur valide n'est trouvé.
+ */
 export async function authMiddleware(req, res, next) {
   try {
     let userId = null;
@@ -84,6 +102,8 @@ export async function authMiddleware(req, res, next) {
 
 /**
  * Factory : restreint l'accès aux rôles spécifiés.
+ * Retourne un middleware qui laisse passer si req.userRole fait partie des rôles
+ * autorisés, sinon renvoie une erreur 403 (requête AJAX) ou une redirection (page).
  * Usage : requireRole("SUPER_ADMIN", "ADMIN")
  *
  * Hiérarchie : SUPER_ADMIN > ADMIN > OPERATEUR

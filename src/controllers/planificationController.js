@@ -1,10 +1,19 @@
+/**
+ * Contrôleur de la planification des sessions de production d'énergie.
+ * Rôle : afficher le calendrier des sessions, en créer de nouvelles, les lancer,
+ * les terminer (avec mise à jour automatique du stock) et les supprimer.
+ * Une « session » représente une production planifiée d'énergie pour une source.
+ */
 import prisma from '../../prisma/prismaClient.js';
-import { getMixEnergetique } from '../services/energieService.js';
-import { toInt, toPositiveFloat } from '../services/validators.js';
+import { getMixEnergetique } from '../services/energieService.js'; // calcule la répartition (%) des sources d'énergie
+import { toInt, toPositiveFloat } from '../services/validators.js'; // conversion sûre des champs de formulaire
 
 // GET /planification
+// Charge tout ce qu'il faut pour la page : sessions, sources actives, mix
+// énergétique et fournisseurs, calcule les alertes, puis rend la vue calendrier.
 export async function getPlanification(req, res) {
     try {
+        // Promise.all lance les 4 requêtes en parallèle pour gagner du temps.
         const [sessions, sources, mix, fournisseurs] = await Promise.all([
             prisma.sessionEnergie.findMany({
                 include: { source: true },
@@ -15,9 +24,13 @@ export async function getPlanification(req, res) {
             prisma.tiers.findMany({ where: { typeTiers: 'FOURNISSEUR' }, orderBy: { nom: 'asc' } })
         ]);
 
+        // Alertes d'achat : sources dont la part dans le mix dépasse le seuil de déclenchement.
         const alertesAchat = sources.filter(s => mix && (mix[s.type] ?? 0) >= (s.seuil?.seuilDeclenchement ?? 100));
+        // Alertes de vente : sources dont la part passe sous le seuil d'arrêt (surplus à vendre).
         const alertesVente = sources.filter(s => mix && (mix[s.type] ?? 0) < (s.seuil?.seuilArret ?? 0));
 
+        // Transforme chaque session en évènement pour le calendrier (titre, dates,
+        // couleur selon le statut) lu côté navigateur.
         const eventsCalendar = sessions.map(s => ({
             id:    s.id,
             title: `${s.source?.nom ?? 'Session'} — ${s.quantitePrevue} MWh`,
@@ -44,15 +57,20 @@ export async function getPlanification(req, res) {
 }
 
 // POST /planification/add
+// Crée une nouvelle session planifiée à partir du formulaire.
+// Valide la source et les dates (fin > début) avant l'enregistrement,
+// avec le statut initial EN_ATTENTE.
 export async function postAddSession(req, res) {
     const { sourceId, titre, quantitePrevue, debutPrev, finPrev, notes } = req.body;
     try {
         const parsedSourceId = toInt(sourceId);
         if (parsedSourceId === null) return res.redirect('/planification?error=Source invalide');
 
+        // Conversion des champs date du formulaire en objets Date.
         const dDebut = new Date(debutPrev);
         const dFin = new Date(finPrev);
 
+        // On refuse les dates illisibles, puis une fin antérieure ou égale au début.
         if (isNaN(dDebut.getTime()) || isNaN(dFin.getTime())) {
             return res.redirect('/planification?error=Les dates de planification sont invalides');
         }
@@ -81,6 +99,8 @@ export async function postAddSession(req, res) {
 }
 
 // POST /planification/:id/lancer
+// Démarre une session : passe son statut de EN_ATTENTE à EN_COURS et
+// enregistre l'heure de début réelle. Seule une session en attente est lançable.
 export async function postLancerSession(req, res) {
     try {
         const id = toInt(req.params.id);
@@ -92,6 +112,7 @@ export async function postLancerSession(req, res) {
             return res.redirect('/planification?error=Seule une session en attente peut être lancée');
         }
 
+        // debutReel = maintenant : on garde l'heure effective du démarrage.
         await prisma.sessionEnergie.update({
             where: { id },
             data:  { statut: 'EN_COURS', debutReel: new Date() }
@@ -104,6 +125,8 @@ export async function postLancerSession(req, res) {
 }
 
 // POST /planification/:id/terminer
+// Clôture une session : enregistre la quantité réellement produite et le coût,
+// puis ajoute cette quantité au stock de la source. On refuse une session déjà clôturée.
 export async function postTerminerSession(req, res) {
     const { quantiteProduite, coutTotal } = req.body;
     try {
@@ -119,11 +142,15 @@ export async function postTerminerSession(req, res) {
         const qteRaw = toPositiveFloat(quantiteProduite);
         const qte = qteRaw === null ? 0 : qteRaw;
 
+        // Transaction : les deux écritures réussissent ensemble ou échouent ensemble,
+        // pour garder la session et le stock cohérents.
         await prisma.$transaction([
             prisma.sessionEnergie.update({
                 where: { id: session.id },
                 data:  { statut: 'TERMINEE', finReel: new Date(), quantiteProduite: qte, coutTotal: parseFloat(coutTotal) || 0 }
             }),
+            // upsert : si un stock existe déjà pour cette source on l'incrémente,
+            // sinon on le crée avec la quantité produite.
             prisma.stockEnergie.upsert({
                 where:  { sourceId: session.sourceId },
                 update: { quantite: { increment: qte } },
@@ -139,6 +166,7 @@ export async function postTerminerSession(req, res) {
 }
 
 // POST /planification/:id/delete
+// Supprime une session planifiée identifiée par son id.
 export async function postDeleteSession(req, res) {
     try {
         const id = parseInt(req.params.id);
