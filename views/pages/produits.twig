@@ -35,7 +35,7 @@
                         {% elseif produit.statut == 'INACTIF' %}<span class="badge badge-red">{{ produit.statut }}</span>
                         {% else %}<span class="badge badge-blue">{{ produit.statut }}</span>{% endif %}
                     </td>
-                    <td style="display:flex;gap:8px;">
+                    <td class="row-actions">
                         {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
                         <button class="btn btn-outline"
                             data-modal-open="modal-produit-edit"
@@ -66,7 +66,7 @@
 <!-- Modal Ajout -->
 <div id="modal-produit-add" class="modal-backdrop">
     <div class="modal">
-        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Ajouter un produit</h3>
+        <h3 class="modal__title">Ajouter un produit</h3>
         <form method="POST" action="/produits/add">
             <div class="form-group"><label class="form-label">NOM *</label>
                 <input type="text" name="nom" class="form-input" placeholder="SWAG..." required></div>
@@ -97,7 +97,7 @@
 <!-- Modal Édition -->
 <div id="modal-produit-edit" class="modal-backdrop">
     <div class="modal">
-        <h3 style="margin-bottom:24px;font-size:18px;font-weight:500;">Modifier le produit</h3>
+        <h3 class="modal__title">Modifier le produit</h3>
         <form id="form-produit-edit" method="POST" action="">
             <div class="form-group"><label class="form-label">NOM *</label>
                 <input type="text" id="edit-p-nom" name="nom" class="form-input" required></div>
@@ -128,8 +128,8 @@
 <!-- Modal Suppression -->
 <div id="modal-produit-delete" class="modal-backdrop">
     <div class="modal">
-        <h3 style="margin-bottom:16px;font-size:18px;font-weight:500;">Supprimer le produit</h3>
-        <p id="delete-produit-text" style="color:var(--muted);margin-bottom:24px;"></p>
+        <h3 class="modal__title">Supprimer le produit</h3>
+        <p id="delete-produit-text" class="modal__confirm-text"></p>
         <form id="form-produit-delete" method="POST" action="">
             <div class="form-actions">
                 <button type="submit" class="btn btn-danger btn-full">Supprimer</button>

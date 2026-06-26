@@ -67,7 +67,7 @@
                             {% elseif s.statut == 'TERMINEE' %}<span class="badge badge-blue">TERMINÉE</span>
                             {% else %}<span class="badge badge-red">ANNULÉE</span>{% endif %}
                         </td>
-                        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <td class="row-actions">
                             {% if s.statut == 'EN_ATTENTE' %}
                             <form method="POST" action="/planification/{{ s.id }}/lancer" style="display:inline;">
                                 <button type="submit" class="btn btn-primary">Lancer</button>
@@ -186,7 +186,7 @@
                 </select>
             </div>
             <div class="form-group"><label class="form-label">Quantité prévue (MWh)</label><input class="form-input" type="number" step="0.01" min="0"name="quantitePrevue" placeholder="100"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+            <div class="form-grid-2">
                 <div class="form-group"><label class="form-label">Début prévu *</label><input class="form-input" type="datetime-local" name="debutPrev" required></div>
                 <div class="form-group"><label class="form-label">Fin prévue *</label><input class="form-input" type="datetime-local" name="finPrev" required></div>
             </div>

@@ -2,7 +2,18 @@
 
 {% block style %}
 <style>
-  .profil-grid { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+  /* Colonne unique centrée — fidèle maquette */
+  .profil-grid { display:flex; flex-direction:column; gap:24px; max-width:520px; margin-inline:auto; }
+  .profil-identity { display:flex; align-items:center; gap:16px; margin-bottom:24px; }
+  .profil-avatar {
+    width:56px; height:56px; border-radius:50%;
+    background:var(--blue-dim); border:1px solid var(--blue-bd);
+    display:flex; align-items:center; justify-content:center;
+    font-size:20px; font-weight:700; color:var(--text-link);
+    text-transform:uppercase; flex-shrink:0;
+  }
+  .profil-identity__name { font-size:18px; font-weight:600; color:var(--text); }
+  .profil-identity__role { margin-top:6px; }
 </style>
 {% endblock %}
 
@@ -28,8 +39,12 @@
 
     {# Informations personnelles #}
     <div class="card">
-      <div class="card__header">
-        <span class="card__title">Mon profil</span>
+      <div class="profil-identity">
+        <div class="profil-avatar">{{ user.firstName|slice(0,1) }}{{ user.lastName|slice(0,1) }}</div>
+        <div>
+          <div class="profil-identity__name">{{ user.firstName ?? '' }} {{ user.lastName ?? '' }}</div>
+          {% if user.role %}<div class="profil-identity__role"><span class="badge badge-blue">{{ user.role }}</span></div>{% endif %}
+        </div>
       </div>
       <form method="POST" action="/profil">
         <div class="form-group">

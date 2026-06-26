@@ -43,11 +43,33 @@
 }
 .facture-ligne__label { min-width: 120px; text-align: right; }
 .facture-ligne__value { min-width: 80px; text-align: right; color: var(--text); }
-.facture-ligne--ttc .facture-ligne__label,
-.facture-ligne--ttc .facture-ligne__value {
-  font-size: 18px;
-  font-weight: 500;
+.facture-ligne--ttc {
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  align-items: baseline;
+}
+.facture-ligne--ttc .facture-ligne__label {
+  font-size: 14px;
+  font-weight: 600;
   color: var(--text);
+}
+.facture-ligne--ttc .facture-ligne__value {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+/* ── EN-TÊTE DÉTAIL (retour + action) — remplace le style inline ── */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+.detail-header .section-label {
+  margin-bottom: 0;
 }
 
 /* ── TOTAL ESTIMÉ DANS MODAL ── */

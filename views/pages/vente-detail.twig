@@ -14,8 +14,8 @@
     {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
     {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
 
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-        <a href="/ventes" class="section-label" style="margin-bottom:0;">← Retour aux ventes</a>
+    <div class="detail-header">
+        <a href="/ventes" class="section-label">← Retour aux ventes</a>
         {% if userRole == 'SUPER_ADMIN' %}
         <button class="btn btn-danger"
             data-modal-open="modal-vente-delete"

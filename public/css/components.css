@@ -1,8 +1,39 @@
+/* ── EN-TÊTE DE PAGE — §3.1 refonte (grand titre + sous-ligne live) ── */
+.page-header {
+  margin-bottom: 28px;
+}
+.page-header__title {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  line-height: 1.1;
+}
+.page-header__sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.page-header__live-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 3px var(--green-dim);
+  flex-shrink: 0;
+}
+
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
+  border-radius: 18px;
+  padding: 28px;
   margin-bottom: 24px;
 }
 
@@ -10,12 +41,12 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .card__title {
-  font-size: 24px;
-  font-weight: 600;
+  font-size: 26px;
+  font-weight: 500;
   color: var(--text);
   letter-spacing: -0.02em;
 }
@@ -42,7 +73,7 @@ thead tr {
 }
 
 th {
-  padding: 12px;
+  padding: 14px 16px;
   font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -52,10 +83,10 @@ th {
 }
 
 td {
-  padding: 12px;
+  padding: 16px 16px;
   font-size: 13px;
   color: var(--text);
-  border-bottom: 1px solid rgba(37, 45, 69, .6);
+  border-bottom: 1px solid rgba(37, 45, 69, .45);
 }
 
 tbody tr:last-child td {
@@ -138,6 +169,13 @@ tbody tr:hover td {
   width: 100%;
 }
 
+/* ── ACTIONS EN LIGNE (cellule de tableau) — remplace les styles inline ── */
+.row-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 /* ── BADGES — pills minuscules ── */
 .badge {
   display: inline-block;
@@ -192,7 +230,7 @@ tbody tr:hover td {
 .modal {
   background: var(--surface2);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
+  border-radius: 18px;
   padding: 36px 40px;
   width: 500px;
   max-width: 95vw;
@@ -266,6 +304,16 @@ tbody tr:hover td {
   flex-direction: column;
   gap: 8px;
   margin-top: 24px;
+}
+
+/* ── GRILLE 2 COLONNES (formulaire de modale) — motif partagé ── */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+@media (max-width: 540px) {
+  .form-grid-2 { grid-template-columns: 1fr; }
 }
 
 /* ── TOAST ── */

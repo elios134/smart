@@ -2,9 +2,9 @@
 .chart-wrap { position: relative; height: 240px; }
 
 .energie-alertes {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 12px;
     margin-bottom: 20px;
 }
 
@@ -39,15 +39,23 @@
 .alerte-card {
     background: var(--surface);
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 16px 20px;
+    border-radius: var(--radius);
+    padding: 18px 22px;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 .alerte-card--vente {
     border-color: var(--red-bd);
-    background: linear-gradient(90deg, var(--surface) 0%, rgba(255, 79, 107, 0.05) 100%);
+    background: linear-gradient(90deg, rgba(255, 79, 107, 0.12) 0%, rgba(255, 79, 107, 0.04) 100%);
+}
+/* Variante achat (verte) — prête si le backend émet des alertes d'achat */
+.alerte-card--achat {
+    border-color: rgba(47, 238, 168, 0.28);
+    background: linear-gradient(90deg, rgba(47, 238, 168, 0.12) 0%, rgba(47, 238, 168, 0.04) 100%);
+}
+.alerte-card--achat .alerte-card__badge {
+    color: var(--green);
 }
 .alerte-card__badge {
     font-size: 10px;

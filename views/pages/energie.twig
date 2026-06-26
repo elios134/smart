@@ -20,6 +20,13 @@
 				{{ flash.error }}</div>
 		{% endif %}
 
+		<div class="page-header">
+			<h1 class="page-header__title">Pilotage énergétique</h1>
+			{% if mixObj %}
+				<div class="page-header__sub"><span class="page-header__live-dot"></span> Temps réel — ENTSO-E</div>
+			{% endif %}
+		</div>
+
 		<div class="page-tabs-bar">
 			<a class="page-tab active" data-tab="mix" href="#">Mix ENTSO-E</a>
 			<a class="page-tab" data-tab="sources" href="#">Sources</a>

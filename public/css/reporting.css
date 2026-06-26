@@ -75,14 +75,14 @@
 }
 .besoin-card__stock-row strong { color:var(--text); }
 .besoin-card__bar {
-  height: 3px;
-  border-radius: 2px;
+  height: 6px;
+  border-radius: 3px;
   background: var(--border);
   overflow: hidden;
 }
 .besoin-card__bar-fill {
   height: 100%;
-  border-radius: 2px;
+  border-radius: 3px;
   transition: width .4s;
 }
 .besoin-card__bar-fill--green { background: var(--green); }
