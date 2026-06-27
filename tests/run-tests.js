@@ -223,6 +223,18 @@ describe("4. ENERGIE", () => {
         });
         assert.equal(res.status, 302);
     });
+
+    it("4.6 — SUPER_ADMIN peut importer les sources depuis le mix", async () => {
+        const agent = await loginSuperAdmin();
+        const res = await agent.post("/energie/sources/import").type("form").send({});
+        assert.equal(res.status, 302);
+    });
+
+    it("4.7 — OPERATEUR ne peut PAS importer les sources", async () => {
+        const agent = await loginOperateur();
+        const res = await agent.post("/energie/sources/import").type("form").send({});
+        assert.equal(res.status, 302);
+    });
 });
 
 // ═══════════════════════════════════════════════════════════════

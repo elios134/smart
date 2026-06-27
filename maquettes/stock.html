@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart-Yield — Stock</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <span class="brand">Smart-Yield</span>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="planification.html">Planification</a>
+    <a href="energie.html">Énergie</a>
+    <a href="stock.html" class="on">Stock</a>
+    <a href="ventes.html">Ventes</a>
+    <a href="reporting.html">Reporting</a>
+    <span style="margin-left:auto" class="role">SUPER_ADMIN</span>
+    <i class="ti ti-bell" style="color:#9AA4C0"></i>
+    <a href="profil.html" style="color:var(--mu)">Bonjour, André</a>
+  </nav>
+  <div class="main">
+    <a class="link" href="#" style="font-size:11px;letter-spacing:.06em;color:var(--mu)"><i class="ti ti-users"></i> FOURNISSEURS</a>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Stock d'énergie par source</span><button class="btn" data-open="s-achat">Enregistrer un achat</button></div>
+      <table style="margin-top:14px">
+        <thead><tr><th>SOURCE</th><th>TYPE</th><th>STOCK</th><th>REMPLISSAGE</th><th>VALEUR</th><th style="text-align:right">AJUSTER</th></tr></thead>
+        <tbody>
+          <tr><td>Parc éolien Nord</td><td><span class="pill pill-eo">Éolien</span></td><td><strong>620</strong></td><td><div class="gauge"><div class="bar"><div style="width:82%;background:var(--ok)"></div></div><span style="font-size:12px;color:var(--mu)">82%</span></div></td><td>27 900 €</td><td style="text-align:right"><button class="btn-outline" data-open="s-ajust">Ajuster</button></td></tr>
+          <tr><td>Centrale solaire Sud</td><td><span class="pill pill-so">Solaire</span></td><td><strong>410</strong></td><td><div class="gauge"><div class="bar"><div style="width:34%;background:var(--warn)"></div></div><span style="font-size:12px;color:var(--mu)">34%</span></div></td><td>15 580 €</td><td style="text-align:right"><button class="btn-outline" data-open="s-ajust">Ajuster</button></td></tr>
+          <tr><td>Barrage Est</td><td><span class="pill pill-hy">Hydraulique</span></td><td><strong>90</strong></td><td><div class="gauge"><div class="bar"><div style="width:12%;background:var(--err)"></div></div><span style="font-size:12px;color:var(--mu)">12%</span></div></td><td>3 600 €</td><td style="text-align:right"><button class="btn-outline" data-open="s-ajust">Ajuster</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Historique des achats</span><a class="link" href="planification.html">Voir les sessions →</a></div>
+      <table style="margin-top:14px">
+        <thead><tr><th>SOURCE</th><th>FOURNISSEUR</th><th>QUANTITÉ</th><th>PRIX</th><th>TOTAL</th><th>DATE</th><th style="text-align:right">ACTIONS</th></tr></thead>
+        <tbody>
+          <tr><td>Parc éolien Nord</td><td>RTE Approv.</td><td>200 MWh</td><td>44 €</td><td>8 800 €</td><td>24/06 10:12</td><td style="text-align:right"><button class="btn-danger" data-open="s-del">Supprimer</button></td></tr>
+          <tr><td>Centrale solaire Sud</td><td>—</td><td>150 MWh</td><td>37 €</td><td>5 550 €</td><td>22/06 16:40</td><td style="text-align:right"><button class="btn-danger" data-open="s-del">Supprimer</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="s-achat"><div class="modal"><h3>Enregistrer un achat d'énergie</h3>
+  <div class="form-group"><label class="form-label">Source</label><select class="form-input"><option>Parc éolien Nord</option><option>Centrale solaire Sud</option></select></div>
+  <div class="form-group"><label class="form-label">Fournisseur</label><select class="form-input"><option>Aucun</option><option>RTE Approv.</option></select></div>
+  <div class="form-group"><label class="form-label">Quantité (MWh)</label><input class="form-input" type="number" data-calc="achat" placeholder="100"></div>
+  <div class="form-group"><label class="form-label">Prix d'achat (€/MWh)</label><input class="form-input" type="number" data-calc="achat" placeholder="45"></div>
+  <div class="total-est"><span>Total estimé</span><span data-total="achat" style="font-weight:600">0 €</span></div>
+  <div class="modal-actions"><button class="btn btn-full">Enregistrer</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<div class="modal-back" id="s-ajust"><div class="modal"><h3>Ajuster le stock</h3><p style="font-size:13px;color:var(--mu)">Source : <strong style="color:var(--tx)">Parc éolien Nord</strong></p>
+  <div class="form-group"><label class="form-label">Opération</label><select class="form-input"><option>Ajouter des MWh</option><option>Retirer des MWh</option></select></div>
+  <div class="form-group"><label class="form-label">Quantité (MWh)</label><input class="form-input" type="number" placeholder="50"></div>
+  <div class="modal-actions"><button class="btn btn-full">Confirmer</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<div class="modal-back" id="s-del"><div class="modal"><h3>Supprimer l'achat</h3><p style="font-size:13px;color:var(--mu)">Supprimer cet achat de 200 MWh ? Le stock sera réduit d'autant.</p>
+  <div class="modal-actions"><button class="btn btn-full" style="background:var(--err);color:#fff">Supprimer</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<script src="app.js"></script>
+</body>
+</html>

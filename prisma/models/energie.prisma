@@ -11,6 +11,7 @@ model SourceEnergie {
   nom            String                                   // Nom affiché de la source.
   type           TypeSource                               // Type d'énergie (voir enum ci-dessous).
   coutProduction Float      @default(0)                   // Coût de production en €/MWh.
+  capaciteMax    Float?                                   // Capacité max de stockage (MWh) — sert à la jauge de remplissage du stock.
   couleur        String     @default("#4F8AFF")           // Couleur d'affichage dans l'interface.
   actif          Boolean    @default(true)                // Source active ou mise en pause.
   createdAt      DateTime   @default(now())               // Date de création (auto).

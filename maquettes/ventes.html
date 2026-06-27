@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart-Yield — Ventes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <span class="brand">Smart-Yield</span>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="planification.html">Planification</a>
+    <a href="energie.html">Énergie</a>
+    <a href="stock.html">Stock</a>
+    <a href="ventes.html" class="on">Ventes</a>
+    <a href="reporting.html">Reporting</a>
+    <span style="margin-left:auto" class="role">SUPER_ADMIN</span>
+    <i class="ti ti-bell" style="color:#9AA4C0"></i>
+    <a href="profil.html" style="color:var(--mu)">Bonjour, André</a>
+  </nav>
+  <div class="main">
+    <h1 class="page-h1">Ventes</h1>
+    <div class="kpi-grid" style="margin-top:16px">
+      <div class="kpi"><div class="lb">Chiffre d'affaires</div><div class="vl">182 400 €</div></div>
+      <div class="kpi"><div class="lb">Nombre de ventes</div><div class="vl">38</div></div>
+      <div class="kpi"><div class="lb">Panier moyen</div><div class="vl">4 800 €</div></div>
+      <div class="kpi"><div class="lb">MWh vendus</div><div class="vl">2 640</div></div>
+      <div class="kpi"><div class="lb">Marge nette</div><div class="vl" style="color:var(--ok)">61 300 €</div></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><span class="card-title">Historique des ventes</span><button class="btn" data-open="v-add">Nouvelle vente +</button></div>
+      <table style="margin-top:14px">
+        <thead><tr><th>SOURCE</th><th>CLIENT</th><th>QUANTITÉ</th><th>PRIX</th><th>TOTAL</th><th>DATE</th><th style="text-align:right">ACTIONS</th></tr></thead>
+        <tbody>
+          <tr><td>Parc éolien Nord</td><td>EDF Trading</td><td>80 MWh</td><td>72 €</td><td><strong>5 760 €</strong></td><td>26/06</td><td style="text-align:right"><a class="btn-outline" href="vente-detail.html">Détails</a> <button class="btn-danger" data-open="v-del">Supprimer</button></td></tr>
+          <tr><td>Centrale solaire Sud</td><td>Engie</td><td>45 MWh</td><td>68 €</td><td><strong>3 060 €</strong></td><td>25/06</td><td style="text-align:right"><a class="btn-outline" href="vente-detail.html">Détails</a> <button class="btn-danger" data-open="v-del">Supprimer</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="v-add"><div class="modal"><h3>Nouvelle vente d'énergie</h3>
+  <div class="form-group"><label class="form-label">Source</label><select class="form-input"><option>Parc éolien Nord — stock 620 MWh</option><option>Centrale solaire Sud — stock 410 MWh</option></select></div>
+  <div class="form-group"><label class="form-label">Client</label><select class="form-input"><option>Aucun</option><option>EDF Trading</option><option>Engie</option></select></div>
+  <div class="form-group"><label class="form-label">Quantité (MWh)</label><input class="form-input" type="number" data-calc="vente" placeholder="50"></div>
+  <div class="form-group"><label class="form-label">Prix de vente (€/MWh)</label><input class="form-input" type="number" data-calc="vente" placeholder="80"></div>
+  <div class="total-est"><span>Total estimé</span><span data-total="vente" style="font-weight:600">0 €</span></div>
+  <div class="modal-actions"><button class="btn btn-full">Valider la vente</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<div class="modal-back" id="v-del"><div class="modal"><h3>Supprimer la vente</h3><p style="font-size:13px;color:var(--mu)">Supprimer cette vente de 80 MWh ? Le stock sera restauré.</p>
+  <div class="modal-actions"><button class="btn btn-full" style="background:var(--err);color:#fff">Supprimer</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<script src="app.js"></script>
+</body>
+</html>

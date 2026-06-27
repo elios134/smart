@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart-Yield — Planification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .cal { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:14px; }
+  .cal .d { font-size:11px; color:var(--mu); text-align:center; padding-bottom:6px; }
+  .cell { background:var(--sfe); border-radius:8px; min-height:74px; padding:6px; }
+  .num { font-size:12px; color:var(--mu); }
+  .ev { font-size:10px; color:#fff; background:var(--pri); border-radius:5px; padding:3px 6px; margin-top:5px; font-weight:500; }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <span class="brand">Smart-Yield</span>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="planification.html" class="on">Planification</a>
+    <a href="energie.html">Énergie</a>
+    <a href="stock.html">Stock</a>
+    <a href="ventes.html">Ventes</a>
+    <a href="reporting.html">Reporting</a>
+    <span style="margin-left:auto" class="role">SUPER_ADMIN</span>
+    <i class="ti ti-bell" style="color:#9AA4C0"></i>
+    <a href="profil.html" style="color:var(--mu)">Bonjour, André</a>
+  </nav>
+  <div class="main has-tabs">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h1 class="page-h1">Planification</h1><div class="page-sub">Sessions de production — semaine du 23 au 29 juin</div></div>
+      <button class="btn" data-open="l-plan"><i class="ti ti-plus"></i> Planifier</button>
+    </div>
+    <div class="tabs"><button class="ptab on" data-tab="l-cal">Calendrier</button><button class="ptab" data-tab="l-ses">Sessions</button></div>
+
+    <div class="panel on" id="l-cal">
+      <div class="card">
+        <div class="card-head"><span class="card-title">Juin 2026</span><div style="display:flex;gap:6px;align-items:center"><i class="ti ti-chevron-left" style="color:var(--mu)"></i><span style="font-size:12px;color:var(--mu)">Aujourd'hui</span><i class="ti ti-chevron-right" style="color:var(--mu)"></i></div></div>
+        <div class="cal">
+          <div class="d">LUN</div><div class="d">MAR</div><div class="d">MER</div><div class="d">JEU</div><div class="d">VEN</div><div class="d">SAM</div><div class="d">DIM</div>
+          <div class="cell"><span class="num">23</span><div class="ev">Éolien · 120</div></div>
+          <div class="cell"><span class="num">24</span></div>
+          <div class="cell"><span class="num">25</span><div class="ev">Solaire · 80</div></div>
+          <div class="cell" style="outline:1px solid var(--pri)"><span class="num" style="color:var(--tx)">26</span><div class="ev">Éolien · 140</div></div>
+          <div class="cell"><span class="num">27</span></div>
+          <div class="cell"><span class="num">28</span><div class="ev">Solaire · 95</div></div>
+          <div class="cell"><span class="num">29</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="l-ses">
+      <div class="card"><span class="card-title">Toutes les sessions</span>
+        <table style="margin-top:14px">
+          <thead><tr><th>TITRE</th><th>SOURCE</th><th>PRÉVU</th><th>PRODUIT</th><th>DÉCL.</th><th>STATUT</th><th style="text-align:right">ACTIONS</th></tr></thead>
+          <tbody>
+            <tr><td>Production éolienne</td><td>Éolien Nord</td><td>140 MWh</td><td>92 MWh</td><td><span class="pill pill-blue">AUTO</span></td><td><span class="pill pill-blue">En cours</span></td><td style="text-align:right"><button class="btn-pri-sm" data-open="l-term">Terminer</button></td></tr>
+            <tr><td>Solaire matin</td><td>Solaire Sud</td><td>95 MWh</td><td>—</td><td><span class="pill pill-mut">MANUEL</span></td><td><span class="pill pill-warn">En attente</span></td><td style="text-align:right"><button class="btn-pri-sm">Lancer</button> <button class="btn-danger" data-open="l-del">Supprimer</button></td></tr>
+            <tr><td>Hydraulique J21</td><td>Barrage Est</td><td>60 MWh</td><td>60 MWh</td><td><span class="pill pill-mut">MANUEL</span></td><td><span class="pill pill-ok">Terminée</span></td><td style="text-align:right"><button class="btn-outline" data-open="l-achat">↗ Créer achat</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="l-plan"><div class="modal"><h3>Planifier une session de production</h3>
+  <div class="form-group"><label class="form-label">Titre</label><input class="form-input" placeholder="Production éolienne mars"></div>
+  <div class="form-group"><label class="form-label">Source</label><select class="form-input"><option>Parc éolien Nord (Éolien)</option><option>Centrale solaire Sud (Solaire)</option></select></div>
+  <div class="form-group"><label class="form-label">Quantité prévue (MWh)</label><input class="form-input" type="number" placeholder="100"></div>
+  <div class="grid-2"><div class="form-group"><label class="form-label">Début prévu</label><input class="form-input" type="datetime-local"></div><div class="form-group"><label class="form-label">Fin prévue</label><input class="form-input" type="datetime-local"></div></div>
+  <div class="modal-actions"><button class="btn btn-full">Planifier</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<div class="modal-back" id="l-term"><div class="modal"><h3>Clôturer la session</h3>
+  <div class="form-group"><label class="form-label">MWh produits réellement</label><input class="form-input" type="number" placeholder="95"></div>
+  <div class="form-group"><label class="form-label">Coût total (€)</label><input class="form-input" type="number" placeholder="4200"></div>
+  <div class="modal-actions"><button class="btn btn-full">Terminer &amp; créditer le stock</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<div class="modal-back" id="l-achat"><div class="modal"><h3>Créer un achat depuis la session</h3><p style="font-size:13px;color:var(--mu)">Source : <strong style="color:var(--tx)">Barrage Est</strong></p>
+  <div class="form-group"><label class="form-label">Quantité (MWh)</label><input class="form-input" type="number" value="60"></div>
+  <div class="form-group"><label class="form-label">Prix d'achat (€/MWh)</label><input class="form-input" type="number" value="40"></div>
+  <div class="modal-actions"><button class="btn btn-full">Enregistrer l'achat</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<div class="modal-back" id="l-del"><div class="modal"><h3>Supprimer la session</h3><p style="font-size:13px;color:var(--mu)">Supprimer Solaire matin ?</p>
+  <div class="modal-actions"><button class="btn btn-full" style="background:var(--err);color:#fff">Supprimer</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<script src="app.js"></script>
+</body>
+</html>

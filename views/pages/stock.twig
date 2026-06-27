@@ -23,7 +23,7 @@
         <table class="table--sm-hide-2-4">
             <thead>
                 <tr>
-                    <th>Source</th><th>Type</th><th>Stock (MWh)</th>
+                    <th>Source</th><th>Type</th><th>Stock (MWh)</th><th>Remplissage</th>
                     <th>Coût prod. (€/MWh)</th><th>Valeur stock (€)</th>
                     {% if userRole != 'OPERATEUR' %}<th>Ajuster</th>{% endif %}
                 </tr>
@@ -34,6 +34,20 @@
                     <td>{{ s.nom }}</td>
                     <td><span class="badge badge-blue">{{ s.type }}</span></td>
                     <td><strong>{{ s.stock.quantite ?? 0 }}</strong></td>
+                    <td>
+                        {% if s.capaciteMax and s.capaciteMax > 0 %}
+                            {% set pct = ((s.stock.quantite ?? 0) / s.capaciteMax * 100)|round %}
+                            {% if pct > 100 %}{% set pct = 100 %}{% endif %}
+                            <div style="display:flex;align-items:center;gap:8px;min-width:100px;">
+                                <div style="flex:1;height:7px;background:var(--bg);border-radius:6px;overflow:hidden;">
+                                    <div style="width:{{ pct }}%;height:100%;border-radius:6px;background:{% if pct >= 50 %}var(--green){% elseif pct >= 20 %}var(--color-warning){% else %}var(--red){% endif %};"></div>
+                                </div>
+                                <span style="font-size:12px;color:var(--muted);">{{ pct }}%</span>
+                            </div>
+                        {% else %}
+                            <span class="badge badge-muted">—</span>
+                        {% endif %}
+                    </td>
                     <td>{{ s.coutProduction }} €</td>
                     <td>{{ ((s.stock.quantite ?? 0) * s.coutProduction)|round(2) }} €</td>
                     {% if userRole != 'OPERATEUR' %}
@@ -50,7 +64,7 @@
                     {% endif %}
                 </tr>
                 {% else %}
-                <tr><td colspan="6" class="empty-state">Aucune source — <a href="/energie" class="card__link">En configurer une →</a></td></tr>
+                <tr><td colspan="7" class="empty-state">Aucune source — <a href="/energie" class="card__link">En configurer une →</a></td></tr>
                 {% endfor %}
             </tbody>
         </table>

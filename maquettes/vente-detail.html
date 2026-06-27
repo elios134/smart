@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart-Yield — Détail vente</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <span class="brand">Smart-Yield</span>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="planification.html">Planification</a>
+    <a href="energie.html">Énergie</a>
+    <a href="stock.html">Stock</a>
+    <a href="ventes.html" class="on">Ventes</a>
+    <a href="reporting.html">Reporting</a>
+    <span style="margin-left:auto" class="role">SUPER_ADMIN</span>
+    <i class="ti ti-bell" style="color:#9AA4C0"></i>
+    <a href="profil.html" style="color:var(--mu)">Bonjour, André</a>
+  </nav>
+  <div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <a class="link" href="ventes.html" style="color:var(--mu);font-size:12px"><i class="ti ti-arrow-left"></i> Retour aux ventes</a>
+      <button class="btn-danger" style="font-size:13px;padding:8px 14px" data-open="x-del">Supprimer la vente</button>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="card"><div class="card-title" style="margin-bottom:14px">Détails de la vente</div>
+        <div class="row-line" style="border-bottom:1px solid rgba(37,45,69,.5)"><span style="color:var(--mu)">Référence</span><span>#1042</span></div>
+        <div class="row-line" style="border-bottom:1px solid rgba(37,45,69,.5)"><span style="color:var(--mu)">Date</span><span>26/06/2026 14:08</span></div>
+        <div class="row-line" style="border-bottom:1px solid rgba(37,45,69,.5)"><span style="color:var(--mu)">Source</span><span><span class="pill pill-eo">Éolien</span> Parc éolien Nord</span></div>
+        <div class="row-line"><span style="color:var(--mu)">Client</span><span>EDF Trading</span></div>
+      </div>
+      <div class="card"><div class="card-title" style="margin-bottom:14px">Source d'énergie</div>
+        <div class="row-line" style="border-bottom:1px solid rgba(37,45,69,.5)"><span style="color:var(--mu)">Nom</span><span>Parc éolien Nord</span></div>
+        <div class="row-line" style="border-bottom:1px solid rgba(37,45,69,.5)"><span style="color:var(--mu)">Type</span><span><span class="pill pill-eo">Éolien</span></span></div>
+        <div class="row-line"><span style="color:var(--mu)">Coût de prod.</span><span>45 €/MWh</span></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title" style="margin-bottom:14px">Détail financier</div>
+      <table>
+        <thead><tr><th>DÉSIGNATION</th><th>QUANTITÉ</th><th>PRIX UNITAIRE</th><th style="text-align:right">TOTAL</th></tr></thead>
+        <tbody><tr><td>Énergie — Parc éolien Nord (Éolien)</td><td>80 MWh</td><td>72 €/MWh</td><td style="text-align:right"><strong>5 760 €</strong></td></tr></tbody>
+      </table>
+      <div style="margin-top:14px;border-top:1px solid var(--bd);padding-top:6px">
+        <div class="row-line"><span style="color:var(--mu)">Coût de production</span><span>3 600 €</span></div>
+        <div class="row-line"><span style="color:var(--mu)">Prix de vente</span><span>72 €/MWh</span></div>
+        <div class="row-line" style="border-top:1px solid var(--bd);margin-top:6px;padding-top:14px;align-items:baseline"><span style="color:var(--mu)">Total encaissé</span><span style="font-size:28px;font-weight:600">5 760 €</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="x-del"><div class="modal"><h3>Supprimer la vente</h3><p style="font-size:13px;color:var(--mu)">Supprimer cette vente de 80 MWh ? Le stock sera restauré.</p>
+  <div class="modal-actions"><button class="btn btn-full" style="background:var(--err);color:#fff">Supprimer</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<script src="app.js"></script>
+</body>
+</html>

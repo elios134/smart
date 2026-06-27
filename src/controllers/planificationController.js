@@ -5,7 +5,6 @@
  * Une « session » représente une production planifiée d'énergie pour une source.
  */
 import prisma from '../../prisma/prismaClient.js';
-import { getMixEnergetique } from '../services/energieService.js'; // calcule la répartition (%) des sources d'énergie
 import { toInt, toPositiveFloat } from '../services/validators.js'; // conversion sûre des champs de formulaire
 
 // GET /planification
@@ -14,20 +13,14 @@ import { toInt, toPositiveFloat } from '../services/validators.js'; // conversio
 export async function getPlanification(req, res) {
     try {
         // Promise.all lance les 4 requêtes en parallèle pour gagner du temps.
-        const [sessions, sources, mix, fournisseurs] = await Promise.all([
+        const [sessions, sources, fournisseurs] = await Promise.all([
             prisma.sessionEnergie.findMany({
                 include: { source: true },
                 orderBy: { createdAt: 'desc' }
             }),
-            prisma.sourceEnergie.findMany({ where: { actif: true }, orderBy: { nom: 'asc' } }),
-            getMixEnergetique(),
+            prisma.sourceEnergie.findMany({ where: { actif: true }, orderBy: { nom: 'asc' } }),
             prisma.tiers.findMany({ where: { typeTiers: 'FOURNISSEUR' }, orderBy: { nom: 'asc' } })
-        ]);
-
-        // Alertes d'achat : sources dont la part dans le mix dépasse le seuil de déclenchement.
-        const alertesAchat = sources.filter(s => mix && (mix[s.type] ?? 0) >= (s.seuil?.seuilDeclenchement ?? 100));
-        // Alertes de vente : sources dont la part passe sous le seuil d'arrêt (surplus à vendre).
-        const alertesVente = sources.filter(s => mix && (mix[s.type] ?? 0) < (s.seuil?.seuilArret ?? 0));
+        ]);
 
         // Transforme chaque session en évènement pour le calendrier (titre, dates,
         // couleur selon le statut) lu côté navigateur.
@@ -47,7 +40,7 @@ export async function getPlanification(req, res) {
             user:           req.session.user,
             navActive:      'planification',
             userRole:       req.userRole,
-            sessions, sources, fournisseurs, mix, alertesAchat, alertesVente,
+            sessions, sources, fournisseurs,
             eventsCalendar: JSON.stringify(eventsCalendar)
         });
     } catch (error) {

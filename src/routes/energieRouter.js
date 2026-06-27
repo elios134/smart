@@ -7,12 +7,14 @@
 // ──────────────────────────────────────────────────────────────
 import { Router } from 'express';
 import { authMiddleware, requireRole } from '../services/authMiddleware.js';
-import { getEnergie, postAddSource, postEditSource, postDeleteSource, postSaveSeuil, postDeleteSeuil, apiGetNotifications, apiClearNotifications, apiPrixHistorique } from '../controllers/energieController.js';
+import { getEnergie, postAddSource, postImportSources, postEditSource, postDeleteSource, postSaveSeuil, postDeleteSeuil, apiGetNotifications, apiClearNotifications, apiPrixHistorique } from '../controllers/energieController.js';
 const router = Router();
 // GET /  → tableau de bord énergie (ADMIN / SUPER_ADMIN)
 router.get('/',                        authMiddleware, requireRole('SUPER_ADMIN', 'ADMIN'), getEnergie);
 // POST /sources/add  → ajoute une source d'énergie (ADMIN / SUPER_ADMIN)
 router.post('/sources/add',            authMiddleware, requireRole('SUPER_ADMIN', 'ADMIN'), postAddSource);
+// POST /sources/import  → crée les sources manquantes depuis le mix ENTSO-E (ADMIN / SUPER_ADMIN)
+router.post('/sources/import',         authMiddleware, requireRole('SUPER_ADMIN', 'ADMIN'), postImportSources);
 // POST /sources/:id/edit  → modifie la source :id (ADMIN / SUPER_ADMIN)
 router.post('/sources/:id/edit',       authMiddleware, requireRole('SUPER_ADMIN', 'ADMIN'), postEditSource);
 // POST /sources/:id/delete  → supprime la source :id (SUPER_ADMIN uniquement)

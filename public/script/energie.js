@@ -24,6 +24,32 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
+    // ── Donut du mix national (onglet Mix, affiché dès le chargement) ──
+    // Les % sont lus depuis les attributs data-* du <canvas> (rendus par Twig).
+    // Aucune requête serveur : pure présentation de données déjà dans la page.
+    (function renderMixDonut() {
+        var canvas = document.getElementById('chart-mix');
+        if (!canvas || typeof Chart === 'undefined') return;
+        var d = canvas.dataset;
+        var defs = [
+            { key: 'eolien',      label: 'Éolien',      color: '#4F8AFF' },
+            { key: 'solaire',     label: 'Solaire',     color: '#FFB34F' },
+            { key: 'hydraulique', label: 'Hydraulique', color: '#2FEEA8' },
+            { key: 'nucleaire',   label: 'Nucléaire',   color: '#7782A3' }
+        ];
+        var labels = [], values = [], colors = [];
+        defs.forEach(function (t) {
+            var v = parseFloat(d[t.key]);
+            if (!isNaN(v)) { labels.push(t.label); values.push(v); colors.push(t.color); }
+        });
+        if (!values.length) return; // Aucune valeur exploitable → on n'affiche pas de donut.
+        new Chart(canvas, {
+            type: 'doughnut',
+            data: { labels: labels, datasets: [{ data: values, backgroundColor: colors, borderColor: '#161B2E', borderWidth: 3 }] },
+            options: { responsive: true, maintainAspectRatio: false, cutout: '66%', plugins: { legend: { display: false } } }
+        });
+    })();
+
     // ── Graphique prix énergie (chargé à l'ouverture du tab) ─────
     var prixChart = null;    // Référence au graphique Chart.js (pour pouvoir le détruire/recréer).
     var prixCharge = false;  // Évite de recharger les données à chaque clic sur l'onglet.

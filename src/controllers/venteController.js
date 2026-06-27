@@ -21,10 +21,15 @@ export async function getVentes(req, res) {
             prisma.tiers.findMany({ where: { typeTiers: 'CLIENT' }, orderBy: { nom: 'asc' } })
         ]);
 
+        const totalCA = ventes.reduce((acc, v) => acc + v.total, 0);
         const kpis = {
-            chiffreAffaires: Math.round(ventes.reduce((acc, v) => acc + v.total, 0) * 100) / 100,
+            chiffreAffaires: Math.round(totalCA * 100) / 100,
             nbVentes:        ventes.length,
-            panierMoyen:     ventes.length > 0 ? Math.round((ventes.reduce((acc, v) => acc + v.total, 0) / ventes.length) * 100) / 100 : 0
+            panierMoyen:     ventes.length > 0 ? Math.round((totalCA / ventes.length) * 100) / 100 : 0,
+            // Volume total vendu (somme des quantités) et marge nette (prix encaissé
+            // − coût de production de chaque vente). Calculés, jamais stockés.
+            volumeVendu:     Math.round(ventes.reduce((acc, v) => acc + v.quantite, 0) * 100) / 100,
+            margeNette:      Math.round(ventes.reduce((acc, v) => acc + (v.total - (v.quantite * (v.source?.coutProduction ?? 0))), 0) * 100) / 100
         };
 
         res.render('pages/ventes.twig', {

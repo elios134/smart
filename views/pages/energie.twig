@@ -61,7 +61,7 @@
 								:
 								{{ a.mixPct }}% — sous le seuil d'arrêt</div>
 						</div>
-						<span class="badge badge-red">VENDRE</span>
+						<a href="/ventes?source={{ a.source.id }}" class="btn btn-danger">Vendre</a>
 					</div>
 				{% endfor %}
 			</div>
@@ -91,7 +91,14 @@
 						</div>
 					</div>
 					{# Un encart par type d'énergie, affiché uniquement si présent dans le mix. #}
-					<div class="cours-kpis">
+					<div class="mix-donut-wrap">
+							<canvas id="chart-mix" role="img" aria-label="Repartition du mix energetique national"
+								data-eolien="{{ mixObj.EOLIEN ?? '' }}"
+								data-solaire="{{ mixObj.SOLAIRE ?? '' }}"
+								data-hydraulique="{{ mixObj.HYDRAULIQUE ?? '' }}"
+								data-nucleaire="{{ mixObj.NUCLEAIRE ?? '' }}"></canvas>
+						</div>
+						<div class="cours-kpis">
 						{% if mixObj.EOLIEN is defined %}
 							<div class="cours-kpi">
 								<div class="cours-kpi__label">Éolien</div>
@@ -129,7 +136,12 @@
 				<div class="card__header">
 					<span class="card__title">Sources d'énergie</span>
 					{# data-modal-open ouvre la fenêtre (modale) correspondante, définie plus bas. #}
-					<button class="btn btn-primary" data-modal-open="modal-source-add">Ajouter</button>
+					<div style="display:flex; gap:10px;">
+						<form method="POST" action="/energie/sources/import" style="margin:0;">
+							<button type="submit" class="btn btn-outline">Importer depuis le mix</button>
+						</form>
+						<button class="btn btn-primary" data-modal-open="modal-source-add">Ajouter</button>
+					</div>
 				</div>
 				<table class="table--sm-hide-2-3-4">
 					<thead>
@@ -139,6 +151,7 @@
 							<th>Coût prod.</th>
 							<th>Mix actuel</th>
 							<th>Stock</th>
+							<th>Auto</th>
 							<th>Statut</th>
 							<th>Actions</th>
 						</tr>
@@ -165,6 +178,13 @@
 								<td>{{ s.stock.quantite ?? 0 }}
 									MWh</td>
 								<td>
+										{% if s.seuil and s.seuil.declenchementAuto %}
+											<label class="toggle"><input type="checkbox" checked disabled><span class="toggle__track"></span><span class="toggle__thumb"></span></label>
+										{% else %}
+											<span class="badge badge-muted">—</span>
+										{% endif %}
+									</td>
+									<td>
 									{% if s.actif %}
 										<span class="badge badge-green">ACTIF</span>
 									{% else %}
@@ -175,7 +195,7 @@
 									{# Bouton "Modifier" : data-action = URL du formulaire, data-fields = valeurs
 									   pré-remplies dans la modale (JSON lu par le script générique des modales),
 									   data-actif = état de la case Actif (lu par energie.js). #}
-									<button class="btn btn-outline" data-modal-open="modal-source-edit" data-form="form-source-edit" data-action="/energie/sources/{{ s.id }}/edit" data-fields='{"edit-s-nom":"{{ s.nom }}","edit-s-cout":"{{ s.coutProduction }}","edit-s-couleur":"{{ s.couleur }}","edit-s-type":"{{ s.type }}"}' data-actif="{{ s.actif ? '1' : '0' }}">
+									<button class="btn btn-outline" data-modal-open="modal-source-edit" data-form="form-source-edit" data-action="/energie/sources/{{ s.id }}/edit" data-fields='{"edit-s-nom":"{{ s.nom }}","edit-s-cout":"{{ s.coutProduction }}","edit-s-cap":"{{ s.capaciteMax }}","edit-s-couleur":"{{ s.couleur }}","edit-s-type":"{{ s.type }}"}' data-actif="{{ s.actif ? '1' : '0' }}">
 										Modifier
 									</button>
 									{# Suppression réservée au SUPER_ADMIN (double sécurité avec le routeur). #}
@@ -188,7 +208,7 @@
 							</tr>
 						{% else %}
 							<tr>
-								<td colspan="7" class="empty-state">Aucune source configurée</td>
+								<td colspan="8" class="empty-state">Aucune source configurée</td>
 							</tr>
 						{% endfor %}
 					</tbody>
@@ -309,6 +329,8 @@
 				</div>
 				<div class="form-group">
 					<label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" min="0" name="coutProduction" placeholder="45.00"></div>
+					<div class="form-group">
+						<label class="form-label">Capacité max de stockage (MWh)</label><input class="form-input" type="number" step="0.01" min="0" name="capaciteMax" placeholder="1000"></div>
 				<div class="form-group">
 					<label class="form-label">Couleur</label><input class="form-input" type="color" name="couleur" value="#4F8AFF"></div>
 				<div class="form-actions">
@@ -339,6 +361,8 @@
 				</div>
 				<div class="form-group">
 					<label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" min="0" id="edit-s-cout" name="coutProduction"></div>
+					<div class="form-group">
+						<label class="form-label">Capacité max de stockage (MWh)</label><input class="form-input" type="number" step="0.01" min="0" id="edit-s-cap" name="capaciteMax"></div>
 				<div class="form-group">
 					<label class="form-label">Couleur</label><input class="form-input" type="color" id="edit-s-couleur" name="couleur"></div>
 				<div class="form-group">

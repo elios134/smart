@@ -30,6 +30,7 @@ function buildSourceData(body) {
         nom: (body.nom || '').trim(),                  // Nom nettoyé (espaces de début/fin retirés).
         type: body.type,                               // Type d'énergie (vérifié plus loin par isOneOf).
         coutProduction: cout === null ? 0 : cout,      // Coût invalide → on met 0 par défaut.
+        capaciteMax: toPositiveFloat(body.capaciteMax),// Capacité max de stockage (MWh) — null si non renseignée.
         couleur: body.couleur || '#4F8AFF'             // Couleur d'affichage (bleu par défaut).
     };
 }
@@ -73,6 +74,34 @@ export async function postAddSource(req, res) {
         await prisma.sourceEnergie.create({ data }); // Enregistrement en base.
         res.redirect('/energie?success=Source ajoutée');
     } catch (e) { console.error(e); res.redirect('/energie?error=Erreur ajout source'); }
+}
+
+// POST /energie/sources/import
+// Crée automatiquement une source par type d'énergie détecté dans le mix ENTSO-E.
+// On n'importe que les types gérés par l'app (TYPES_SOURCE) et seulement ceux qui
+// n'existent pas encore en base, pour éviter les doublons. Le coût de production
+// reste à renseigner ensuite (donnée interne, absente de l'API).
+export async function postImportSources(req, res) {
+    try {
+        const mix = await getMixEnergetique();
+        if (!mix) return res.redirect('/energie?error=Mix indisponible — réessayez plus tard');
+
+        // Types déjà présents en base → on les exclut pour ne rien dupliquer.
+        const existantes = await prisma.sourceEnergie.findMany({ select: { type: true } });
+        const typesExistants = new Set(existantes.map(s => s.type));
+
+        // Libellés lisibles utilisés comme nom de la source créée.
+        const LABELS = { EOLIEN: 'Éolien', SOLAIRE: 'Solaire', HYDRAULIQUE: 'Hydraulique', HYDROGENE: 'Hydrogène', RESEAU: 'Réseau' };
+
+        // Clés du mix gardées : type géré par l'app + absent en base (on ignore _totalMW, NUCLEAIRE, etc.).
+        const aCreer = Object.keys(mix).filter(t => TYPES_SOURCE.includes(t) && !typesExistants.has(t));
+        if (!aCreer.length) return res.redirect('/energie?success=Aucune nouvelle source à importer');
+
+        await prisma.sourceEnergie.createMany({
+            data: aCreer.map(t => ({ nom: LABELS[t] || t, type: t, coutProduction: 0, couleur: '#4F8AFF' }))
+        });
+        res.redirect(`/energie?success=${aCreer.length} source(s) importée(s) depuis le mix`);
+    } catch (e) { console.error(e); res.redirect('/energie?error=Erreur lors de l\'import des sources'); }
 }
 
 // POST /energie/sources/:id/edit
