@@ -27,6 +27,18 @@ document.addEventListener('DOMContentLoaded', function () {
         cal.render();
     }
 
+    // Ouverture auto de la modale "Planifier" via /planification?source=ID
+    // (bouton "Produire" d'une alerte de la page Energie). Pre-selectionne la source.
+    var presetSource = new URLSearchParams(window.location.search).get('source');
+    if (presetSource) {
+        var sModal = document.getElementById('modal-session-add');
+        var sSelect = sModal ? sModal.querySelector('select[name="sourceId"]') : null;
+        if (sModal && sSelect) {
+            sSelect.value = presetSource;
+            sModal.classList.add('open');
+        }
+    }
+
     // ── Modal Créer achat depuis session terminée ─────────────
     document.querySelectorAll('[data-modal-open="modal-creer-achat"]').forEach(function (btn) {
         btn.addEventListener('click', function () {

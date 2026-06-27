@@ -49,6 +49,21 @@
 
 		{# Cartes d'alerte : affichées seulement si le contrôleur a détecté des sources
 		   dont la part dans le mix est passée sous le seuil d'arrêt (→ il faut vendre). #}
+		{% if alertesProduction %}
+			<div class="energie-alertes">
+				{% for a in alertesProduction %}
+					<div class="alerte-card alerte-card--achat">
+						<div>
+							<div class="alerte-card__badge">Signal production</div>
+							<div class="alerte-card__name">{{ a.source.nom }}</div>
+							<div class="alerte-card__sub">Mix {{ a.source.type }} : {{ a.mixPct }}% — au-dessus du seuil de déclenchement</div>
+						</div>
+						<a href="/planification?source={{ a.source.id }}" class="btn btn-primary">Produire</a>
+					</div>
+				{% endfor %}
+			</div>
+		{% endif %}
+
 		{% if alertes %}
 			<div class="energie-alertes">
 				{% for a in alertes %}

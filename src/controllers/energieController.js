@@ -51,12 +51,14 @@ export async function getEnergie(req, res) {
         // On garde les sources qui ont un seuil, un mix disponible, et dont la part
         // actuelle (mix[s.type]) est inférieure au seuil d'arrêt → ce sont les alertes.
         const alertes = sources.filter(s => s.seuil && mix && (mix[s.type] ?? 0) < s.seuil.seuilArret).map(s => ({ source: s, mixPct: mix?.[s.type] ?? 0 }));
+        // Alertes de production : part dans le mix AU-DESSUS du seuil de déclenchement → bon moment pour produire.
+        const alertesProduction = sources.filter(s => s.seuil && mix && (mix[s.type] ?? 0) >= s.seuil.seuilDeclenchement).map(s => ({ source: s, mixPct: mix?.[s.type] ?? 0 }));
         // On envoie toutes ces données à la vue Twig qui construira la page HTML.
         // mix est passé deux fois : en texte JSON (pour le JS du navigateur) et en objet (pour Twig).
         // apiConfigured : la clé ENTSO-E est-elle renseignée ? Permet de distinguer
         // « non configurée » (clé absente) de « temporairement indisponible » (clé OK mais API muette).
         const apiConfigured = !!(process.env.ENTSOE_API_KEY && process.env.ENTSOE_API_KEY.trim());
-        res.render('pages/energie.twig', { title: 'Énergie', user: req.session.user, navActive: 'energie', userRole: req.userRole, sources, seuils, mix: mix ? JSON.stringify(mix) : 'null', mixObj: mix, alertes, apiConfigured });
+        res.render('pages/energie.twig', { title: 'Énergie', user: req.session.user, navActive: 'energie', userRole: req.userRole, sources, seuils, mix: mix ? JSON.stringify(mix) : 'null', mixObj: mix, alertes, alertesProduction, apiConfigured });
     } catch (error) {
         // En cas d'erreur, on évite la page blanche : on renvoie à l'accueil avec un message.
         console.error(error);
