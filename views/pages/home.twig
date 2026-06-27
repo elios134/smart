@@ -22,20 +22,20 @@
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-card__value">{{ kpis.mwhProduits }}</div>
-            <div class="stat-card__label">MWh produits aujourd'hui</div>
+            <div class="stat-card__label"><i class="ti ti-bolt"></i> MWh produits aujourd'hui</div>
         </div>
         <div class="stat-card">
             <div class="stat-card__value">{{ kpis.mwhStockes }}</div>
-            <div class="stat-card__label">MWh stockés</div>
+            <div class="stat-card__label"><i class="ti ti-stack-2"></i> MWh stockés</div>
         </div>
         {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
         <div class="stat-card">
             <div class="stat-card__value">{{ kpis.caAujourdhui }} €</div>
-            <div class="stat-card__label">CA ventes aujourd'hui</div>
+            <div class="stat-card__label"><i class="ti ti-cash"></i> CA ventes aujourd'hui</div>
         </div>
         <div class="stat-card">
             <div class="stat-card__value">{{ kpis.margeAujourdhui }} €</div>
-            <div class="stat-card__label">Marge aujourd'hui</div>
+            <div class="stat-card__label"><i class="ti ti-chart-pie"></i> Marge aujourd'hui</div>
         </div>
         {% endif %}
     </div>
@@ -132,8 +132,8 @@
     <!-- Employés -->
     <div class="card">
         <div class="card__header">
-            <span class="card__title">Employés</span>
-            <button class="btn btn-primary" data-modal-open="modal-employe-add">Ajouter</button>
+            <span class="card__title"><i class="ti ti-users"></i> Employés</span>
+            <button class="btn btn-primary" data-modal-open="modal-employe-add"><i class="ti ti-plus"></i> Ajouter</button>
         </div>
         <table class="table--sm-hide-2">
             <thead>
