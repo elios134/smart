@@ -45,7 +45,7 @@
                                 <span style="font-size:12px;color:var(--muted);">{{ pct }}%</span>
                             </div>
                         {% else %}
-                            <span class="badge badge-muted">—</span>
+                            {% if userRole != 'OPERATEUR' %}<a href="/energie" class="link" title="Définir une capacité max sur la source">définir</a>{% else %}<span class="badge badge-muted">—</span>{% endif %}
                         {% endif %}
                     </td>
                     <td>{{ s.coutProduction }} €</td>

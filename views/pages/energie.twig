@@ -75,6 +75,8 @@
 					{# Badge "LIVE" si l'API a répondu (mixObj non nul), sinon badge "non configurée". #}
 					{% if mixObj %}
 						<span class="badge badge-green">LIVE ENTSO-E</span>
+					{% elseif apiConfigured %}
+						<span class="badge badge-muted">ENTSO-E indisponible</span>
 					{% else %}
 						<span class="badge badge-muted">API non configurée</span>
 					{% endif %}
@@ -125,7 +127,7 @@
 						{% endif %}
 					</div>
 				{% else %}
-					<p class="empty-state">Configurez ENTSOE_API_KEY dans votre .env pour activer les données temps réel</p>
+					{% if apiConfigured %}<p class="empty-state">Données ENTSO-E momentanément indisponibles — réseau lent ou service surchargé. Réessayez dans un instant.</p>{% else %}<p class="empty-state">Configurez ENTSOE_API_KEY dans votre .env pour activer les données temps réel</p>{% endif %}
 				{% endif %}
 			</div>
 		</div>
