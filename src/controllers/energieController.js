@@ -17,7 +17,7 @@
  */
 import prisma from '../../prisma/prismaClient.js';
 // Fonctions du service énergie (logique métier : mix temps réel, notifications).
-import { getMixEnergetique, getNotifications, clearNotifications } from '../services/energieService.js';
+import { getMixEnergetique, getNotifications, clearNotifications, notifEvents } from '../services/energieService.js';
 // Petits outils de validation/conversion (nettoyer un nombre, vérifier une valeur autorisée…).
 import { toPositiveFloat, toInt, isOneOf, TYPES_SOURCE, STATUTS_ACTIF } from '../services/validators.js';
 
@@ -254,4 +254,22 @@ export async function apiGetNotifications(req, res) {
 export async function apiClearNotifications(req, res) {
     await clearNotifications();
     res.json({ ok: true });
+}
+
+// GET /energie/notifications/stream
+// Flux SSE (Server-Sent Events) : garde la connexion ouverte et pousse un
+// évènement à chaque nouvelle notification. Le client recharge alors la liste.
+export function streamNotifications(req, res) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    if (res.flushHeaders) res.flushHeaders();
+    res.write('retry: 10000\n\n'); // délai de reconnexion conseillé au navigateur
+
+    const onNew = () => res.write('event: notif\ndata: 1\n\n');
+    notifEvents.on('new', onNew);
+    // Battement régulier pour garder la connexion vivante (proxies, timeouts).
+    const ping = setInterval(() => res.write(': ping\n\n'), 30000);
+
+    req.on('close', () => { clearInterval(ping); notifEvents.off('new', onNew); });
 }

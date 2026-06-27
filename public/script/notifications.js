@@ -52,7 +52,14 @@
             .catch(function (err) { console.warn('[notifications] effacement impossible :', err); });
     });
 
-    // Polling toutes les 5 minutes pour le badge
+    // Chargement initial + polling de secours toutes les 5 minutes.
     fetchNotifications();
     setInterval(fetchNotifications, 5 * 60 * 1000);
+
+    // Push temps réel via SSE : on recharge la liste dès qu'une notification arrive
+    // (le navigateur reconnecte tout seul ; le polling ci-dessus reste un filet).
+    try {
+        var es = new EventSource('/energie/notifications/stream');
+        es.addEventListener('notif', function () { fetchNotifications(); });
+    } catch (e) { /* EventSource indisponible → le polling suffit. */ }
 })();

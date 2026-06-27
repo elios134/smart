@@ -19,6 +19,11 @@
 import prisma from '../../prisma/prismaClient.js';
 // Petit outil qui transforme du texte XML (le format renvoyé par ENTSO-E) en objet JavaScript.
 import { XMLParser } from 'fast-xml-parser';
+import { EventEmitter } from 'node:events';
+
+// Émetteur d'événements pour pousser les notifications en temps réel (SSE) aux
+// clients connectés. Le contrôleur s'y abonne ; pushNotification y émet 'new'.
+export const notifEvents = new EventEmitter();
 
 // Configuration du lecteur XML.
 const xmlParser = new XMLParser({
@@ -64,6 +69,8 @@ export async function pushNotification(type, message) {
         // On ne garde que MAX_NOTIFS éléments : pop() retire le plus ancien (en fin de tableau).
         if (_notifications.length > MAX_NOTIFS) _notifications.pop();
     }
+    // Signale aux clients connectés (SSE) qu'une notification vient d'arriver.
+    notifEvents.emit('new');
 }
 
 /**
