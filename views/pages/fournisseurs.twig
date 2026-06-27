@@ -10,73 +10,132 @@
     {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
     {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
 
-    <div class="card">
-        <div class="card__header">
-            <span class="card__title">Gestion des Fournisseurs & Clients</span>
-            {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
-            <button class="btn btn-primary" data-modal-open="modal-fournisseur-add">Ajouter</button>
-            {% endif %}
+    <div class="page-header">
+        <h1 class="page-header__title">Clients &amp; Fournisseurs</h1>
+    </div>
+
+    {# Deux onglets pour séparer clairement les deux types de tiers (modèle Tiers.typeTiers). #}
+    <div class="page-tabs-bar">
+        <a class="page-tab active" data-tab="fournisseurs" href="#">Fournisseurs</a>
+        <a class="page-tab" data-tab="clients" href="#">Clients</a>
+    </div>
+
+    {# ── ONGLET FOURNISSEURS ── #}
+    <div id="tab-fournisseurs" class="tab-panel active">
+        <div class="card">
+            <div class="card__header">
+                <span class="card__title">Fournisseurs d'énergie</span>
+                {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
+                <button class="btn btn-primary" data-modal-open="modal-fournisseur-add" data-fields='{"add-f-type":"FOURNISSEUR"}'><i class="ti ti-plus"></i> Ajouter un fournisseur</button>
+                {% endif %}
+            </div>
+            <table class="table--sm-hide-3-4-5">
+                <thead>
+                    <tr>
+                        <th>Nom</th><th>Contact</th><th>Mail</th><th>Téléphone</th><th>Délai (j)</th>
+                        {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}<th>Actions</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fournisseurs if f.typeTiers != 'CLIENT' %}
+                    <tr>
+                        <td>{{ f.nom }}</td>
+                        <td>{{ f.nomContact ?? '—' }}</td>
+                        <td>{{ f.mail ?? '—' }}</td>
+                        <td>{{ f.telephone ?? '—' }}</td>
+                        <td>{{ f.delaiLivraison ?? '—' }}</td>
+                        {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
+                        <td class="row-actions">
+                            <button class="btn btn-outline"
+                                data-modal-open="modal-fournisseur-edit"
+                                data-form="form-fournisseur-edit"
+                                data-action="/fournisseurs/{{ f.id }}/edit"
+                                data-fields='{"edit-f-nom":"{{ f.nom }}","edit-f-type":"{{ f.typeTiers }}","edit-f-contact":"{{ f.nomContact ?? "" }}","edit-f-fonction":"{{ f.fonctionContact ?? "" }}","edit-f-mail":"{{ f.mail ?? "" }}","edit-f-tel":"{{ f.telephone ?? "" }}","edit-f-delai":"{{ f.delaiLivraison ?? "" }}","edit-f-notes":"{{ f.notes ?? "" }}"}'>
+                                Modifier
+                            </button>
+                            {% if userRole == 'SUPER_ADMIN' %}
+                            <button class="btn btn-danger"
+                                data-modal-open="modal-fournisseur-delete"
+                                data-form="form-fournisseur-delete"
+                                data-action="/fournisseurs/{{ f.id }}/delete"
+                                data-confirm-text="Supprimer {{ f.nom }} ?"
+                                data-confirm-target="delete-fournisseur-text">
+                                Supprimer
+                            </button>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="6" class="empty-state">Aucun fournisseur enregistré</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        <table class="table--sm-hide-3-4-5-6">
-            <thead>
-                <tr>
-                    <th>Nom</th><th>Type</th><th>Contact</th><th>Mail</th><th>Téléphone</th>
-                    <th>Délai (j)</th>{% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}<th>Actions</th>{% endif %}
-                </tr>
-            </thead>
-            <tbody>
-                {% for f in fournisseurs %}
-                <tr>
-                    <td>{{ f.nom }}</td>
-                    <td>
-                        {% if f.typeTiers == 'CLIENT' %}
-                            <span class="badge badge-green">CLIENT</span>
-                        {% else %}
-                            <span class="badge badge-blue">FOURNISSEUR</span>
+    </div>
+
+    {# ── ONGLET CLIENTS ── #}
+    <div id="tab-clients" class="tab-panel">
+        <div class="card">
+            <div class="card__header">
+                <span class="card__title">Clients acheteurs</span>
+                {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
+                <button class="btn btn-primary" data-modal-open="modal-fournisseur-add" data-fields='{"add-f-type":"CLIENT"}'><i class="ti ti-plus"></i> Ajouter un client</button>
+                {% endif %}
+            </div>
+            <table class="table--sm-hide-3-4">
+                <thead>
+                    <tr>
+                        <th>Nom</th><th>Contact</th><th>Mail</th><th>Téléphone</th>
+                        {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}<th>Actions</th>{% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in fournisseurs if f.typeTiers == 'CLIENT' %}
+                    <tr>
+                        <td>{{ f.nom }}</td>
+                        <td>{{ f.nomContact ?? '—' }}</td>
+                        <td>{{ f.mail ?? '—' }}</td>
+                        <td>{{ f.telephone ?? '—' }}</td>
+                        {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
+                        <td class="row-actions">
+                            <button class="btn btn-outline"
+                                data-modal-open="modal-fournisseur-edit"
+                                data-form="form-fournisseur-edit"
+                                data-action="/fournisseurs/{{ f.id }}/edit"
+                                data-fields='{"edit-f-nom":"{{ f.nom }}","edit-f-type":"{{ f.typeTiers }}","edit-f-contact":"{{ f.nomContact ?? "" }}","edit-f-fonction":"{{ f.fonctionContact ?? "" }}","edit-f-mail":"{{ f.mail ?? "" }}","edit-f-tel":"{{ f.telephone ?? "" }}","edit-f-delai":"{{ f.delaiLivraison ?? "" }}","edit-f-notes":"{{ f.notes ?? "" }}"}'>
+                                Modifier
+                            </button>
+                            {% if userRole == 'SUPER_ADMIN' %}
+                            <button class="btn btn-danger"
+                                data-modal-open="modal-fournisseur-delete"
+                                data-form="form-fournisseur-delete"
+                                data-action="/fournisseurs/{{ f.id }}/delete"
+                                data-confirm-text="Supprimer {{ f.nom }} ?"
+                                data-confirm-target="delete-fournisseur-text">
+                                Supprimer
+                            </button>
+                            {% endif %}
+                        </td>
                         {% endif %}
-                    </td>
-                    <td>{{ f.nomContact ?? '—' }}</td>
-                    <td>{{ f.mail ?? '—' }}</td>
-                    <td>{{ f.telephone ?? '—' }}</td>
-                    <td>{{ f.delaiLivraison ?? '—' }}</td>
-                    {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
-                    <td>
-                        <button class="btn btn-outline"
-                            data-modal-open="modal-fournisseur-edit"
-                            data-form="form-fournisseur-edit"
-                            data-action="/fournisseurs/{{ f.id }}/edit"
-                            data-fields='{"edit-f-nom":"{{ f.nom }}","edit-f-contact":"{{ f.nomContact ?? "" }}","edit-f-fonction":"{{ f.fonctionContact ?? "" }}","edit-f-mail":"{{ f.mail ?? "" }}","edit-f-tel":"{{ f.telephone ?? "" }}","edit-f-delai":"{{ f.delaiLivraison ?? "" }}","edit-f-notes":"{{ f.notes ?? "" }}"}'>
-                            Modifier
-                        </button>
-                        {% if userRole == 'SUPER_ADMIN' %}
-                        <button class="btn btn-danger"
-                            data-modal-open="modal-fournisseur-delete"
-                            data-form="form-fournisseur-delete"
-                            data-action="/fournisseurs/{{ f.id }}/delete"
-                            data-confirm-text="Supprimer {{ f.nom }} ?"
-                            data-confirm-target="delete-fournisseur-text">
-                            Supprimer
-                        </button>
-                        {% endif %}
-                    </td>
-                    {% endif %}
-                </tr>
-                {% else %}
-                <tr><td colspan="7" class="empty-state">Aucun fournisseur ou client enregistré</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="5" class="empty-state">Aucun client enregistré</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
 {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
 <div id="modal-fournisseur-add" class="modal-backdrop">
     <div class="modal">
-        <h3 class="modal__title">Ajouter un fournisseur / client</h3>
+        <h3 class="modal__title">Ajouter un tiers</h3>
         <form method="POST" action="/fournisseurs/add">
             <div class="form-group"><label class="form-label">Nom *</label><input class="form-input" type="text" name="nom" required></div>
             <div class="form-group"><label class="form-label">Type *</label>
-                <select class="form-select" name="typeTiers" required>
+                <select class="form-select" id="add-f-type" name="typeTiers" required>
                     <option value="FOURNISSEUR">Fournisseur d'énergie</option>
                     <option value="CLIENT">Client acheteur</option>
                 </select>
@@ -101,11 +160,11 @@
 
 <div id="modal-fournisseur-edit" class="modal-backdrop">
     <div class="modal">
-        <h3 class="modal__title">Modifier</h3>
+        <h3 class="modal__title">Modifier le tiers</h3>
         <form id="form-fournisseur-edit" method="POST" action="">
             <div class="form-group"><label class="form-label">Nom *</label><input class="form-input" type="text" id="edit-f-nom" name="nom" required></div>
             <div class="form-group"><label class="form-label">Type *</label>
-                <select class="form-select" name="typeTiers" required>
+                <select class="form-select" id="edit-f-type" name="typeTiers" required>
                     <option value="FOURNISSEUR">Fournisseur d'énergie</option>
                     <option value="CLIENT">Client acheteur</option>
                 </select>
@@ -130,7 +189,7 @@
 
 <div id="modal-fournisseur-delete" class="modal-backdrop">
     <div class="modal">
-        <h3 class="modal__title">Supprimer le fournisseur</h3>
+        <h3 class="modal__title">Supprimer le tiers</h3>
         <p id="delete-fournisseur-text" class="modal__confirm-text"></p>
         <form id="form-fournisseur-delete" method="POST" action="">
             <div class="form-actions">
@@ -141,4 +200,20 @@
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block script %}
+{# Onglets Fournisseurs / Clients (même motif que les autres pages à onglets). #}
+<script>
+document.querySelectorAll('[data-tab]').forEach(function (tab) {
+    tab.addEventListener('click', function (e) {
+        e.preventDefault();
+        document.querySelectorAll('[data-tab]').forEach(function (t) { t.classList.remove('active'); });
+        document.querySelectorAll('.tab-panel').forEach(function (p) { p.classList.remove('active'); });
+        tab.classList.add('active');
+        var panel = document.getElementById('tab-' + tab.dataset.tab);
+        if (panel) panel.classList.add('active');
+    });
+});
+</script>
 {% endblock %}
