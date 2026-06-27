@@ -73,10 +73,10 @@ describe("1. AUTHENTIFICATION", () => {
         expectRedirect(res, "/home");
     });
 
-    it("1.3 — POST /login avec ADMIN est refusé (doit passer par /employes/login)", async () => {
+    it("1.3 POST /login ADMIN -> /home (login unifie)", async () => {
         const res = await supertest(app).post("/login").type("form")
             .send({ email: "test-manager@smart.fr", password: PASSWORD });
-        expectOk(res); // render login.twig avec erreur
+        expectRedirect(res, "/home");
     });
 
     it("1.4 — POST /login avec mauvais mot de passe échoue", async () => {

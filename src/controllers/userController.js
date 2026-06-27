@@ -28,7 +28,7 @@ export async function getLogin(req, res) {
 }
 
 // POST /login — authentification par mail
-// Vérifie le mail et le mot de passe. Cet accès est réservé au Super-Admin :
+// Login unifie : tout role (SUPER_ADMIN/ADMIN/OPERATEUR) se connecte ici.
 // en cas d'échec on ré-affiche le login avec un message d'erreur générique.
 export async function postLogin(req, res) {
     try {
@@ -36,12 +36,11 @@ export async function postLogin(req, res) {
 
         const user = await prisma.user.findUnique({ where: { mail } });
         if (!user) throw new Error("Mail introuvable");
-        if (user.role !== "SUPER_ADMIN") throw new Error("Accès réservé au Super-Admin — utilisez /employes/login");
 
         if (!await bcrypt.compare(password, user.password)) throw new Error("Mot de passe invalide");
-
-        // On ne garde que l'id en session ; le middleware rechargera les infos à jour.
-        req.session.user = user.id;
+        // Login unifie : tout role se connecte ici. Cle de session selon le role.
+        if (user.role === "SUPER_ADMIN") req.session.user = user.id;
+        else req.session.employe = user.id;
         res.redirect("/home");
     } catch (error) {
         console.error(error);
