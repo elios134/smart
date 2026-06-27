@@ -49,6 +49,21 @@
 
 		{# Cartes d'alerte : affichées seulement si le contrôleur a détecté des sources
 		   dont la part dans le mix est passée sous le seuil d'arrêt (→ il faut vendre). #}
+		{% if alertesProduction %}
+			<div class="energie-alertes">
+				{% for a in alertesProduction %}
+					<div class="alerte-card alerte-card--achat">
+						<div>
+							<div class="alerte-card__badge">Signal production</div>
+							<div class="alerte-card__name">{{ a.source.nom }}</div>
+							<div class="alerte-card__sub">Mix {{ a.source.type }} : {{ a.mixPct }}% — au-dessus du seuil de déclenchement</div>
+						</div>
+						<a href="/planification?source={{ a.source.id }}" class="btn btn-primary">Produire</a>
+					</div>
+				{% endfor %}
+			</div>
+		{% endif %}
+
 		{% if alertes %}
 			<div class="energie-alertes">
 				{% for a in alertes %}
@@ -61,7 +76,7 @@
 								:
 								{{ a.mixPct }}% — sous le seuil d'arrêt</div>
 						</div>
-						<span class="badge badge-red">VENDRE</span>
+						<a href="/ventes?source={{ a.source.id }}" class="btn btn-danger">Vendre</a>
 					</div>
 				{% endfor %}
 			</div>
@@ -75,6 +90,8 @@
 					{# Badge "LIVE" si l'API a répondu (mixObj non nul), sinon badge "non configurée". #}
 					{% if mixObj %}
 						<span class="badge badge-green">LIVE ENTSO-E</span>
+					{% elseif apiConfigured %}
+						<span class="badge badge-muted">ENTSO-E indisponible</span>
 					{% else %}
 						<span class="badge badge-muted">API non configurée</span>
 					{% endif %}
@@ -91,34 +108,41 @@
 						</div>
 					</div>
 					{# Un encart par type d'énergie, affiché uniquement si présent dans le mix. #}
-					<div class="cours-kpis">
+					<div class="mix-donut-wrap">
+							<canvas id="chart-mix" role="img" aria-label="Repartition du mix energetique national"
+								data-eolien="{{ mixObj.EOLIEN ?? '' }}"
+								data-solaire="{{ mixObj.SOLAIRE ?? '' }}"
+								data-hydraulique="{{ mixObj.HYDRAULIQUE ?? '' }}"
+								data-nucleaire="{{ mixObj.NUCLEAIRE ?? '' }}"></canvas>
+						</div>
+						<div class="cours-kpis">
 						{% if mixObj.EOLIEN is defined %}
 							<div class="cours-kpi">
-								<div class="cours-kpi__label">Éolien</div>
+								<div class="cours-kpi__label"><i class="ti ti-wind" style="color:var(--color-primary);font-size:13px;vertical-align:-1px"></i> Éolien</div>
 								<div class="cours-kpi__value">{{ mixObj.EOLIEN }}%</div>
 							</div>
 						{% endif %}
 						{% if mixObj.SOLAIRE is defined %}
 							<div class="cours-kpi">
-								<div class="cours-kpi__label">Solaire</div>
+								<div class="cours-kpi__label"><i class="ti ti-sun" style="color:var(--color-warning);font-size:13px;vertical-align:-1px"></i> Solaire</div>
 								<div class="cours-kpi__value">{{ mixObj.SOLAIRE }}%</div>
 							</div>
 						{% endif %}
 						{% if mixObj.HYDRAULIQUE is defined %}
 							<div class="cours-kpi">
-								<div class="cours-kpi__label">Hydraulique</div>
+								<div class="cours-kpi__label"><i class="ti ti-ripple" style="color:var(--color-success);font-size:13px;vertical-align:-1px"></i> Hydraulique</div>
 								<div class="cours-kpi__value">{{ mixObj.HYDRAULIQUE }}%</div>
 							</div>
 						{% endif %}
 						{% if mixObj.NUCLEAIRE is defined %}
 							<div class="cours-kpi">
-								<div class="cours-kpi__label">Nucléaire</div>
+								<div class="cours-kpi__label"><i class="ti ti-atom-2" style="color:var(--muted);font-size:13px;vertical-align:-1px"></i> Nucléaire</div>
 								<div class="cours-kpi__value">{{ mixObj.NUCLEAIRE }}%</div>
 							</div>
 						{% endif %}
 					</div>
 				{% else %}
-					<p class="empty-state">Configurez ENTSOE_API_KEY dans votre .env pour activer les données temps réel</p>
+					{% if apiConfigured %}<p class="empty-state">Données ENTSO-E momentanément indisponibles — réseau lent ou service surchargé. Réessayez dans un instant.</p>{% else %}<p class="empty-state">Configurez ENTSOE_API_KEY dans votre .env pour activer les données temps réel</p>{% endif %}
 				{% endif %}
 			</div>
 		</div>
@@ -129,9 +153,14 @@
 				<div class="card__header">
 					<span class="card__title">Sources d'énergie</span>
 					{# data-modal-open ouvre la fenêtre (modale) correspondante, définie plus bas. #}
-					<button class="btn btn-primary" data-modal-open="modal-source-add">Ajouter</button>
+					<div style="display:flex; gap:10px;">
+						<form method="POST" action="/energie/sources/import" style="margin:0;">
+							<button type="submit" class="btn btn-outline"><i class="ti ti-download"></i> Importer depuis le mix</button>
+						</form>
+						<button class="btn btn-primary" data-modal-open="modal-source-add"><i class="ti ti-plus"></i> Ajouter</button>
+					</div>
 				</div>
-				<table class="table--sm-hide-2-3-4">
+				<table class="js-table table--sm-hide-2-3-4">
 					<thead>
 						<tr>
 							<th>Source</th>
@@ -139,6 +168,7 @@
 							<th>Coût prod.</th>
 							<th>Mix actuel</th>
 							<th>Stock</th>
+							<th>Auto</th>
 							<th>Statut</th>
 							<th>Actions</th>
 						</tr>
@@ -165,6 +195,13 @@
 								<td>{{ s.stock.quantite ?? 0 }}
 									MWh</td>
 								<td>
+										{% if s.seuil and s.seuil.declenchementAuto %}
+											<label class="toggle"><input type="checkbox" checked disabled><span class="toggle__track"></span><span class="toggle__thumb"></span></label>
+										{% else %}
+											<span class="badge badge-muted">—</span>
+										{% endif %}
+									</td>
+									<td>
 									{% if s.actif %}
 										<span class="badge badge-green">ACTIF</span>
 									{% else %}
@@ -175,7 +212,7 @@
 									{# Bouton "Modifier" : data-action = URL du formulaire, data-fields = valeurs
 									   pré-remplies dans la modale (JSON lu par le script générique des modales),
 									   data-actif = état de la case Actif (lu par energie.js). #}
-									<button class="btn btn-outline" data-modal-open="modal-source-edit" data-form="form-source-edit" data-action="/energie/sources/{{ s.id }}/edit" data-fields='{"edit-s-nom":"{{ s.nom }}","edit-s-cout":"{{ s.coutProduction }}","edit-s-couleur":"{{ s.couleur }}","edit-s-type":"{{ s.type }}"}' data-actif="{{ s.actif ? '1' : '0' }}">
+									<button class="btn btn-outline" data-modal-open="modal-source-edit" data-form="form-source-edit" data-action="/energie/sources/{{ s.id }}/edit" data-fields='{"edit-s-nom":"{{ s.nom }}","edit-s-cout":"{{ s.coutProduction }}","edit-s-cap":"{{ s.capaciteMax }}","edit-s-couleur":"{{ s.couleur }}","edit-s-type":"{{ s.type }}"}' data-actif="{{ s.actif ? '1' : '0' }}">
 										Modifier
 									</button>
 									{# Suppression réservée au SUPER_ADMIN (double sécurité avec le routeur). #}
@@ -188,7 +225,7 @@
 							</tr>
 						{% else %}
 							<tr>
-								<td colspan="7" class="empty-state">Aucune source configurée</td>
+								<td colspan="8" class="empty-state">Aucune source configurée</td>
 							</tr>
 						{% endfor %}
 					</tbody>
@@ -201,9 +238,9 @@
 			<div class="card">
 				<div class="card__header">
 					<span class="card__title">Configuration des seuils</span>
-					<button class="btn btn-primary" data-modal-open="modal-seuil-add">Configurer</button>
+					<button class="btn btn-primary" data-modal-open="modal-seuil-add"><i class="ti ti-adjustments-horizontal"></i> Configurer</button>
 				</div>
-				<table class="table--sm-hide-3-4">
+				<table class="js-table table--sm-hide-3-4">
 					<thead>
 						<tr>
 							<th>Source</th>
@@ -309,6 +346,8 @@
 				</div>
 				<div class="form-group">
 					<label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" min="0" name="coutProduction" placeholder="45.00"></div>
+					<div class="form-group">
+						<label class="form-label">Capacité max de stockage (MWh)</label><input class="form-input" type="number" step="0.01" min="0" name="capaciteMax" placeholder="1000"></div>
 				<div class="form-group">
 					<label class="form-label">Couleur</label><input class="form-input" type="color" name="couleur" value="#4F8AFF"></div>
 				<div class="form-actions">
@@ -339,6 +378,8 @@
 				</div>
 				<div class="form-group">
 					<label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" step="0.01" min="0" id="edit-s-cout" name="coutProduction"></div>
+					<div class="form-group">
+						<label class="form-label">Capacité max de stockage (MWh)</label><input class="form-input" type="number" step="0.01" min="0" id="edit-s-cap" name="capaciteMax"></div>
 				<div class="form-group">
 					<label class="form-label">Couleur</label><input class="form-input" type="color" id="edit-s-couleur" name="couleur"></div>
 				<div class="form-group">

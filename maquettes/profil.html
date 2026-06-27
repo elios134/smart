@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart-Yield — Profil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <span class="brand">Smart-Yield</span>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="planification.html">Planification</a>
+    <a href="energie.html">Énergie</a>
+    <a href="stock.html">Stock</a>
+    <a href="ventes.html">Ventes</a>
+    <a href="reporting.html">Reporting</a>
+    <span style="margin-left:auto" class="role">SUPER_ADMIN</span>
+    <i class="ti ti-bell" style="color:#9AA4C0"></i>
+    <a href="profil.html" class="on" style="color:var(--tx)">Bonjour, André</a>
+  </nav>
+  <div class="main" style="display:flex;justify-content:center">
+    <div style="width:100%;max-width:480px">
+      <div class="card" style="text-align:center">
+        <div style="width:64px;height:64px;border-radius:50%;background:rgba(79,138,255,.16);color:#9FB4FF;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:600;margin:0 auto">AB</div>
+        <div style="font-size:18px;font-weight:600;margin-top:12px">André Bribanick</div>
+        <div style="font-size:13px;color:var(--mu);margin-top:2px">andrebribanick@gmail.com</div>
+        <span class="role" style="display:inline-block;margin-top:10px">SUPER_ADMIN</span>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">Informations</div>
+        <div class="grid-2"><div class="form-group"><label class="form-label">Prénom</label><input class="form-input" value="André"></div><div class="form-group"><label class="form-label">Nom</label><input class="form-input" value="Bribanick"></div></div>
+        <div class="form-group"><label class="form-label">Adresse mail</label><input class="form-input" value="andrebribanick@gmail.com"></div>
+        <div class="form-group"><label class="form-label">Raison sociale</label><input class="form-input" value="Smart-Yield Énergie SAS"></div>
+        <div class="grid-2"><div class="form-group"><label class="form-label">SIRET</label><input class="form-input ro" value="901 234 567 00018" readonly></div><div class="form-group"><label class="form-label">Dirigeant</label><input class="form-input" value="André Bribanick"></div></div>
+        <button class="btn">Sauvegarder</button>
+      </div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:16px">Mot de passe</div>
+        <div class="form-group"><label class="form-label">Mot de passe actuel</label><div class="eye-wrap"><input class="form-input" type="password" value="motdepasse"><button class="eye" data-eye aria-label="Afficher"><i class="ti ti-eye"></i></button></div></div>
+        <div class="form-group"><label class="form-label">Nouveau mot de passe</label><div class="eye-wrap"><input class="form-input" type="password" value="motdepasse"><button class="eye" data-eye aria-label="Afficher"><i class="ti ti-eye"></i></button></div></div>
+        <div class="form-group"><label class="form-label">Confirmer</label><div class="eye-wrap"><input class="form-input" type="password" value="motdepasse"><button class="eye" data-eye aria-label="Afficher"><i class="ti ti-eye"></i></button></div></div>
+        <button class="btn-ghost" style="width:auto;padding:11px 16px">Changer le mot de passe</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

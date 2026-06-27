@@ -17,7 +17,7 @@
  */
 import prisma from '../../prisma/prismaClient.js';
 // Fonctions du service énergie (logique métier : mix temps réel, notifications).
-import { getMixEnergetique, getNotifications, clearNotifications } from '../services/energieService.js';
+import { getMixEnergetique, getNotifications, clearNotifications, notifEvents } from '../services/energieService.js';
 // Petits outils de validation/conversion (nettoyer un nombre, vérifier une valeur autorisée…).
 import { toPositiveFloat, toInt, isOneOf, TYPES_SOURCE, STATUTS_ACTIF } from '../services/validators.js';
 
@@ -30,6 +30,7 @@ function buildSourceData(body) {
         nom: (body.nom || '').trim(),                  // Nom nettoyé (espaces de début/fin retirés).
         type: body.type,                               // Type d'énergie (vérifié plus loin par isOneOf).
         coutProduction: cout === null ? 0 : cout,      // Coût invalide → on met 0 par défaut.
+        capaciteMax: toPositiveFloat(body.capaciteMax),// Capacité max de stockage (MWh) — null si non renseignée.
         couleur: body.couleur || '#4F8AFF'             // Couleur d'affichage (bleu par défaut).
     };
 }
@@ -50,9 +51,14 @@ export async function getEnergie(req, res) {
         // On garde les sources qui ont un seuil, un mix disponible, et dont la part
         // actuelle (mix[s.type]) est inférieure au seuil d'arrêt → ce sont les alertes.
         const alertes = sources.filter(s => s.seuil && mix && (mix[s.type] ?? 0) < s.seuil.seuilArret).map(s => ({ source: s, mixPct: mix?.[s.type] ?? 0 }));
+        // Alertes de production : part dans le mix AU-DESSUS du seuil de déclenchement → bon moment pour produire.
+        const alertesProduction = sources.filter(s => s.seuil && mix && (mix[s.type] ?? 0) >= s.seuil.seuilDeclenchement).map(s => ({ source: s, mixPct: mix?.[s.type] ?? 0 }));
         // On envoie toutes ces données à la vue Twig qui construira la page HTML.
         // mix est passé deux fois : en texte JSON (pour le JS du navigateur) et en objet (pour Twig).
-        res.render('pages/energie.twig', { title: 'Énergie', user: req.session.user, navActive: 'energie', userRole: req.userRole, sources, seuils, mix: mix ? JSON.stringify(mix) : 'null', mixObj: mix, alertes });
+        // apiConfigured : la clé ENTSO-E est-elle renseignée ? Permet de distinguer
+        // « non configurée » (clé absente) de « temporairement indisponible » (clé OK mais API muette).
+        const apiConfigured = !!(process.env.ENTSOE_API_KEY && process.env.ENTSOE_API_KEY.trim());
+        res.render('pages/energie.twig', { title: 'Énergie', user: req.session.user, navActive: 'energie', userRole: req.userRole, sources, seuils, mix: mix ? JSON.stringify(mix) : 'null', mixObj: mix, alertes, alertesProduction, apiConfigured });
     } catch (error) {
         // En cas d'erreur, on évite la page blanche : on renvoie à l'accueil avec un message.
         console.error(error);
@@ -73,6 +79,34 @@ export async function postAddSource(req, res) {
         await prisma.sourceEnergie.create({ data }); // Enregistrement en base.
         res.redirect('/energie?success=Source ajoutée');
     } catch (e) { console.error(e); res.redirect('/energie?error=Erreur ajout source'); }
+}
+
+// POST /energie/sources/import
+// Crée automatiquement une source par type d'énergie détecté dans le mix ENTSO-E.
+// On n'importe que les types gérés par l'app (TYPES_SOURCE) et seulement ceux qui
+// n'existent pas encore en base, pour éviter les doublons. Le coût de production
+// reste à renseigner ensuite (donnée interne, absente de l'API).
+export async function postImportSources(req, res) {
+    try {
+        const mix = await getMixEnergetique();
+        if (!mix) return res.redirect('/energie?error=Mix indisponible — réessayez plus tard');
+
+        // Types déjà présents en base → on les exclut pour ne rien dupliquer.
+        const existantes = await prisma.sourceEnergie.findMany({ select: { type: true } });
+        const typesExistants = new Set(existantes.map(s => s.type));
+
+        // Libellés lisibles utilisés comme nom de la source créée.
+        const LABELS = { EOLIEN: 'Éolien', SOLAIRE: 'Solaire', HYDRAULIQUE: 'Hydraulique', HYDROGENE: 'Hydrogène', RESEAU: 'Réseau' };
+
+        // Clés du mix gardées : type géré par l'app + absent en base (on ignore _totalMW, NUCLEAIRE, etc.).
+        const aCreer = Object.keys(mix).filter(t => TYPES_SOURCE.includes(t) && !typesExistants.has(t));
+        if (!aCreer.length) return res.redirect('/energie?success=Aucune nouvelle source à importer');
+
+        await prisma.sourceEnergie.createMany({
+            data: aCreer.map(t => ({ nom: LABELS[t] || t, type: t, coutProduction: 0, couleur: '#4F8AFF' }))
+        });
+        res.redirect(`/energie?success=${aCreer.length} source(s) importée(s) depuis le mix`);
+    } catch (e) { console.error(e); res.redirect('/energie?error=Erreur lors de l\'import des sources'); }
 }
 
 // POST /energie/sources/:id/edit
@@ -220,4 +254,22 @@ export async function apiGetNotifications(req, res) {
 export async function apiClearNotifications(req, res) {
     await clearNotifications();
     res.json({ ok: true });
+}
+
+// GET /energie/notifications/stream
+// Flux SSE (Server-Sent Events) : garde la connexion ouverte et pousse un
+// évènement à chaque nouvelle notification. Le client recharge alors la liste.
+export function streamNotifications(req, res) {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    if (res.flushHeaders) res.flushHeaders();
+    res.write('retry: 10000\n\n'); // délai de reconnexion conseillé au navigateur
+
+    const onNew = () => res.write('event: notif\ndata: 1\n\n');
+    notifEvents.on('new', onNew);
+    // Battement régulier pour garder la connexion vivante (proxies, timeouts).
+    const ping = setInterval(() => res.write(': ping\n\n'), 30000);
+
+    req.on('close', () => { clearInterval(ping); notifEvents.off('new', onNew); });
 }

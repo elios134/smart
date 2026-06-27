@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart-Yield — Maquettes de refonte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(240px,1fr)); gap:14px; margin-top:22px; }
+  .tile { display:block; text-decoration:none; color:inherit; background:var(--sf); border:1px solid var(--bd); border-radius:12px; padding:20px; transition:border-color .15s; }
+  .tile:hover { border-color:var(--pri); }
+  .tile i { font-size:24px; color:var(--pri); }
+  .tile .t { font-size:15px; font-weight:600; margin-top:12px; }
+  .tile .d { font-size:12px; color:var(--mu); margin-top:4px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <span class="brand">Smart-Yield</span>
+    <span style="font-size:13px; color:var(--mu);">Maquettes de refonte</span>
+    <span style="margin-left:auto" class="role">PROTOTYPE</span>
+  </nav>
+  <div class="main">
+    <h1 class="page-h1">Maquettes de refonte</h1>
+    <div class="page-sub">Prototype navigable — base visuelle pour la refonte complète de l'interface</div>
+    <div class="grid">
+      <a class="tile" href="dashboard.html"><i class="ti ti-layout-dashboard"></i><div class="t">Dashboard</div><div class="d">KPI, mix en direct, employés</div></a>
+      <a class="tile" href="planification.html"><i class="ti ti-calendar"></i><div class="t">Planification</div><div class="d">Calendrier + sessions</div></a>
+      <a class="tile" href="energie.html"><i class="ti ti-bolt"></i><div class="t">Énergie</div><div class="d">Mix, sources, seuils, prix</div></a>
+      <a class="tile" href="stock.html"><i class="ti ti-stack-2"></i><div class="t">Stock</div><div class="d">Stock, jauges, achats</div></a>
+      <a class="tile" href="ventes.html"><i class="ti ti-cash"></i><div class="t">Ventes</div><div class="d">Historique, nouvelle vente</div></a>
+      <a class="tile" href="vente-detail.html"><i class="ti ti-file-invoice"></i><div class="t">Détail vente</div><div class="d">Facture</div></a>
+      <a class="tile" href="reporting.html"><i class="ti ti-chart-bar"></i><div class="t">Reporting</div><div class="d">CA vs coûts, besoins</div></a>
+      <a class="tile" href="profil.html"><i class="ti ti-user"></i><div class="t">Profil</div><div class="d">Identité, mot de passe</div></a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

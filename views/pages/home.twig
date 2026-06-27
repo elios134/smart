@@ -14,23 +14,60 @@
     {% if flash.success %}<div class="toast toast-success">✓ {{ flash.success }}</div>{% endif %}
     {% if flash.error %}<div class="toast toast-error">✕ {{ flash.error }}</div>{% endif %}
 
+    <div class="page-header">
+        <h1 class="page-header__title">Vue d'ensemble</h1>
+    </div>
+
     <!-- KPIs -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-card__value">{{ kpis.mwhProduits }}</div>
-            <div class="stat-card__label">MWh produits aujourd'hui</div>
+            <div class="stat-card__label"><i class="ti ti-bolt"></i> MWh produits aujourd'hui</div>
         </div>
         <div class="stat-card">
             <div class="stat-card__value">{{ kpis.mwhStockes }}</div>
-            <div class="stat-card__label">MWh stockés</div>
+            <div class="stat-card__label"><i class="ti ti-stack-2"></i> MWh stockés</div>
         </div>
         {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
         <div class="stat-card">
             <div class="stat-card__value">{{ kpis.caAujourdhui }} €</div>
-            <div class="stat-card__label">CA ventes aujourd'hui</div>
+            <div class="stat-card__label"><i class="ti ti-cash"></i> CA ventes aujourd'hui</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-card__value">{{ kpis.margeAujourdhui }} €</div>
+            <div class="stat-card__label"><i class="ti ti-chart-pie"></i> Marge aujourd'hui</div>
         </div>
         {% endif %}
     </div>
+
+    {# Mix national en direct (ENTSO-E). Affiché seulement si le service a renvoyé des données. #}
+    {% if mixObj %}
+    <div class="card">
+        <div class="card__header">
+            <span class="card__title">Mix national en direct</span>
+            <span class="badge badge-green">LIVE ENTSO-E</span>
+        </div>
+        {% set mixBars = [
+            { label: 'Éolien',      val: mixObj.EOLIEN,      couleur: 'var(--color-primary)' },
+            { label: 'Solaire',     val: mixObj.SOLAIRE,     couleur: 'var(--color-warning)' },
+            { label: 'Hydraulique', val: mixObj.HYDRAULIQUE, couleur: 'var(--color-success)' },
+            { label: 'Nucléaire',   val: mixObj.NUCLEAIRE,   couleur: 'var(--muted)' }
+        ] %}
+        {% for bar in mixBars if bar.val is not null %}
+        <div style="margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px;">
+                <span>{{ bar.label }}</span><span style="color:var(--muted);">{{ bar.val }}%</span>
+            </div>
+            <div style="height:8px;background:var(--bg);border-radius:6px;overflow:hidden;">
+                <div style="width:{{ bar.val }}%;height:100%;background:{{ bar.couleur }};border-radius:6px;"></div>
+            </div>
+        </div>
+        {% endfor %}
+        <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);">
+            Total réseau : {{ mixObj._totalMW }} MW — {{ mixObj._fetchedAt }}
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Sources actives -->
     <div class="card">
@@ -64,12 +101,39 @@
         </table>
     </div>
 
+    {% if userRole == 'SUPER_ADMIN' or userRole == 'ADMIN' %}
+    <!-- Dernières ventes -->
+    <div class="card">
+        <div class="card__header">
+            <span class="card__title">Dernières ventes</span>
+            <a href="/ventes" class="card__link">Tout voir →</a>
+        </div>
+        <table class="table--sm-hide-2">
+            <thead>
+                <tr><th>Source</th><th>Client</th><th>Quantité</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+                {% for v in dernieresVentes %}
+                <tr>
+                    <td>{{ v.source.nom }}</td>
+                    <td>{{ v.tiers ? v.tiers.nom : '—' }}</td>
+                    <td>{{ v.quantite }} MWh</td>
+                    <td><strong>{{ v.total }} €</strong></td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="empty-state">Aucune vente enregistrée</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
     {% if userRole == 'SUPER_ADMIN' %}
     <!-- Employés -->
     <div class="card">
         <div class="card__header">
-            <span class="card__title">Employés</span>
-            <button class="btn btn-primary" data-modal-open="modal-employe-add">Ajouter</button>
+            <span class="card__title"><i class="ti ti-users"></i> Employés</span>
+            <button class="btn btn-primary" data-modal-open="modal-employe-add"><i class="ti ti-plus"></i> Ajouter</button>
         </div>
         <table class="table--sm-hide-2">
             <thead>

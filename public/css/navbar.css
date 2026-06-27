@@ -10,11 +10,19 @@
   border-bottom: 1px solid var(--border);
 }
 
+.navbar__brand {
+  font-weight: 600;
+  font-size: 14px;
+  color: #fff;
+  text-decoration: none;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
 .navbar__greeting {
   font-size: 13px;
   color: var(--muted);
   white-space: nowrap;
-  margin-right: 12px;
   flex-shrink: 0;
 }
 
@@ -32,9 +40,9 @@
 
 /* Boutons navigation — pills avec bordure */
 .nav-btn {
-  padding: 6px 18px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border);
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 0;
   background: transparent;
   color: var(--muted);
   font-family: inherit;
@@ -42,19 +50,16 @@
   font-weight: 500;
   cursor: pointer;
   text-decoration: none;
-  transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
+  transition: color 150ms ease, background 150ms ease;
   display: inline-block;
   white-space: nowrap;
 }
 .nav-btn:hover {
-  border-color: var(--blue-bd);
   color: var(--text);
-  background: color-mix(in srgb, var(--color-surface-bright) 45%, transparent);
 }
 .nav-btn.active {
-  background: var(--text-link);
-  border-color: var(--text-link);
-  color: #fff;
+  background: var(--surface2);
+  color: var(--text);
 }
 
 /* Partie droite de la navbar */
@@ -95,16 +100,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px; height: 36px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border);
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  border: 0;
   background: transparent;
   color: var(--muted);
   cursor: pointer;
-  transition: border-color .15s, color .15s;
+  font-size: 18px;
+  transition: color .15s;
   flex-shrink: 0;
 }
-.notif-bell:hover { border-color: var(--blue-bd); color: var(--text); }
+.notif-bell:hover { color: var(--text); }
 
 .notif-badge {
   position: absolute;

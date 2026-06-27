@@ -73,10 +73,10 @@ describe("1. AUTHENTIFICATION", () => {
         expectRedirect(res, "/home");
     });
 
-    it("1.3 — POST /login avec ADMIN est refusé (doit passer par /employes/login)", async () => {
+    it("1.3 POST /login ADMIN -> /home (login unifie)", async () => {
         const res = await supertest(app).post("/login").type("form")
             .send({ email: "test-manager@smart.fr", password: PASSWORD });
-        expectOk(res); // render login.twig avec erreur
+        expectRedirect(res, "/home");
     });
 
     it("1.4 — POST /login avec mauvais mot de passe échoue", async () => {
@@ -221,6 +221,18 @@ describe("4. ENERGIE", () => {
         const res = await agent.post("/energie/seuils/save").type("form").send({
             sourceId: 1, seuilDeclenchement: 25, seuilArret: 10, statut: "ACTIF"
         });
+        assert.equal(res.status, 302);
+    });
+
+    it("4.6 — SUPER_ADMIN peut importer les sources depuis le mix", async () => {
+        const agent = await loginSuperAdmin();
+        const res = await agent.post("/energie/sources/import").type("form").send({});
+        assert.equal(res.status, 302);
+    });
+
+    it("4.7 — OPERATEUR ne peut PAS importer les sources", async () => {
+        const agent = await loginOperateur();
+        const res = await agent.post("/energie/sources/import").type("form").send({});
         assert.equal(res.status, 302);
     });
 });

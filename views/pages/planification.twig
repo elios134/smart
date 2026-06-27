@@ -17,31 +17,29 @@
 
     <script id="calendar-events-data" type="application/json">{{ eventsCalendar|raw }}</script>
 
-    <div class="page-tabs">
-        <a class="page-tab active" data-tab="planification" href="#">Calendrier</a>
-        <a class="page-tab" data-tab="sessions" href="#">Sessions</a>
-        <a class="page-tab" data-tab="cours" href="#">Mix ENTSO-E</a>
+    <div class="page-header">
+        <h1 class="page-header__title">Planification</h1>
     </div>
 
     <!-- ── TAB CALENDRIER ── -->
-    <div id="tab-planification" class="tab-panel active">
+    <div>
         <div class="card">
             <div class="card__header">
                 <span class="card__title">Planning des sessions de production</span>
-                <button class="btn btn-primary" data-modal-open="modal-session-add">Planifier</button>
+                <button class="btn btn-primary" data-modal-open="modal-session-add"><i class="ti ti-plus"></i> Planifier</button>
             </div>
             <div id="calendar"></div>
         </div>
     </div>
 
     <!-- ── TAB SESSIONS ── -->
-    <div id="tab-sessions" class="tab-panel">
+    <div>
         <div class="card">
             <div class="card__header">
                 <span class="card__title">Toutes les sessions</span>
-                <button class="btn btn-primary" data-modal-open="modal-session-add">Planifier</button>
+                <button class="btn btn-primary" data-modal-open="modal-session-add"><i class="ti ti-plus"></i> Planifier</button>
             </div>
-            <table class="table--sm-hide-1-4-5-6-7">
+            <table class="js-table table--sm-hide-1-4-5-6-7">
                 <thead>
                     <tr>
                         <th>Titre</th><th>Source</th><th>MWh prévus</th><th>MWh produits</th>
@@ -111,61 +109,6 @@
                     {% endfor %}
                 </tbody>
             </table>
-        </div>
-    </div>
-
-    <!-- ── TAB COURS MIX ── -->
-    <div id="tab-cours" class="tab-panel">
-        <div class="card">
-            <div class="card__header">
-                <span class="card__title">Mix de production national — France</span>
-                {% if mix %}
-                    <span class="badge badge-green">LIVE ENTSO-E</span>
-                {% else %}
-                    <span class="badge badge-muted">API non configurée</span>
-                {% endif %}
-            </div>
-
-            {% if alertesAchat %}
-            <div class="alertes-grid">
-                {% for s in alertesAchat %}
-                <div class="alerte-card alerte-card--achat">
-                    <div>
-                        <div class="alerte-card__badge">Signal production</div>
-                        <div class="alerte-card__name">{{ s.nom }}</div>
-                        <div class="alerte-card__sub">Mix {{ s.type }} élevé — bon moment pour produire</div>
-                    </div>
-                    <span class="badge badge-blue">PRODUIRE</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {% if alertesVente %}
-            <div class="alertes-grid">
-                {% for s in alertesVente %}
-                <div class="alerte-card alerte-card--vente">
-                    <div>
-                        <div class="alerte-card__badge">Signal vente</div>
-                        <div class="alerte-card__name">{{ s.nom }}</div>
-                        <div class="alerte-card__sub">Mix {{ s.type }} bas — envisager la revente</div>
-                    </div>
-                    <span class="badge badge-red">VENDRE</span>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            {% if mix %}
-            <div class="cours-kpis">
-                {% if mix.EOLIEN is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Éolien</div><div class="cours-kpi__value">{{ mix.EOLIEN }}%</div></div>{% endif %}
-                {% if mix.SOLAIRE is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Solaire</div><div class="cours-kpi__value">{{ mix.SOLAIRE }}%</div></div>{% endif %}
-                {% if mix.HYDRAULIQUE is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Hydraulique</div><div class="cours-kpi__value">{{ mix.HYDRAULIQUE }}%</div></div>{% endif %}
-                {% if mix.NUCLEAIRE is defined %}<div class="cours-kpi"><div class="cours-kpi__label">Nucléaire</div><div class="cours-kpi__value">{{ mix.NUCLEAIRE }}%</div></div>{% endif %}
-            </div>
-            {% else %}
-            <p class="empty-state">Configurez ENTSOE_API_KEY dans votre .env pour activer les données temps réel</p>
-            {% endif %}
         </div>
     </div>
 

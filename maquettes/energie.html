@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart-Yield — Énergie</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <span class="brand">Smart-Yield</span>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="planification.html">Planification</a>
+    <a href="energie.html" class="on">Énergie</a>
+    <a href="stock.html">Stock</a>
+    <a href="ventes.html">Ventes</a>
+    <a href="reporting.html">Reporting</a>
+    <span style="margin-left:auto" class="role">SUPER_ADMIN</span>
+    <i class="ti ti-bell" style="color:#9AA4C0"></i>
+    <a href="profil.html" style="color:var(--mu)">Bonjour, André</a>
+  </nav>
+  <div class="main has-tabs">
+    <h1 class="page-h1">Pilotage énergétique</h1>
+    <div class="page-sub"><span class="dot"></span> Temps réel — ENTSO-E</div>
+    <div class="tabs">
+      <button class="ptab on" data-tab="p-mix">Mix ENTSO-E</button>
+      <button class="ptab" data-tab="p-src">Sources</button>
+      <button class="ptab" data-tab="p-seu">Seuils</button>
+      <button class="ptab" data-tab="p-prx">Prix énergie</button>
+    </div>
+
+    <div class="panel on" id="p-mix">
+      <div class="alert alert-vente">
+        <i class="ti ti-alert-triangle" style="font-size:20px;color:var(--err)"></i>
+        <div style="flex:1"><div style="font-weight:600">Alerte vente — Centrale solaire Sud</div><div style="font-size:12px;color:var(--mu)">Mix solaire à 7% — sous le seuil d'arrêt.</div></div>
+        <a class="btn" href="ventes.html" style="background:var(--err);color:#fff">Vendre</a>
+      </div>
+      <div class="card">
+        <div class="card-head"><span class="card-title">Mix national</span><span class="pill pill-ok">LIVE</span></div>
+        <div style="position:relative;height:200px;margin-top:8px"><canvas id="donut"></canvas></div>
+        <div style="text-align:center;margin-top:6px">
+          <span class="legend"><span class="sw" style="background:#4F8AFF"></span>Éolien 34%</span>
+          <span class="legend"><span class="sw" style="background:#7782A3"></span>Nucléaire 28%</span>
+          <span class="legend"><span class="sw" style="background:#FFB34F"></span>Solaire 18%</span>
+          <span class="legend"><span class="sw" style="background:#2FEEA8"></span>Hydraulique 11%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="p-src">
+      <div class="card">
+        <div class="card-head"><span class="card-title">Sources d'énergie</span>
+          <div style="display:flex;gap:10px"><button class="btn-line-pri" data-open="m-import"><i class="ti ti-download"></i> Importer depuis le mix</button><button class="btn" data-open="m-add">Ajouter</button></div>
+        </div>
+        <table style="margin-top:14px">
+          <thead><tr><th>SOURCE</th><th>TYPE</th><th>COÛT</th><th>MIX</th><th>STOCK</th><th>AUTO</th><th>STATUT</th><th style="text-align:right">ACTIONS</th></tr></thead>
+          <tbody>
+            <tr><td>Parc éolien Nord</td><td><span class="pill pill-eo">Éolien</span></td><td>45 €/MWh</td><td><span class="pill pill-ok">34%</span></td><td>620 MWh</td><td><span class="tg on"><i></i></span></td><td><span class="pill pill-ok">Actif</span></td><td style="text-align:right"><button class="btn-outline" data-open="m-edit">Modifier</button> <button class="btn-danger" data-open="m-del">Supprimer</button></td></tr>
+            <tr><td>Centrale solaire Sud</td><td><span class="pill pill-so">Solaire</span></td><td>38 €/MWh</td><td><span class="pill pill-blue">18%</span></td><td>410 MWh</td><td><span class="tg off"><i></i></span></td><td><span class="pill pill-ok">Actif</span></td><td style="text-align:right"><button class="btn-outline" data-open="m-edit">Modifier</button> <button class="btn-danger" data-open="m-del">Supprimer</button></td></tr>
+            <tr><td>Réseau secours</td><td><span class="pill pill-re">Réseau</span></td><td>62 €/MWh</td><td><span class="pill pill-mut">—</span></td><td>0 MWh</td><td><span class="tg off"><i></i></span></td><td><span class="pill pill-mut">Inactif</span></td><td style="text-align:right"><button class="btn-outline" data-open="m-edit">Modifier</button> <button class="btn-danger" data-open="m-del">Supprimer</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel" id="p-seu">
+      <div class="card">
+        <div class="card-head"><span class="card-title">Configuration des seuils</span><button class="btn" data-open="m-seuil">Configurer</button></div>
+        <table style="margin-top:14px">
+          <thead><tr><th>SOURCE</th><th>DÉCLENCHEMENT</th><th>ARRÊT</th><th>AUTO</th><th>STATUT</th></tr></thead>
+          <tbody>
+            <tr><td>Parc éolien Nord</td><td><span class="pill pill-eo">20%</span></td><td><span class="pill pill-err">10%</span></td><td><span class="tg on"><i></i></span></td><td><span class="pill pill-ok">Actif</span></td></tr>
+            <tr><td>Centrale solaire Sud</td><td><span class="pill pill-eo">25%</span></td><td><span class="pill pill-err">12%</span></td><td><span class="tg off"><i></i></span></td><td><span class="pill pill-ok">Actif</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel" id="p-prx">
+      <div class="card"><span class="card-title">Évolution des prix — 12 mois</span><div style="position:relative;height:220px;margin-top:12px"><canvas id="prix"></canvas></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-back" id="m-add"><div class="modal"><h3>Ajouter une source d'énergie</h3>
+  <div class="form-group"><label class="form-label">Nom</label><input class="form-input" placeholder="Parc éolien…"></div>
+  <div class="form-group"><label class="form-label">Type</label><select class="form-input"><option>Éolien</option><option>Solaire</option><option>Hydraulique</option><option>Hydrogène</option><option>Réseau</option></select></div>
+  <div class="form-group"><label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" placeholder="45.00"></div>
+  <div class="form-group"><label class="form-label">Capacité max de stockage (MWh)</label><input class="form-input" type="number" placeholder="1000"></div>
+  <div class="modal-actions"><button class="btn btn-full">Ajouter</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<div class="modal-back" id="m-edit"><div class="modal"><h3>Modifier la source</h3>
+  <div class="form-group"><label class="form-label">Nom</label><input class="form-input" value="Parc éolien Nord"></div>
+  <div class="form-group"><label class="form-label">Coût de production (€/MWh)</label><input class="form-input" type="number" value="45"></div>
+  <div class="form-group"><label class="form-label">Capacité max de stockage (MWh)</label><input class="form-input" type="number" value="760"></div>
+  <div class="form-group" style="display:flex;justify-content:space-between;align-items:center"><label class="form-label" style="margin:0">Actif</label><span class="tg on"><i></i></span></div>
+  <div class="modal-actions"><button class="btn btn-full">Modifier</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<div class="modal-back" id="m-del"><div class="modal"><h3>Supprimer la source</h3><p style="font-size:13px;color:var(--mu)">Supprimer Parc éolien Nord ? Cette action est définitive.</p>
+  <div class="modal-actions"><button class="btn btn-full" style="background:var(--err);color:#fff">Supprimer</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<div class="modal-back" id="m-seuil"><div class="modal"><h3>Configurer un seuil</h3>
+  <div class="form-group"><label class="form-label">Source</label><select class="form-input"><option>Parc éolien Nord (Éolien)</option><option>Centrale solaire Sud (Solaire)</option></select></div>
+  <div class="form-group"><label class="form-label">Seuil déclenchement (% mix)</label><input class="form-input" type="number" placeholder="20"></div>
+  <div class="form-group"><label class="form-label">Seuil arrêt + vente (% mix)</label><input class="form-input" type="number" placeholder="10"></div>
+  <div class="form-group" style="display:flex;justify-content:space-between;align-items:center;background:var(--sfe);padding:12px;border-radius:9px"><span style="font-size:13px">Déclenchement automatique</span><span class="tg off"><i></i></span></div>
+  <div class="modal-actions"><button class="btn btn-full">Enregistrer</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<div class="modal-back" id="m-import"><div class="modal"><h3>Importer depuis le mix</h3>
+  <p style="font-size:13px;color:var(--mu)">1 type géré détecté dans ENTSO-E et absent de vos sources : <strong style="color:var(--tx)">Hydraulique</strong>. Créer la source ? Le coût restera à renseigner.</p>
+  <div class="modal-actions"><button class="btn btn-full">Importer 1 source</button><button class="btn-ghost" data-close>Annuler</button></div></div></div>
+
+<script src="app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+new Chart(document.getElementById('donut'),{type:'doughnut',data:{labels:['Éolien','Nucléaire','Solaire','Hydraulique','Autres'],datasets:[{data:[34,28,18,11,9],backgroundColor:['#4F8AFF','#7782A3','#FFB34F','#2FEEA8','#3A4259'],borderColor:'#161B2E',borderWidth:3}]},options:{responsive:true,maintainAspectRatio:false,cutout:'66%',plugins:{legend:{display:false}}}});
+new Chart(document.getElementById('prix'),{type:'line',data:{labels:['jan','fév','mar','avr','mai','juin','juil','aoû','sep','oct','nov','déc'],datasets:[{label:'Achat',data:[42,44,41,46,43,45,47,44,43,45,46,44],borderColor:'#4F8AFF',backgroundColor:'rgba(79,138,255,.15)',fill:true,tension:.3},{label:'Vente',data:[70,68,72,69,73,72,74,71,70,72,73,72],borderColor:'#2FEEA8',borderDash:[6,4],tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{color:'#7782A3'}},y:{grid:{color:'#252D45'},ticks:{color:'#7782A3'}}}}});
+</script>
+</body>
+</html>

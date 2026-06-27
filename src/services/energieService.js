@@ -19,6 +19,11 @@
 import prisma from '../../prisma/prismaClient.js';
 // Petit outil qui transforme du texte XML (le format renvoyé par ENTSO-E) en objet JavaScript.
 import { XMLParser } from 'fast-xml-parser';
+import { EventEmitter } from 'node:events';
+
+// Émetteur d'événements pour pousser les notifications en temps réel (SSE) aux
+// clients connectés. Le contrôleur s'y abonne ; pushNotification y émet 'new'.
+export const notifEvents = new EventEmitter();
 
 // Configuration du lecteur XML.
 const xmlParser = new XMLParser({
@@ -64,6 +69,8 @@ export async function pushNotification(type, message) {
         // On ne garde que MAX_NOTIFS éléments : pop() retire le plus ancien (en fin de tableau).
         if (_notifications.length > MAX_NOTIFS) _notifications.pop();
     }
+    // Signale aux clients connectés (SSE) qu'une notification vient d'arriver.
+    notifEvents.emit('new');
 }
 
 /**
@@ -96,6 +103,19 @@ const CACHE_TTL_MS = 60 * 60 * 1000;            // Durée de vie du cache : 1 he
 const ENTSOE_BASE = 'https://web-api.tp.entsoe.eu/api'; // URL de base de l'API.
 const FRANCE_DOMAIN = '10YFR-RTE------C';       // Code identifiant la zone "France" chez ENTSO-E.
 
+// Délai d'abandon de l'appel ENTSO-E. En production on laisse 10s (l'API peut être lente).
+// En dev/test on coupe court (3s) pour ne pas bloquer le chargement des pages quand l'API
+// est injoignable. Surchargeable via la variable d'environnement ENTSOE_TIMEOUT_MS.
+const FETCH_TIMEOUT_MS = Number(process.env.ENTSOE_TIMEOUT_MS)
+    || (process.env.NODE_ENV === 'production' ? 10000 : 3000);
+
+// Nombre de tentatives pour un même rafraîchissement. L'API ENTSO-E répond
+// normalement en moins d'1s ; quand elle est injoignable, elle ne renvoie RIEN
+// et l'appel pend jusqu'au timeout. Comme ces blocages sont intermittents, on
+// réessaie quelques fois (timeout court) avant d'abandonner. Surchargeable via
+// ENTSOE_RETRIES (1 = aucune nouvelle tentative).
+const FETCH_RETRIES = Math.max(1, Number(process.env.ENTSOE_RETRIES) || 2);
+
 // Correspondance entre les codes "type de production" d'ENTSO-E (B10, B16…)
 // et nos catégories internes lisibles. Les codes absents de cette table sont ignorés.
 const PSR_MAP = {
@@ -107,6 +127,10 @@ const PSR_MAP = {
 
 // Le cache : `data` contient le dernier mix calculé, `fetchedAt` l'heure (en ms) où on l'a obtenu.
 const cache = { data: null, fetchedAt: 0 };
+
+// Promesse du fetch en cours (anti-rafale). null = aucun fetch en cours.
+// Voir getMixEnergetique() : les appels concurrents partagent cette même promesse.
+let _inFlight = null;
 
 // Renvoie true si on a déjà des données ET qu'elles datent de moins d'1h.
 function isCacheValid() {
@@ -161,39 +185,60 @@ function parseGenerationXML(xml) {
     return result; // ex: { EOLIEN: 12, SOLAIRE: 5, NUCLEAIRE: 70, _totalMW: 45000, _fetchedAt: '...' }
 }
 
-// Appelle l'API ENTSO-E pour les dernières 24h et renvoie le mix énergétique analysé.
-// Renvoie null en cas de clé manquante, d'erreur réseau ou de réponse d'erreur de l'API.
+// UNE seule tentative d'appel à l'API ENTSO-E (fenêtre des dernières 24h).
+//  - Renvoie le mix analysé si tout va bien.
+//  - Renvoie null si l'API a RÉPONDU mais sans données exploitables (code HTTP
+//    d'erreur, balise <Reason>, mix vide) → inutile de réessayer dans ce cas.
+//  - LÈVE une exception si l'appel échoue côté réseau/timeout → cas réessayable,
+//    géré par fetchMixEnergetique().
+async function fetchMixOnce(apiKey) {
+    const now = new Date();
+    // On demande les données sur une fenêtre de 24h (de maintenant - 24h jusqu'à maintenant).
+    const start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    // Construction de l'URL avec tous les paramètres exigés par ENTSO-E :
+    // documentType=A75 (production réelle), processType=A16 (réalisé), in_Domain=France.
+    const url = `${ENTSOE_BASE}?securityToken=${apiKey}&documentType=A75&processType=A16&in_Domain=${FRANCE_DOMAIN}&periodStart=${fmtDate(start)}&periodEnd=${fmtDate(now)}`;
+    // Appel HTTP. AbortSignal.timeout = on abandonne si l'API ne répond pas dans le délai
+    // configuré (3s en dev, 10s en prod — voir FETCH_TIMEOUT_MS). Un dépassement lève
+    // une exception, attrapée par fetchMixEnergetique() pour réessayer.
+    const res = await fetch(url, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) });
+    if (!res.ok) { console.warn(`[energieService] HTTP ${res.status}`); return null; } // Code HTTP d'erreur.
+    const xml = await res.text(); // On récupère le corps de la réponse en texte (XML).
+
+    // ENTSO-E signale ses erreurs métier en mettant une balise <Reason> dans le XML.
+    if (xml.includes('<Reason>')) {
+        const parsedError = xmlParser.parse(xml);
+        // En cas d'erreur, l'enveloppe s'appelle Acknowledgement_MarketDocument.
+        const doc = parsedError.Acknowledgement_MarketDocument || parsedError;
+        // Il peut y avoir plusieurs raisons : on sécurise l'accès à la première.
+        const reason = Array.isArray(doc.Reason) ? doc.Reason[0] : doc.Reason;
+        console.warn('[energieService] Erreur ENTSO-E', reason?.code, ':', reason?.text);
+        return null;
+    }
+    return parseGenerationXML(xml); // Tout va bien → on analyse le XML.
+}
+
+// Appelle l'API ENTSO-E avec retry. L'API est intermittente : quand elle est
+// injoignable, elle ne répond pas du tout (l'appel pend jusqu'au timeout). Comme
+// ces blocages sont passagers, on réessaie FETCH_RETRIES fois avant d'abandonner.
+// Renvoie le mix énergétique analysé, ou null (clé manquante / API en erreur /
+// toutes les tentatives ont échoué).
 async function fetchMixEnergetique() {
     const apiKey = process.env.ENTSOE_API_KEY; // Clé d'accès, lue depuis le fichier .env.
     if (!apiKey) { console.warn('[energieService] ENTSOE_API_KEY manquant'); return null; }
-    try {
-        const now = new Date();
-        // On demande les données sur une fenêtre de 24h (de maintenant - 24h jusqu'à maintenant).
-        const start = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-        // Construction de l'URL avec tous les paramètres exigés par ENTSO-E :
-        // documentType=A75 (production réelle), processType=A16 (réalisé), in_Domain=France.
-        const url = `${ENTSOE_BASE}?securityToken=${apiKey}&documentType=A75&processType=A16&in_Domain=${FRANCE_DOMAIN}&periodStart=${fmtDate(start)}&periodEnd=${fmtDate(now)}`;
-        // Appel HTTP. AbortSignal.timeout(10000) = on abandonne si l'API ne répond pas en 10s.
-        const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
-        if (!res.ok) { console.warn(`[energieService] HTTP ${res.status}`); return null; } // Code HTTP d'erreur.
-        const xml = await res.text(); // On récupère le corps de la réponse en texte (XML).
-
-        // ENTSO-E signale ses erreurs métier en mettant une balise <Reason> dans le XML.
-        if (xml.includes('<Reason>')) {
-            const parsedError = xmlParser.parse(xml);
-            // En cas d'erreur, l'enveloppe s'appelle Acknowledgement_MarketDocument.
-            const doc = parsedError.Acknowledgement_MarketDocument || parsedError;
-            // Il peut y avoir plusieurs raisons : on sécurise l'accès à la première.
-            const reason = Array.isArray(doc.Reason) ? doc.Reason[0] : doc.Reason;
-            console.warn('[energieService] Erreur ENTSO-E', reason?.code, ':', reason?.text);
-            return null;
+    let lastErr; // Mémorise la dernière erreur réseau pour le log final.
+    for (let attempt = 1; attempt <= FETCH_RETRIES; attempt++) {
+        try {
+            // fetchMixOnce ne lève QUE pour les échecs réseau/timeout (réessayables).
+            // Tout autre cas (mix, ou null pour HTTP/Reason) sort immédiatement de la boucle.
+            return await fetchMixOnce(apiKey);
+        } catch (err) {
+            lastErr = err; // Échec réseau/timeout → on retentera si des tentatives restent.
         }
-        return parseGenerationXML(xml); // Tout va bien → on analyse le XML.
-    } catch (err) {
-        // Erreur réseau, timeout, etc. On ne fait pas planter l'app, on renvoie null.
-        console.warn('[energieService] Erreur fetch:', err.message);
-        return null;
     }
+    // Toutes les tentatives ont échoué : on ne fait pas planter l'app, on renvoie null.
+    console.warn(`[energieService] Erreur fetch (après ${FETCH_RETRIES} tentatives) :`, lastErr?.message);
+    return null;
 }
 
 /**
@@ -205,12 +250,23 @@ async function fetchMixEnergetique() {
 export async function getMixEnergetique() {
     try {
         if (isCacheValid()) return cache.data; // Données récentes en cache → on les renvoie direct.
-        const mix = await fetchMixEnergetique(); // Sinon on appelle l'API.
-        if (mix) { cache.data = mix; cache.fetchedAt = Date.now(); } // On met le cache à jour.
-        return mix;
+
+        // Anti-rafale (coalescing) : un seul appel réseau à la fois. Si plusieurs pages
+        // chargent en même temps (cache froid / expiré), elles PARTAGENT le même fetch
+        // au lieu d'en lancer chacune un → évite de spammer l'API et de se faire throttler.
+        if (!_inFlight) {
+            _inFlight = fetchMixEnergetique().finally(() => { _inFlight = null; });
+        }
+        const mix = await _inFlight; // Tous les appelants concurrents attendent la même promesse.
+
+        if (mix) { cache.data = mix; cache.fetchedAt = Date.now(); return mix; } // Succès → cache à jour.
+        // Échec du rafraîchissement : on sert la dernière donnée connue (même périmée)
+        // plutôt que rien, pour garder un affichage. Renvoie null seulement si on n'a
+        // jamais réussi un seul appel depuis le démarrage.
+        return cache.data;
     } catch (err) {
         console.error('[energieService]', err.message);
-        return null;
+        return cache.data; // En cas d'imprévu, on retombe aussi sur la dernière donnée connue.
     }
 }
 

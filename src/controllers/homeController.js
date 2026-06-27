@@ -5,6 +5,7 @@
  * puis afficher la vue du tableau de bord.
  */
 import prisma from '../../prisma/prismaClient.js';
+import { getMixEnergetique } from '../services/energieService.js';
 
 // GET /home
 // Affiche le tableau de bord : calcule les KPIs du jour à partir des données
@@ -20,23 +21,36 @@ export async function getHome(req, res) {
         // Promise.all lance les 4 requêtes en parallèle (plus rapide qu'une à une) :
         // les sources d'énergie (avec leur stock et seuil), le nombre de sessions
         // en cours, les ventes du jour et la liste des employés.
-        const [sources, sessionsEnCours, ventesAujourdhui, employes] = await Promise.all([
+        // Les ventes du jour incluent leur source pour pouvoir calculer la marge
+        // (prix encaissé − coût de production). `dernieresVentes` = 3 ventes les
+        // plus récentes affichées sur le tableau de bord (avec source et client).
+        const [sources, sessionsEnCours, ventesAujourdhui, employes, dernieresVentes, mix] = await Promise.all([
             prisma.sourceEnergie.findMany({
                 include: { stock: true, seuil: true },
                 orderBy: { nom: 'asc' }
             }),
             prisma.sessionEnergie.count({ where: { statut: 'EN_COURS' } }),
-            prisma.venteEnergie.findMany({ where: { createdAt: { gte: today } } }),
+            prisma.venteEnergie.findMany({ where: { createdAt: { gte: today } }, include: { source: true } }),
             prisma.user.findMany({
                 where:   { role: { in: ['ADMIN', 'OPERATEUR'] } },
                 orderBy: { lastName: 'asc' }
-            })
+            }),
+            prisma.venteEnergie.findMany({
+                orderBy: { createdAt: 'desc' },
+                take: 3,
+                include: { source: true, tiers: true }
+            }),
+            // Mix énergétique national en direct (service caché 1h, null-safe).
+            getMixEnergetique()
         ]);
 
         // Total d'énergie en stock (somme des quantités de chaque source).
         const mwhStockes    = sources.reduce((acc, s) => acc + (s.stock?.quantite ?? 0), 0);
         // Chiffre d'affaires du jour (somme des montants des ventes d'aujourd'hui).
         const caAujourdhui  = ventesAujourdhui.reduce((acc, v) => acc + v.total, 0);
+        // Marge du jour = CA − coût de production des ventes (quantité × coût/MWh de la source).
+        const margeAujourdhui = ventesAujourdhui.reduce(
+            (acc, v) => acc + (v.total - (v.quantite * (v.source?.coutProduction ?? 0))), 0);
 
         // Sessions de production terminées aujourd'hui, pour calculer l'énergie produite.
         const sessionsDuJour = await prisma.sessionEnergie.findMany({
@@ -57,9 +71,10 @@ export async function getHome(req, res) {
                 mwhProduits:    Math.round(mwhProduits * 100) / 100,
                 mwhStockes:     Math.round(mwhStockes * 100) / 100,
                 caAujourdhui:   Math.round(caAujourdhui * 100) / 100,
+                margeAujourdhui: Math.round(margeAujourdhui * 100) / 100,
                 sessionsEnCours
             },
-            sources, alertes, employes
+            sources, alertes, employes, dernieresVentes, mixObj: mix
         });
     } catch (error) {
         // En cas d'erreur, on affiche quand même le tableau de bord avec des
@@ -68,8 +83,8 @@ export async function getHome(req, res) {
         res.render('pages/home.twig', {
             title: 'Tableau de bord', user: req.session.user,
             navActive: 'home', userRole: req.userRole,
-            kpis: { mwhProduits: 0, mwhStockes: 0, caAujourdhui: 0, sessionsEnCours: 0 },
-            sources: [], alertes: [], employes: []
+            kpis: { mwhProduits: 0, mwhStockes: 0, caAujourdhui: 0, margeAujourdhui: 0, sessionsEnCours: 0 },
+            sources: [], alertes: [], employes: [], dernieresVentes: [], mixObj: null
         });
     }
 }

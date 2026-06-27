@@ -1,0 +1,111 @@
+/* ── Smart-Yield — Design system des maquettes de refonte ──
+   Thème sombre, tokens repris de l'app (base.css / design.md).
+   Classes globales réutilisables par tous les écrans. */
+
+:root {
+  --bg:#0C0E15; --sf:#161B2E; --sfe:#1C2237; --bd:#252D45;
+  --pri:#4F8AFF; --ok:#2FEEA8; --err:#FF4F6B; --warn:#FFB34F;
+  --tx:#E2E6F0; --mu:#7782A3;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--tx);
+  font-family: 'Manrope', system-ui, sans-serif; font-size: 14px; line-height: 1.5;
+}
+.app { min-height: 100vh; }
+
+/* ── Navbar ── */
+.nav { display:flex; align-items:center; gap:18px; padding:12px 24px; background:var(--sf); border-bottom:1px solid var(--bd); }
+.nav .brand { font-weight:600; font-size:14px; color:#fff; margin-right:4px; }
+.nav a { color:var(--mu); text-decoration:none; font-size:13px; padding:6px 10px; border-radius:8px; }
+.nav a:hover { color:var(--tx); }
+.nav a.on { color:var(--tx); background:var(--sfe); }
+.role { background:#0E1322; color:#9FB4FF; font-size:11px; padding:3px 9px; border-radius:20px; border:1px solid var(--bd); }
+
+/* ── Layout ── */
+.main { padding:24px; max-width:1180px; margin:0 auto; }
+.page-h1 { font-size:22px; font-weight:600; margin:0; }
+.page-sub { font-size:13px; color:var(--mu); margin-top:4px; display:flex; align-items:center; gap:7px; }
+.dot { width:7px; height:7px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 3px rgba(47,238,168,.18); }
+
+/* ── Onglets (texte + soulignement actif) ── */
+.tabs { display:flex; gap:26px; margin:18px 0 4px; border-bottom:1px solid var(--bd); }
+.ptab { color:var(--mu); font-size:13px; padding:0 2px 12px; position:relative; cursor:pointer; background:none; border:0; font-family:inherit; }
+.ptab.on { color:var(--tx); }
+.ptab.on::after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--pri); border-radius:2px; }
+.panel { display:none; margin-top:16px; }
+.panel.on { display:block; }
+
+/* ── Cartes ── */
+.card { background:var(--sf); border:1px solid var(--bd); border-radius:12px; padding:18px; margin-top:14px; }
+.card-head { display:flex; justify-content:space-between; align-items:center; }
+.card-title { font-size:15px; font-weight:600; }
+.link { color:var(--pri); font-size:12px; text-decoration:none; }
+
+/* ── Boutons ── */
+.btn { background:var(--pri); color:#06122E; border:0; padding:9px 16px; border-radius:9px; font-weight:600; font-size:13px; cursor:pointer; font-family:inherit; display:inline-flex; gap:7px; align-items:center; }
+.btn-line-pri { background:none; border:1px solid var(--pri); color:#9FB4FF; font-size:13px; padding:9px 14px; border-radius:9px; cursor:pointer; font-family:inherit; display:inline-flex; gap:7px; align-items:center; }
+.btn-outline { background:none; border:1px solid var(--bd); color:var(--tx); font-size:12px; padding:6px 12px; border-radius:7px; cursor:pointer; font-family:inherit; }
+.btn-danger { background:none; border:1px solid rgba(255,79,107,.4); color:#FF93A5; font-size:12px; padding:6px 12px; border-radius:7px; cursor:pointer; font-family:inherit; }
+.btn-pri-sm { background:var(--pri); color:#06122E; border:0; font-size:12px; padding:6px 11px; border-radius:7px; cursor:pointer; font-weight:600; font-family:inherit; }
+.btn-full { width:100%; justify-content:center; padding:11px; }
+.btn-ghost { background:none; border:1px solid var(--bd); color:var(--tx); padding:11px; border-radius:9px; cursor:pointer; font-size:13px; font-family:inherit; width:100%; }
+
+/* ── Tableaux ── */
+table { width:100%; border-collapse:collapse; font-size:13px; }
+th { text-align:left; color:var(--mu); font-weight:500; font-size:11px; letter-spacing:.04em; padding:0 0 10px; border-bottom:1px solid var(--bd); }
+td { padding:12px 0; border-bottom:1px solid rgba(37,45,69,.5); }
+tr:last-child td { border-bottom:0; }
+
+/* ── Pastilles ── */
+.pill { font-size:11px; padding:3px 9px; border-radius:7px; font-weight:500; }
+.pill-eo, .pill-blue { background:rgba(79,138,255,.14); color:#9FB4FF; }
+.pill-so, .pill-warn { background:rgba(255,179,79,.14); color:#FFCF8F; }
+.pill-hy, .pill-ok   { background:rgba(47,238,168,.14); color:#8DF3CF; }
+.pill-re, .pill-mut  { background:rgba(119,130,163,.15); color:#9AA4C0; }
+.pill-err            { background:rgba(255,79,107,.14); color:#FF93A5; }
+
+/* ── KPI ── */
+.kpi-grid { display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:14px; }
+.kpi { background:var(--sf); border:1px solid var(--bd); border-radius:12px; padding:16px; }
+.kpi .lb { font-size:12px; color:var(--mu); }
+.kpi .vl { font-size:24px; font-weight:600; margin-top:8px; }
+
+/* ── Interrupteur ── */
+.tg { width:34px; height:19px; border-radius:20px; position:relative; display:inline-block; }
+.tg.on { background:var(--pri); } .tg.off { background:var(--bd); }
+.tg i { position:absolute; top:2px; width:15px; height:15px; border-radius:50%; background:#fff; }
+.tg.on i { right:2px; } .tg.off i { left:2px; }
+
+/* ── Jauge de remplissage ── */
+.gauge { display:flex; align-items:center; gap:8px; min-width:110px; }
+.gauge .bar { flex:1; height:7px; background:var(--bg); border-radius:6px; overflow:hidden; }
+.gauge .bar > div { height:100%; border-radius:6px; }
+
+/* ── Formulaires ── */
+.form-group { margin-bottom:12px; }
+.form-label { font-size:11px; letter-spacing:.04em; color:var(--mu); text-transform:uppercase; display:block; margin-bottom:6px; }
+.form-input { width:100%; background:var(--sfe); border:1px solid var(--bd); border-radius:9px; padding:10px 12px; color:var(--tx); font-size:13px; font-family:inherit; }
+.form-input.ro { color:var(--mu); }
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.total-est { display:flex; justify-content:space-between; background:var(--sfe); padding:11px 13px; border-radius:9px; font-size:13px; margin-top:6px; }
+.eye-wrap { position:relative; }
+.eye-wrap .eye { position:absolute; right:10px; top:50%; transform:translateY(-50%); background:none; border:0; color:var(--mu); cursor:pointer; font-size:16px; }
+
+/* ── Modales ── */
+.modal-back { position:fixed; inset:0; background:rgba(4,6,12,.66); display:none; align-items:center; justify-content:center; padding:20px; z-index:50; }
+.modal-back.on { display:flex; }
+.modal { background:var(--sf); border:1px solid var(--bd); border-radius:14px; padding:22px; width:100%; max-width:420px; }
+.modal h3 { font-size:16px; margin:0 0 16px; }
+.modal-actions { display:flex; flex-direction:column; gap:8px; margin-top:18px; }
+
+/* ── Divers ── */
+.alert { border-radius:12px; padding:16px 18px; display:flex; align-items:center; gap:14px; margin-top:14px; }
+.alert-vente { border:1px solid rgba(255,79,107,.3); background:rgba(255,79,107,.07); }
+.row-line { display:flex; justify-content:space-between; font-size:13px; padding:9px 0; }
+.legend { display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--mu); margin:0 8px; }
+.legend .sw { width:10px; height:10px; border-radius:3px; }
+.seg { display:inline-flex; background:var(--sfe); border-radius:9px; padding:3px; }
+.seg button { background:none; border:0; color:var(--mu); font-size:12px; padding:6px 12px; border-radius:7px; cursor:pointer; font-family:inherit; }
+.seg button.on { background:var(--pri); color:#06122E; font-weight:600; }

@@ -68,6 +68,11 @@
             value="{{ user.socialReason ?? '' }}">
         </div>
         <div class="form-group">
+          <label class="form-label">Dirigeant</label>
+          <input class="form-input" type="text" name="directorName"
+            value="{{ user.directorName ?? '' }}">
+        </div>
+        <div class="form-group">
           <label class="form-label">SIRET</label>
           <input class="form-input" type="text" name="siret"
             value="{{ user.siret ?? '' }}" readonly

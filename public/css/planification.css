@@ -92,6 +92,12 @@
   filter: brightness(1.08);
 }
 
+/* Cellules-jours facon maquette : hauteur confortable + "aujourd'hui" en bleu discret */
+#calendar .fc-daygrid-day-frame { min-height: 78px; padding: 4px; }
+#calendar .fc-daygrid-day.fc-day-today { background: color-mix(in srgb, var(--text-link) 8%, transparent); }
+#calendar .fc-daygrid-day-number { padding: 4px 6px; }
+#calendar .fc-daygrid-event { border-radius: 5px; margin-top: 3px; }
+
 /* ── COURS MP — HEADER ── */
 .cours-header {
   display: flex;

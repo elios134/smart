@@ -19,12 +19,24 @@ document.addEventListener('DOMContentLoaded', function () {
         var raw = document.getElementById('calendar-events-data');
         if (raw) { try { eventsData = JSON.parse(raw.textContent); } catch (e) {} }
         var cal = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'timeGridWeek', locale: 'fr',
-            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
-            events: eventsData, height: 520,
+            initialView: 'dayGridMonth', locale: 'fr', firstDay: 1,
+            headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,dayGridWeek' },
+            events: eventsData, height: 560, dayMaxEvents: 3,
             buttonText: { today: "Aujourd'hui", month: 'Mois', week: 'Semaine' }
         });
         cal.render();
+    }
+
+    // Ouverture auto de la modale "Planifier" via /planification?source=ID
+    // (bouton "Produire" d'une alerte de la page Energie). Pre-selectionne la source.
+    var presetSource = new URLSearchParams(window.location.search).get('source');
+    if (presetSource) {
+        var sModal = document.getElementById('modal-session-add');
+        var sSelect = sModal ? sModal.querySelector('select[name="sourceId"]') : null;
+        if (sModal && sSelect) {
+            sSelect.value = presetSource;
+            sModal.classList.add('open');
+        }
     }
 
     // ── Modal Créer achat depuis session terminée ─────────────

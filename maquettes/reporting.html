@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart-Yield — Reporting</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.31.0/dist/tabler-icons.min.css">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .bn { background:var(--sf); border:1px solid var(--bd); border-radius:12px; padding:16px; }
+  .bn .v { font-size:22px; font-weight:600; margin-top:6px; }
+  .bn .bar { height:7px; background:var(--bg); border-radius:6px; margin-top:10px; overflow:hidden; }
+  .bn .bar > div { height:100%; }
+</style>
+</head>
+<body>
+<div class="app">
+  <nav class="nav">
+    <span class="brand">Smart-Yield</span>
+    <a href="dashboard.html">Dashboard</a>
+    <a href="planification.html">Planification</a>
+    <a href="energie.html">Énergie</a>
+    <a href="stock.html">Stock</a>
+    <a href="ventes.html">Ventes</a>
+    <a href="reporting.html" class="on">Reporting</a>
+    <span style="margin-left:auto" class="role">SUPER_ADMIN</span>
+    <i class="ti ti-bell" style="color:#9AA4C0"></i>
+    <a href="profil.html" style="color:var(--mu)">Bonjour, André</a>
+  </nav>
+  <div class="main">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div><h1 class="page-h1">Reporting</h1><div class="page-sub">Performance financière et besoins en stock</div></div>
+      <div style="display:flex;gap:8px"><button class="btn-outline" style="padding:7px 12px"><i class="ti ti-file-spreadsheet"></i> CSV</button><button class="btn-outline" style="padding:7px 12px"><i class="ti ti-file-type-pdf"></i> PDF</button></div>
+    </div>
+    <div class="card">
+      <div class="card-head" style="flex-wrap:wrap;gap:12px"><span class="card-title">CA vs coûts de production</span>
+        <div style="display:flex;gap:16px;align-items:center">
+          <span class="legend"><span class="sw" style="background:#4F8AFF"></span>CA</span>
+          <span class="legend"><span class="sw" style="background:#2FEEA8"></span>Coûts</span>
+          <span class="seg"><button data-p="7">7j</button><button data-p="30" class="on">30j</button><button data-p="90">90j</button></span>
+        </div>
+      </div>
+      <div style="position:relative;height:240px;margin-top:14px"><canvas id="rep"></canvas></div>
+    </div>
+    <div style="margin-top:14px"><span class="card-title">Stock actuel par source</span>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:14px">
+        <div class="bn"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Parc éolien Nord</span><span style="color:var(--mu)">seuil 20%</span></div><div class="v">620 MWh</div><div style="font-size:11px;color:var(--mu);margin-top:2px">Stock disponible</div><div class="bar"><div style="width:82%;background:var(--ok)"></div></div></div>
+        <div class="bn"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Solaire Sud</span><span style="color:var(--mu)">seuil 20%</span></div><div class="v" style="color:var(--warn)">410 MWh</div><div style="font-size:11px;color:var(--mu);margin-top:2px">Stock disponible</div><div class="bar"><div style="width:34%;background:var(--warn)"></div></div></div>
+        <div class="bn"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Barrage Est</span><span style="color:var(--mu)">seuil 20%</span></div><div class="v" style="color:var(--err)">90 MWh</div><div style="font-size:11px;color:var(--mu);margin-top:2px">Stock disponible</div><div class="bar"><div style="width:12%;background:var(--err)"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script>
+var data = {
+  7:  { l:['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'], ca:[6,8,5,9,7,4,6], co:[3,4,2,5,4,2,3] },
+  30: { l:['S19','S20','S21','S22','S23','S24'],        ca:[32,38,29,44,41,47], co:[18,21,16,24,22,26] },
+  90: { l:['Avr','Mai','Juin'],                          ca:[120,138,151], co:[68,74,82] }
+};
+var ch = new Chart(document.getElementById('rep'), {
+  type:'bar',
+  data:{ labels:data[30].l, datasets:[
+    { label:'CA', data:data[30].ca, backgroundColor:'#4F8AFF', borderRadius:4 },
+    { label:'Coûts', data:data[30].co, backgroundColor:'#2FEEA8', borderRadius:4 }
+  ]},
+  options:{ responsive:true, maintainAspectRatio:false, plugins:{legend:{display:false}},
+    scales:{ x:{grid:{display:false},ticks:{color:'#7782A3'}}, y:{grid:{color:'#252D45'},ticks:{color:'#7782A3',callback:function(v){return v+'k€'}}} } }
+});
+document.querySelectorAll('.seg button').forEach(function (b) {
+  b.addEventListener('click', function () {
+    document.querySelectorAll('.seg button').forEach(function (x) { x.classList.remove('on'); });
+    b.classList.add('on');
+    var d = data[b.dataset.p];
+    ch.data.labels = d.l; ch.data.datasets[0].data = d.ca; ch.data.datasets[1].data = d.co; ch.update();
+  });
+});
+</script>
+</body>
+</html>

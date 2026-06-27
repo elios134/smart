@@ -3,11 +3,10 @@
   margin-bottom: 28px;
 }
 .page-header__title {
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
+  font-size: 22px;
+  font-weight: 600;
   color: var(--text);
-  line-height: 1.1;
+  line-height: 1.2;
 }
 .page-header__sub {
   display: inline-flex;
@@ -32,23 +31,22 @@
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 28px;
-  margin-bottom: 24px;
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 14px;
 }
 
 .card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 14px;
 }
 
 .card__title {
-  font-size: 26px;
-  font-weight: 500;
+  font-size: 15px;
+  font-weight: 600;
   color: var(--text);
-  letter-spacing: -0.02em;
 }
 
 .card__link {
@@ -103,8 +101,8 @@ tbody tr:hover td {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 8px 20px;
-  border-radius: var(--radius-xs);
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
   border: 1px solid transparent;
   font-family: inherit;
   font-size: 13px;
@@ -120,27 +118,27 @@ tbody tr:hover td {
 }
 
 .btn-primary {
-  background: var(--blue);
-  color: var(--text-link);
-  border-color: var(--blue-bd);
+  background: var(--text-link);
+  color: #06122E;
+  border-color: var(--text-link);
 }
 
 .btn-primary:hover {
-  background: var(--text-link);
+  background: color-mix(in srgb, var(--color-primary) 85%, #ffffff);
   border-color: color-mix(in srgb, var(--color-primary) 85%, #ffffff);
-  color: #fff;
+  color: #06122E;
 }
 
 .btn-outline {
-  background: var(--blue);
-  color: var(--text-link);
-  border-color: var(--blue-bd);
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
 }
 
 .btn-outline:hover {
-  background: var(--text-link);
-  border-color: color-mix(in srgb, var(--color-primary) 85%, #ffffff);
-  color: #fff;
+  background: var(--surface2);
+  border-color: var(--border);
+  color: var(--text);
 }
 
 .btn-danger {
@@ -388,29 +386,37 @@ tbody tr:hover td {
 .page-tabs,
 .page-tabs-bar {
   display: flex;
-  gap: 8px;
-  margin-bottom: 24px;
+  gap: 26px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--border);
 }
 
 .page-tab {
-  padding: 6px 16px;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border);
+  position: relative;
+  padding: 0 2px 12px;
+  border: 0;
   background: transparent;
   color: var(--muted);
   font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: .05em;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: none;
-  transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
-  display: inline-block;
   white-space: nowrap;
 }
 
-.page-tab:hover { border-color: var(--blue-bd); color: var(--text); }
-.page-tab.active { background: var(--text-link); border-color: var(--text-link); color: #fff; }
+.page-tab:hover { color: var(--text); }
+.page-tab.active { color: var(--text); }
+.page-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--text-link);
+  border-radius: 2px;
+}
 
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }

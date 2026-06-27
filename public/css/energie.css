@@ -5,6 +5,9 @@
 /* Conteneur du graphique : position:relative + hauteur fixe pour que le <canvas> Chart.js s'y adapte. */
 .chart-wrap { position: relative; height: 240px; }
 
+/* Donut du mix national (onglet Mix) : centré, hauteur fixe pour Chart.js. */
+.mix-donut-wrap { position: relative; height: 200px; max-width: 280px; margin: 0 auto 20px; }
+
 /* Liste verticale des cartes d'alerte, empilées avec un espacement régulier. */
 .energie-alertes {
     display: grid;
